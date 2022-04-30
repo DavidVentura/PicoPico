@@ -10,7 +10,6 @@
 #else
 #include "pico_backend.c"
 #endif
-Cart* c;
 
 int _lua_print() {
     size_t textLen = 0;
@@ -116,11 +115,8 @@ int main( int argc, char* args[] )
     registerLuaFunctions();
 
     memset(&fontsheet.sprite_data, 0xFF, 128*120);
-    c = cartParser(artifacts_untitled_p8);
-
-    // FIXME: broken on pico
-    //fontParser(artifacts_font_lua);
-    LCD_Clear(GREEN);
+    cartParser(artifacts_untitled_p8);
+    fontParser(artifacts_font_lua);
 
     bool quit = false;
     bool call_update = _lua_fn_exists("_update");
@@ -133,11 +129,6 @@ int main( int argc, char* args[] )
     while (!quit) {
 	frame_start_time = now();
 	quit = handle_input();
-	put_pixel(0, 0, (uint8_t[]){255, 255, 255});
-	put_pixel(16, 16, (uint8_t[]){255, 0, 0});
-	put_pixel(32, 32, (uint8_t[]){0, 255, 0});
-	put_pixel(48, 48, (uint8_t[]){0, 0, 255});
-	put_pixel(64, 64, (uint8_t[]){255, 255, 255});
 	if (call_update) _to_lua_call("_update");
 	if (call_draw) _to_lua_call("_draw");
 	gfx_flip();
@@ -145,7 +136,6 @@ int main( int argc, char* args[] )
 	int delta = 33 - (frame_end_time - frame_start_time);
 	if(delta > 0) delay(delta);
     }
-    LCD_Clear(RED);
 
     lua_close(L);
     video_close();

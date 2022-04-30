@@ -57,6 +57,7 @@ bool handle_input();
 void delay(uint8_t ms);
 void gfx_flip();
 void video_close();
+uint64_t now();
 
 
 bool _lua_fn_exists(char* fn) {
@@ -95,50 +96,48 @@ int _lua_btn() {
 
 void fontParser(char* text) {
     int spriteCount = 0;
+    char* buf = malloc(129);
     do {
-	char* l = readLine(&text);
-	gfxParser(l, spriteCount, &fontsheet);
+	readLine(&text, buf);
+	printf("buf is %s\n", buf);
+	gfxParser(buf, spriteCount, &fontsheet);
 	spriteCount++;
     } while (*text != 0);
+    free(buf);
 }
 
 Cart* cartParser(char* text) {
-    Cart* cart = malloc(sizeof(Cart));
-    cart->sprites = malloc(NUM_SPRITES * sizeof(uint8_t*));
-//    for (int i = 0; i < NUM_SPRITES; i++) {
-//	cart->sprites[i] = BLANK_SPRITE;
-//    }
-    // 16KB, but this is at 256 colors (not 16)
-    // could be 1KB, at the cost of twiddling every render
-
     int section = 0;
     int spriteCount = 0;
+    char* buf = malloc(256);
+    memset(buf, 0, 257);
     do {
-	char* l = readLine(&text);
-	if (strcmp(l, "__lua__") == 0) {
+	readLine(&text, buf);
+	if (strcmp(buf, "__lua__") == 0) {
 	    section = 1;
 	    continue;
 	}
-	if (strcmp(l, "__gfx__") == 0) {
+	if (strcmp(buf, "__gfx__") == 0) {
 	    section = 2;
 	    spriteCount = 0;
 	    continue;
 	}
-	if (strcmp(l, "__map__") == 0) {
+	if (strcmp(buf, "__map__") == 0) {
 	    section = 3;
 	    continue;
 	}
 	switch (section) {
 	    case 2:
-		gfxParser(l, spriteCount, &spritesheet);
+		gfxParser(buf, spriteCount, &spritesheet);
 		spriteCount++;
 		break;
 	    case 3:
-		mapParser(l);
+		mapParser(buf);
 		break;
 	}
     } while (*text != 0);
-    return cart;
+    free(buf);
+    return NULL;
 }
 
 void render(Spritesheet* s, uint8_t n, uint8_t x0, uint8_t y0, int paletteIdx) {

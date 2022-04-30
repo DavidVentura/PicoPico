@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <sys/time.h>
 #ifndef ENGINE
 #include "engine.c"
 #endif
@@ -84,9 +85,10 @@ bool init_video()
 }
 
 void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
-	SDL_SetRenderDrawColor(gRenderer, *p, *(p+1), *(p+2), 0xFF );
-	SDL_RenderDrawPoint(gRenderer, x, y);
+    SDL_SetRenderDrawColor(gRenderer, *p, *(p+1), *(p+2), 0xFF );
+    SDL_RenderDrawPoint(gRenderer, x, y);
 }
+
 SDL_Texture* loadTexture(char* path)
 {
     SDL_Surface* loaded = IMG_Load(path);
@@ -122,13 +124,12 @@ void video_close()
     SDL_Quit();
 }
 
-
 void gfx_flip() {
-	SDL_RenderPresent(gRenderer);
-	SDL_UpdateWindowSurface( gWindow );
+    SDL_RenderPresent(gRenderer);
+    SDL_UpdateWindowSurface( gWindow );
 }
 void delay(uint8_t ms) {
-	SDL_Delay(ms );
+    SDL_Delay(ms);
 }
 bool handle_input() {
     while( SDL_PollEvent( &e ) != 0 )
@@ -182,20 +183,6 @@ bool handle_input() {
     return false;
 }
 
-char* readFile(char* path, int* fileLen) {
-    FILE *f = fopen(path, "rb");
-    fseek(f, 0, SEEK_END);
-    *fileLen = (int)ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    char *string = malloc(*fileLen + 1);
-    fread(string, *fileLen, 1, f);
-    fclose(f);
-
-    string[*fileLen] = 0;
-    return string;
-}
-
 void gfx_cls() {
     SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
     SDL_RenderClear( gRenderer );
@@ -207,4 +194,9 @@ void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* col
     }
     SDL_Rect rect = {.x = x, .y = y, .w = w, .h = h };
     SDL_RenderFillRect(gRenderer, &rect);
+}
+uint64_t now() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (((long long)tv.tv_sec)*1000)+(tv.tv_usec/1000);
 }

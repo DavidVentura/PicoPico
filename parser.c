@@ -4,9 +4,8 @@
 
 uint8_t parseChar(char c);
 
-char* readLine(char** text) {
+void readLine(char** text, char* line) {
     int count = 1;
-    char* line = malloc(256);
 
     while(**text != '\0') {
 	if (**text == '\r' || **text == '\n') {
@@ -18,7 +17,6 @@ char* readLine(char** text) {
     *line++ = '\0';
     (*text)++;
     line -= count;
-    return line;
 }
 
 void gfxParser(char* line, int spriteLineCount, Spritesheet* s) {

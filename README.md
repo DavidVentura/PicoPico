@@ -11,12 +11,14 @@ Be aware, the code will be terrible, this is a project to learn:
 * Embedded
 
 ## Demo
+
 In emulator (SDL backed)
+
 ![Hello world](artifacts/hello_world.gif?raw=1)
 
 In Raspberry pi Pico
-https://raw.githubusercontent.com/davidventura/picopico/master/artifacts/first_day_pico.mp4
 
+https://user-images.githubusercontent.com/3650670/166120990-542c5594-b4a6-487f-b3ae-f32040c0057b.mp4
 
 # Basic analysis / feasibility:
 

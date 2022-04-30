@@ -142,7 +142,8 @@ int main( int argc, char* args[] )
 	if (call_draw) _to_lua_call("_draw");
 	gfx_flip();
 	frame_end_time = now();
-	delay(33 - (frame_end_time - frame_start_time));
+	int delta = 33 - (frame_end_time - frame_start_time);
+	if(delta > 0) delay(delta);
     }
     LCD_Clear(RED);
 

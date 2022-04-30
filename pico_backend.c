@@ -3,7 +3,7 @@
 #include "hardware/uart.h"
 #include "hardware/pwm.h"
 
-static uint16_t backbuffer[160*80]; // TODO: fixme, LCD size
+static uint8_t backbuffer[160*80*2]; // TODO: fixme, LCD size
 
 void put_buffer();
 
@@ -11,9 +11,9 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color
 }
 void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
     // TODO: fixme, lcd size
-    // RGB565 ?
     const uint16_t color = ((p[0] & 0xF) << 11) | ((p[1] & 0xF) << 6) | (p[2] & 0xF);
-    backbuffer[y*160+x] = color; //p[0];
+    backbuffer[2*(y*160+x)  ] = color >> 8;
+    backbuffer[2*(y*160+x)+1] = color & 0x7;
 }
 void video_close(){
 }
@@ -80,21 +80,18 @@ bool handle_input() {
 }
 
 uint64_t now(){
-    return get_absolute_time();
+    return to_ms_since_boot(get_absolute_time());
 }
 
 void put_buffer()
 {
+    //TODO: investigate how to do DMA?
     u16 x,y;
     u16 h = LCD_H();
     u16 w = LCD_W();
     LCD_Address_Set(0,0,w-1,h-1);
-    /*
-       OLED_CS_Clr();
-       spi_write_blocking(SPI_INST, backbuffer, sizeof(backbuffer)/2);
-       OLED_CS_Set();
-       */
-    for (y=0;y<h;y++) 
-	for(x=0;x<w;x++)
-	    LCD_WR_DATA(backbuffer[x+y*w]);
+    OLED_DC_Set();
+    OLED_CS_Clr();
+    spi_write_blocking(SPI_INST, backbuffer, sizeof(backbuffer));
+    OLED_CS_Set();
 }

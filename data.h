@@ -16,10 +16,10 @@ struct DrawState {
 typedef struct DrawState DrawState;
 
 struct Cart {
-    char* luaCode;
-    uint8_t** sprites;
+    char code[65535];
 };
 typedef struct Cart Cart;
+static Cart cart;
 
 static DrawState drawstate;
 

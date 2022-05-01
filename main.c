@@ -97,32 +97,27 @@ void registerLuaFunctions() {
 
 int main( int argc, char* args[] )
 {
-    if (argc == 1) {
-	printf("Usage: %s <file.lua>\n", args[0]);
-	return 1;
-    }
     if( !init_video() )
     {
 	printf( "Failed to initialize video!\n" );
 	return 1;
     }
 
-    L = init_lua(examples_hello_world_lua);
+    memset(&fontsheet.sprite_data, 0xFF, 128*120);
+    cartParser(examples_hello_world_lua);
+    fontParser(artifacts_font_lua);
+
+    L = init_lua(cart.code);
     if ( L == NULL ) {
 	printf( "Failed to initialize LUA!\n" );
 	return 1;
     }
     registerLuaFunctions();
 
-    memset(&fontsheet.sprite_data, 0xFF, 128*120);
-    cartParser(artifacts_untitled_p8);
-    fontParser(artifacts_font_lua);
-
     bool quit = false;
     bool call_update = _lua_fn_exists("_update");
     bool call_draw = _lua_fn_exists("_draw");
 
-    // hexDump(NULL, spritesheet.sprite_data, 128*16, 128);
     quit = false;
     uint64_t frame_start_time;
     uint64_t frame_end_time;

@@ -97,34 +97,43 @@ void fontParser(char* text) {
     char* buf = malloc(129);
     do {
 	readLine(&text, buf);
-	printf("buf is %s\n", buf);
 	gfxParser(buf, spriteCount, &fontsheet);
 	spriteCount++;
     } while (*text != 0);
     free(buf);
 }
 
-Cart* cartParser(char* text) {
-    int section = 0;
-    int spriteCount = 0;
+void cartParser(char* text) {
+    uint8_t section = 0;
+    uint32_t spriteCount = 0;
     char* buf = malloc(256);
     memset(buf, 0, 257);
+    memset(cart.code, 0, sizeof(cart.code));
+
+    uint32_t lineLen = 0;
+    uint32_t bytesRead = 0;
     do {
-	readLine(&text, buf);
-	if (strcmp(buf, "__lua__") == 0) {
+	lineLen = readLine(&text, buf);
+	if (strncmp(buf, "__lua__", 7) == 0) {
 	    section = 1;
+	    bytesRead = 0;
 	    continue;
 	}
-	if (strcmp(buf, "__gfx__") == 0) {
+	if (strncmp(buf, "__gfx__", 7) == 0) {
 	    section = 2;
 	    spriteCount = 0;
+	    bytesRead = 0;
 	    continue;
 	}
-	if (strcmp(buf, "__map__") == 0) {
+	if (strncmp(buf, "__map__", 7) == 0) {
 	    section = 3;
+	    bytesRead = 0;
 	    continue;
 	}
 	switch (section) {
+	    case 1:
+		memcpy(cart.code+bytesRead, buf, lineLen);
+		break;
 	    case 2:
 		gfxParser(buf, spriteCount, &spritesheet);
 		spriteCount++;
@@ -133,9 +142,11 @@ Cart* cartParser(char* text) {
 		mapParser(buf);
 		break;
 	}
+	bytesRead += lineLen;
     } while (*text != 0);
+    printf("Code is: %s\n", cart.code);
     free(buf);
-    return NULL;
+
 }
 
 void render(Spritesheet* s, uint8_t n, uint8_t x0, uint8_t y0, int paletteIdx) {

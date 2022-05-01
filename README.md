@@ -69,7 +69,7 @@ Immediate:
 
 * ~Get basic rendering on the Pico~
     * ~split backends properly~
-* Read code from p8 file instead of having split files
+* ~Read code from p8 file instead of having split files~
 * Implement map
 * Implement camera
 * Lua dialect

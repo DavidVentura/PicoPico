@@ -4,26 +4,27 @@
 
 uint8_t parseChar(char c);
 
-void readLine(char** text, char* line) {
-    int count = 1;
+uint32_t readLine(char** text, char* line) {
+    uint32_t count = 0;
 
     while(**text != '\0') {
-	if (**text == '\r' || **text == '\n') {
-	    break;
-	}
 	count++;
 	*line++ = *(*text)++;
+	if (**text == '\r' || **text == '\n') {
+	    count++;
+	    *line++ = *(*text)++;
+	    break;
+	}
     }
-    *line++ = '\0';
-    (*text)++;
     line -= count;
+    return count;
 }
 
 void gfxParser(char* line, int spriteLineCount, Spritesheet* s) {
-	const int offset = spriteLineCount * 128;
-	for (uint8_t i = 0; i < 128; i++) {
-		s->sprite_data[ i + offset] = parseChar(line[i]);
-	}
+    const int offset = spriteLineCount * 128;
+    for (uint8_t i = 0; i < 128; i++) {
+	s->sprite_data[ i + offset] = parseChar(line[i]);
+    }
 }
 void mapParser(char* line) {
 }

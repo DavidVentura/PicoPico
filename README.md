@@ -54,6 +54,10 @@ Running `hello_world.lua`:
     * Lua: ~9ms / frame
     * Copying backbuffer to screen (`uint8_t`): ~12ms / frame
 
+* Display on 2nd core: 10ms / frame; of which:
+    * Lua: ~9ms / frame
+    * ~Copying backbuffer to screen~ happens "for free" in the other core
+
 Immediate TODO:
 
 * ~Get basic rendering on the Pico~

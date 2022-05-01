@@ -36,6 +36,7 @@ target_link_libraries(hello_pico
     hardware_spi
 
     pico_stdlib
+    pico_multicore
 )
 target_include_directories(hello_pico PUBLIC
     /home/david/Downloads/lua-5.2.4/src/

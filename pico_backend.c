@@ -3,6 +3,10 @@
 #include "st7735_80x160/my_lcd.h"
 #include "hardware/pwm.h"
 #include "pico/bootrom.h"
+#include "pico/multicore.h"
+
+
+#define READY_TO_RENDER_FLAG 123
 
 static uint8_t backbuffer[160*80*2]; // TODO: fixme, LCD size
 
@@ -13,13 +17,15 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color
 void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
     // TODO: fixme, lcd size
     const uint16_t color = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
+    // backbuffer[(y*160+x)  ] = color;
     backbuffer[2*(y*160+x)  ] = color >> 8;
     backbuffer[2*(y*160+x)+1] = color & 0xF;
 }
 void video_close(){
 }
 void gfx_flip() {
-    put_buffer();
+    // put_buffer();
+    multicore_fifo_push_blocking(READY_TO_RENDER_FLAG);
 }
 void delay(uint8_t ms) {
     sleep_ms(ms);
@@ -58,6 +64,7 @@ void init_gpio() {
 }
 bool init_video() {
     init_gpio();
+    multicore_launch_core1(put_buffer);
 
     printf("\n");
     printf("========================\n");
@@ -83,13 +90,16 @@ uint64_t now(){
 
 void put_buffer()
 {
-    //TODO: investigate how to do DMA?
-    u16 x,y;
-    u16 h = LCD_H();
-    u16 w = LCD_W();
-    LCD_Address_Set(0,0,w-1,h-1);
-    OLED_DC_Set();
-    OLED_CS_Clr();
-    spi_write_blocking(SPI_INST, backbuffer, sizeof(backbuffer));
-    OLED_CS_Set();
+    while (true) {
+	//TODO: investigate how to do DMA?
+	multicore_fifo_pop_blocking();
+	u16 x,y;
+	u16 h = LCD_H();
+	u16 w = LCD_W();
+	LCD_Address_Set(0,0,w-1,h-1);
+	OLED_DC_Set();
+	OLED_CS_Clr();
+	spi_write_blocking(SPI_INST, backbuffer, sizeof(backbuffer));
+	OLED_CS_Set();
+    }
 }

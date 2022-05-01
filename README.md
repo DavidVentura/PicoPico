@@ -58,13 +58,15 @@ Running `hello_world.lua`:
     * Lua: ~9ms / frame
     * ~Copying backbuffer to screen~ happens "for free" in the other core
 
-Immediate TODO:
+# TODO
+
+Immediate:
 
 * ~Get basic rendering on the Pico~
     * ~split backends properly~
 * Lua dialect
     * how to modify lua?
 
-TODO Later:
+Later:
 
 * Investigate pushing pixels to display via DMA

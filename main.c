@@ -126,16 +126,18 @@ int main( int argc, char* args[] )
     quit = false;
     uint64_t frame_start_time;
     uint64_t frame_end_time;
+    const uint8_t target_fps = 60;
+    const uint8_t ms_delay = 1000 / target_fps;
     while (!quit) {
 	frame_start_time = now();
+	gfx_flip();
 	quit = handle_input();
 	if (call_update) _to_lua_call("_update");
 	if (call_draw) _to_lua_call("_draw");
-	gfx_flip();
 	frame_end_time = now();
-	int delta = 33 - (frame_end_time - frame_start_time);
+	int delta = ms_delay - (frame_end_time - frame_start_time);
 	if(delta > 0) delay(delta);
-	printf("This frame took: %d\n", 33 - delta);
+	// printf("This frame took: %d (del is %d, ms_del is %d)\n", ms_delay - delta, delta, ms_delay);
     }
 
     lua_close(L);

@@ -50,15 +50,15 @@ Not sure how much CPU it'd take to have every single render to the backbuffer ex
 
 Running `hello_world.lua`:
 
-* Normal: 22ms / frame; of which:
+* Normal: 23ms / frame; of which:
     * Lua: ~9ms / frame
     * Copying backbuffer to screen (`uint8_t`): ~12ms / frame
 
-* Display on 2nd core: 10ms / frame; of which:
+* Display on 2nd core: 11.5ms / frame; of which:
     * Lua: ~9ms / frame
     * ~Copying backbuffer to screen~ happens "for free" in the other core
 
-* Multicore + overclock to 260MHz: 4.5ms/frame
+* Multicore + overclock to 260MHz: 5ms/frame
 
 # TODO
 
@@ -68,7 +68,12 @@ Immediate:
     * ~split backends properly~
 * Lua dialect
     * how to modify lua?
+* Unify the build systems (Make for pc / CMake for pico)
 
 Later:
 
 * Investigate pushing pixels to display via DMA
+
+# Hardware
+
+Build something like the [PicoSystem](https://shop.pimoroni.com/products/picosystem?variant=32369546985555) ?

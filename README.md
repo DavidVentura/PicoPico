@@ -21,7 +21,10 @@ In emulator (SDL backed)
 
 In Raspberry pi Pico
 
-https://user-images.githubusercontent.com/3650670/166120990-542c5594-b4a6-487f-b3ae-f32040c0057b.mp4
+
+https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
+
+
 
 # Basic analysis / feasibility:
 

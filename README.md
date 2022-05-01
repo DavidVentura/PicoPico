@@ -54,7 +54,7 @@ Running `hello_world.lua`:
     * Lua: ~9ms / frame
     * Copying backbuffer to screen (`uint8_t`): ~12ms / frame
 
-* Display on 2nd core: 11.5ms / frame; of which:
+* Display on 2nd core: 10.5ms / frame; of which:
     * Lua: ~9ms / frame
     * ~Copying backbuffer to screen~ happens "for free" in the other core
 
@@ -66,6 +66,9 @@ Immediate:
 
 * ~Get basic rendering on the Pico~
     * ~split backends properly~
+* Read code from p8 file instead of having split files
+* Implement map
+* Implement camera
 * Lua dialect
     * how to modify lua?
 * Unify the build systems (Make for pc / CMake for pico)
@@ -77,3 +80,25 @@ Later:
 # Hardware
 
 Build something like the [PicoSystem](https://shop.pimoroni.com/products/picosystem?variant=32369546985555) ?
+
+# Development (without a second Pico running OpenOCD)
+
+Add this block to a udev rule (adjust the paths to point to this repo)
+```
+SUBSYSTEM=="block", ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="0003", ACTION=="add", SYMLINK+="rp2040upl%n"
+SUBSYSTEM=="block", ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="0003", ACTION=="add", RUN+="/home/david/git/luatest/udev_build.sh rp2040upl%n"
+```
+
+Then having an open minicom shell 
+```
+sudo minicom -b 115200 -D /dev/ttyACM1
+```
+
+you can press `r` on it to reboot into mass-storage mode; which will trigger the udev rules after a second or so.
+
+# Useful links
+
+* [Easy intro to Embedding lua](https://lucasklassmann.com/blog/2019-02-02-how-to-embeddeding-lua-in-c/#example-of-error-handling)
+* [Lua 5.2 Manual](https://www.lua.org/manual/5.2/manual.html)
+* [Storing data in flash](https://kevinboone.me/picoflash.html?i=1)
+* [Udev rule to copy build automatically](https://forums.raspberrypi.com/viewtopic.php?t=333160)

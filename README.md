@@ -58,6 +58,8 @@ Running `hello_world.lua`:
     * Lua: ~9ms / frame
     * ~Copying backbuffer to screen~ happens "for free" in the other core
 
+* Multicore + overclock to 260MHz: 4.5ms/frame
+
 # TODO
 
 Immediate:

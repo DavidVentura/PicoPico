@@ -5,13 +5,11 @@
 
 lua_State *L = NULL;
 int buttons[4] = {0,0,0,0};
-uint8_t BLANK_SPRITE[64] = {0};
-uint8_t NUM_SPRITES = 255;
 
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 
-uint8_t original_palette[][3] = {
+static uint8_t original_palette[][3] = {
     {0, 0, 0}, //	black
     {29, 43, 83}, //	dark-blue
     {126, 37, 83}, //	dark-purple
@@ -29,7 +27,7 @@ uint8_t original_palette[][3] = {
     {255, 119, 168}, //	pink
     {255, 204, 170}, //	light-peach 
 };
-uint8_t palette[][3] = {
+static uint8_t palette[][3] = {
     {0, 0, 0}, //	black
     {29, 43, 83}, //	dark-blue
     {126, 37, 83}, //	dark-purple

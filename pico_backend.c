@@ -23,30 +23,30 @@ void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
 }
 void video_close(){
 }
+
 void gfx_flip() {
-    // put_buffer();
     multicore_fifo_push_blocking(READY_TO_RENDER_FLAG);
 }
+
 void delay(uint8_t ms) {
     sleep_ms(ms);
 }
+
 void gfx_cls() {
     memset(backbuffer, 0, sizeof(backbuffer));
-    // LCD_Clear(BLACK);
 }
+
 void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color) {
 }
+
 void init_gpio() {
     stdio_init_all();
 
-    // Set the GPIO pin mux to the UART - 0 is TX, 1 is RX
-    //gpio_set_function(0, GPIO_FUNC_UART);
-    //gpio_set_function(1, GPIO_FUNC_UART);
     while (uart_is_readable(uart0)) {
         uart_getc(uart0);
     }
-
-    // LED
+    // Overclock from 130MHz to 266MHz
+    // set_sys_clock_khz(266000, true);
 
     // BackLight PWM (125MHz / 65536 / 4 = 476.84 Hz)
     gpio_set_function(PIN_LCD_BLK, GPIO_FUNC_PWM);
@@ -54,7 +54,7 @@ void init_gpio() {
     pwm_config config = pwm_get_default_config();
     pwm_config_set_clkdiv(&config, 4.f);
     pwm_init(slice_num, &config, true);
-    int bl_val = 196;
+    int bl_val = 255;
     // Square bl_val to make brightness appear more linear
     pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
 
@@ -80,7 +80,7 @@ bool handle_input() {
 	    reset_usb_boot(0, 0);
 	    break;
     }
-    // should quit
+    // should quit?
     return false;
 }
 

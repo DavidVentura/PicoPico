@@ -16,6 +16,9 @@ void put_buffer();
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color){
 }
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
+    if (y >= 80) {
+	return;
+    }
     // TODO: fixme, lcd size
     const uint16_t color = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
     // frontbuffer[(y*160+x)  ] = color;

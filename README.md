@@ -70,7 +70,7 @@ Immediate:
 * ~Get basic rendering on the Pico~
     * ~split backends properly~
 * ~Read code from p8 file instead of having split files~
-* Implement map
+* ~Implement map~
 * Implement camera
 * Lua dialect
     * how to modify lua?
@@ -105,3 +105,4 @@ you can press `r` on it to reboot into mass-storage mode; which will trigger the
 * [Lua 5.2 Manual](https://www.lua.org/manual/5.2/manual.html)
 * [Storing data in flash](https://kevinboone.me/picoflash.html?i=1)
 * [Udev rule to copy build automatically](https://forums.raspberrypi.com/viewtopic.php?t=333160)
+* [Getting started on basic Pico8 Gamedev](https://lukemerrett.com/getting-started-with-pico-8/)

@@ -26,7 +26,13 @@ void gfxParser(char* line, int spriteLineCount, Spritesheet* s) {
 	s->sprite_data[ i + offset] = parseChar(line[i]);
     }
 }
-void mapParser(char* line) {
+void mapParser(char* line, int spriteLineCount, uint8_t* map_data) {
+    const int offset = spriteLineCount * 128;
+    for (uint8_t i = 0; i < 128; i++) {
+	uint8_t msn = parseChar(line[i*2  ]);
+	uint8_t lsn = parseChar(line[i*2+1]);
+	map_data[i+offset] = ((msn & 0x7) << 4) | lsn & 0x7;
+    }
 }
 
 inline uint8_t parseChar(char c) {

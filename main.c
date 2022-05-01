@@ -78,6 +78,20 @@ int _lua_circfill() {
     return 1;
 }
 
+int _lua_map() {
+    int mapX = luaL_checkinteger(L, 1);
+    int mapY = luaL_checkinteger(L, 2);
+    int screenX = luaL_checkinteger(L, 3);
+    int screenY = luaL_checkinteger(L, 4);
+    int cellW = luaL_checkinteger(L, 5);
+    int cellH = luaL_checkinteger(L, 6);
+    int layerFlags = luaL_optinteger(L, 7, 0xF);
+
+    gfx_map(mapX, mapY, screenX, screenY, cellW, cellH, layerFlags);
+    //printf("mx %d, my: %d, sx %d, sy: %d, cw: %d, ch: %d, fl %d\n", mapX, mapY, screenX, screenY, cellW, cellH, layerFlags);
+    return 1;
+}
+
 void registerLuaFunctions() {
     lua_pushcfunction(L, _lua_spr);
     lua_setglobal(L, "spr");
@@ -93,6 +107,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "circfill");
     lua_pushcfunction(L, _lua_btn);
     lua_setglobal(L, "btn");
+    lua_pushcfunction(L, _lua_map);
+    lua_setglobal(L, "map");
 }
 
 int main( int argc, char* args[] )
@@ -104,7 +120,8 @@ int main( int argc, char* args[] )
     }
 
     memset(&fontsheet.sprite_data, 0xFF, 128*120);
-    cartParser(examples_hello_world_lua);
+    memset(map_data, 0, sizeof(map_data));
+    cartParser(examples_map_p8);
     fontParser(artifacts_font_lua);
 
     L = init_lua(cart.code);

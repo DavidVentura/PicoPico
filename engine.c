@@ -8,6 +8,7 @@ int buttons[4] = {0,0,0,0};
 
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
+static uint8_t map_data[32 * 128];
 
 static uint8_t original_palette[][3] = {
     {0, 0, 0}, //	black
@@ -46,7 +47,11 @@ static uint8_t palette[][3] = {
     {255, 204, 170}, //	light-peach 
 };
 
+void render(Spritesheet* s, uint8_t n, uint8_t x0, uint8_t y0, int paletteIdx);
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
+static void gfx_map(uint8_t mapX, uint8_t mapY,
+		    uint8_t screenX, uint8_t screenY,
+		    uint8_t cellW, uint8_t cellH, uint8_t layerFlags);
 void gfx_cls();
 void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color);
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color);
@@ -57,6 +62,16 @@ void gfx_flip();
 void video_close();
 uint64_t now();
 
+static void gfx_map(uint8_t mapX, uint8_t mapY,
+		    uint8_t screenX, uint8_t screenY,
+		    uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
+
+    for(uint8_t y = mapY; y < mapY+cellH; y++) {
+	for(uint8_t x = mapX; x < mapX+cellW; x++) {
+	    render(&spritesheet, map_data[x+y*128], screenX+(x-mapX)*8, screenY+(y-mapY)*8, -1);
+	}
+    }
+}
 
 bool _lua_fn_exists(char* fn) {
     lua_getglobal(L, fn);
@@ -127,6 +142,7 @@ void cartParser(char* text) {
 	}
 	if (strncmp(buf, "__map__", 7) == 0) {
 	    section = 3;
+	    spriteCount = 0;
 	    bytesRead = 0;
 	    continue;
 	}
@@ -139,14 +155,13 @@ void cartParser(char* text) {
 		spriteCount++;
 		break;
 	    case 3:
-		mapParser(buf);
+		mapParser(buf, spriteCount, map_data);
+		spriteCount++;
 		break;
 	}
 	bytesRead += lineLen;
     } while (*text != 0);
-    printf("Code is: %s\n", cart.code);
     free(buf);
-
 }
 
 void render(Spritesheet* s, uint8_t n, uint8_t x0, uint8_t y0, int paletteIdx) {

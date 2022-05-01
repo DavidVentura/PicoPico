@@ -7,8 +7,8 @@ struct Spritesheet {
 	uint8_t sprite_data[128 * 128];
 	uint8_t flags[256];
 };
-
 typedef struct Spritesheet Spritesheet;
+
 
 struct DrawState {
 	uint8_t fg_color;

@@ -135,6 +135,7 @@ int main( int argc, char* args[] )
 	frame_end_time = now();
 	int delta = 33 - (frame_end_time - frame_start_time);
 	if(delta > 0) delay(delta);
+	printf("This frame took: %d\n", 33 - delta);
     }
 
     lua_close(L);

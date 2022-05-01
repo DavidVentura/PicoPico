@@ -9,6 +9,9 @@ Be aware, the code will be terrible, this is a project to learn:
 * C
 * SDL
 * Embedded
+* CMake
+* Lua
+    * And how to adapt / modify languages
 
 ## Demo
 
@@ -43,6 +46,13 @@ Memory requirements:
 Both Spritesheet (16KB), Fontsheet (16KB) and Map (4KB) can be squeezed to half, as they need a nibble per pixel, instead of a byte.  
 Not sure how much CPU it'd take to have every single render to the backbuffer expand the pixels back bytes.
 
+# Current performance
+
+Running `hello_world.lua`:
+
+* Normal: 22ms / frame; of which:
+    * Lua: ~9ms / frame
+    * Copying backbuffer to screen (`uint8_t`): ~12ms / frame
 
 Immediate TODO:
 
@@ -50,3 +60,7 @@ Immediate TODO:
     * ~split backends properly~
 * Lua dialect
     * how to modify lua?
+
+TODO Later:
+
+* Investigate pushing pixels to display via DMA

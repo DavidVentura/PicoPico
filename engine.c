@@ -121,7 +121,7 @@ void fontParser(char* text) {
 void cartParser(char* text) {
     uint8_t section = 0;
     uint32_t spriteCount = 0;
-    char* buf = malloc(256);
+    char* buf = malloc(257);
     memset(buf, 0, 257);
     memset(cart.code, 0, sizeof(cart.code));
 

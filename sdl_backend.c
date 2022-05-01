@@ -84,7 +84,7 @@ bool init_video()
     return true;
 }
 
-void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
+static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
     SDL_SetRenderDrawColor(gRenderer, *p, *(p+1), *(p+2), 0xFF );
     SDL_RenderDrawPoint(gRenderer, x, y);
 }

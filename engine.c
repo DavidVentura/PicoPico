@@ -46,7 +46,7 @@ static uint8_t palette[][3] = {
     {255, 204, 170}, //	light-peach 
 };
 
-void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
+static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
 void gfx_cls();
 void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color);
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color);

@@ -71,7 +71,7 @@ Immediate:
     * ~split backends properly~
 * ~Read code from p8 file instead of having split files~
 * ~Implement map~
-* Implement camera
+* ~Implement camera~
 * Lua dialect
     * how to modify lua?
 * Unify the build systems (Make for pc / CMake for pico)

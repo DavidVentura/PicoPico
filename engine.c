@@ -182,7 +182,7 @@ void render(Spritesheet* s, uint8_t n, uint8_t x0, uint8_t y0, int paletteIdx) {
 	    }
 	    if (val != 0){
 		    const uint8_t* p = palette[idx];
-		    put_pixel(x0+x, y0+y, p);
+		    put_pixel(x0+x-drawstate.camera_x, y0+y-drawstate.camera_y, p);
 	    }
 	}
     }

@@ -12,7 +12,10 @@ typedef struct Spritesheet Spritesheet;
 
 struct DrawState {
 	uint8_t fg_color;
+	int16_t camera_x;
+	int16_t camera_y;
 };
+
 typedef struct DrawState DrawState;
 
 struct Cart {

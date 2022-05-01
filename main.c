@@ -92,6 +92,17 @@ int _lua_map() {
     return 1;
 }
 
+int _lua_camera() {
+    int x = luaL_optinteger(L, 1, 0xFFFF);
+    int y = luaL_optinteger(L, 2, 0xFFFF);
+
+    if (x != 0xFFFF)
+	    drawstate.camera_x = x;
+
+    if (y != 0xFFFF)
+	    drawstate.camera_y = y;
+}
+
 void registerLuaFunctions() {
     lua_pushcfunction(L, _lua_spr);
     lua_setglobal(L, "spr");

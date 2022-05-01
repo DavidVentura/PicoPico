@@ -7,6 +7,13 @@
 
 
 #define READY_TO_RENDER_FLAG 123
+#define A_BUTTON_GPIO 15
+#define B_BUTTON_GPIO 17
+#define UP_BUTTON_GPIO 2
+#define DOWN_BUTTON_GPIO 18
+#define LEFT_BUTTON_GPIO 16
+#define RIGHT_BUTTON_GPIO 20
+#define MASK_GPIO (1 << A_BUTTON_GPIO) | (1<<B_BUTTON_GPIO) | (1<<UP_BUTTON_GPIO) | (1<<DOWN_BUTTON_GPIO) | (1<<LEFT_BUTTON_GPIO) | (1<<RIGHT_BUTTON_GPIO)
 
 static uint8_t frontbuffer[160*80*2]; // TODO: fixme, LCD size
 static uint8_t backbuffer[160*80*2]; // TODO: fixme, LCD size
@@ -53,6 +60,14 @@ void init_gpio() {
     // Overclock from 130MHz to 266MHz
     // set_sys_clock_khz(266000, true);
 
+    gpio_init_mask(MASK_GPIO);
+    gpio_pull_up(A_BUTTON_GPIO);
+    gpio_pull_up(B_BUTTON_GPIO);
+    gpio_pull_up(UP_BUTTON_GPIO);
+    gpio_pull_up(DOWN_BUTTON_GPIO);
+    gpio_pull_up(LEFT_BUTTON_GPIO);
+    gpio_pull_up(RIGHT_BUTTON_GPIO);
+
     // BackLight PWM (125MHz / 65536 / 4 = 476.84 Hz)
     gpio_set_function(PIN_LCD_BLK, GPIO_FUNC_PWM);
     uint slice_num = pwm_gpio_to_slice_num(PICO_DEFAULT_LED_PIN);
@@ -85,7 +100,11 @@ bool handle_input() {
 	    reset_usb_boot(0, 0);
 	    break;
     }
-    // should quit?
+
+    buttons[0] = !gpio_get(LEFT_BUTTON_GPIO);
+    buttons[1] = !gpio_get(RIGHT_BUTTON_GPIO);
+    buttons[2] = !gpio_get(UP_BUTTON_GPIO);
+    buttons[3] = !gpio_get(DOWN_BUTTON_GPIO);
     return false;
 }
 

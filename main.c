@@ -21,7 +21,7 @@ int _lua_print() {
     for (int i = 0; i<textLen; i++) {
 	render(&fontsheet, text[i], x + i * 4, y, paletteIdx);
     }
-    // render(font, letter_idx, x + letter_count, y);
+    // FIXME: this only works for ascii
 }
 
 int _lua_pal() {

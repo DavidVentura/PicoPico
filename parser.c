@@ -70,4 +70,5 @@ inline uint8_t parseChar(char c) {
 	case 'f':
 	    return 15;
     }
+    return 0xFF;
 }

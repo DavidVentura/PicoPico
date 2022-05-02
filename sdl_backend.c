@@ -12,9 +12,28 @@ const int V_SCREEN_HEIGHT = 128;
 const int SCREEN_WIDTH = 512;
 const int SCREEN_HEIGHT = 512;
 
+static uint16_t buffer[128*128];
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Event e;
+
+void gfx_circlefill(int x, int y, int radius, uint8_t* color)
+{
+    if (color != NULL)
+	SDL_SetRenderDrawColor(gRenderer, color[0], color[1], color[2], 255);
+    for (int w = 0; w < radius * 2; w++)
+    {
+        for (int h = 0; h < radius * 2; h++)
+        {
+            int dx = radius - w; // horizontal offset
+            int dy = radius - h; // vertical offset
+            if ((dx*dx + dy*dy) <= (radius * radius))
+            {
+                put_pixel(x + dx, y + dy, color);
+            }
+        }
+    }
+}
 
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color)
 {
@@ -31,14 +50,14 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color
     while (x >= y)
     {
 	//  Each of the following renders an octant of the circle
-	SDL_RenderDrawPoint(gRenderer, centreX + x, centreY - y);
-	SDL_RenderDrawPoint(gRenderer, centreX + x, centreY + y);
-	SDL_RenderDrawPoint(gRenderer, centreX - x, centreY - y);
-	SDL_RenderDrawPoint(gRenderer, centreX - x, centreY + y);
-	SDL_RenderDrawPoint(gRenderer, centreX + y, centreY - x);
-	SDL_RenderDrawPoint(gRenderer, centreX + y, centreY + x);
-	SDL_RenderDrawPoint(gRenderer, centreX - y, centreY - x);
-	SDL_RenderDrawPoint(gRenderer, centreX - y, centreY + x);
+	put_pixel(centreX + x, centreY - y, color);
+	put_pixel(centreX + x, centreY + y, color);
+	put_pixel(centreX - x, centreY - y, color);
+	put_pixel(centreX - x, centreY + y, color);
+	put_pixel(centreX + y, centreY - x, color);
+	put_pixel(centreX + y, centreY + x, color);
+	put_pixel(centreX - y, centreY - x, color);
+	put_pixel(centreX - y, centreY + x, color);
 
 	if (error <= 0)
 	{
@@ -58,6 +77,7 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color
 
 bool init_video()
 {
+	memset(buffer, 0, sizeof(buffer));
 
     //Initialize SDL
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
@@ -85,31 +105,14 @@ bool init_video()
 }
 
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
-    SDL_SetRenderDrawColor(gRenderer, *p, *(p+1), *(p+2), 0xFF );
+	SDL_SetRenderDrawColor(gRenderer, *p, *(p+1), *(p+2), 0xFF );
     SDL_RenderDrawPoint(gRenderer, x, y);
+    // FIXME this is wrong
+    buffer[x+y*128] = (p-palette[0])/3;
 }
 
-SDL_Texture* loadTexture(char* path)
-{
-    SDL_Surface* loaded = IMG_Load(path);
-    if( loaded == NULL )
-    {
-	printf( "Unable to load image %s! SDL Error: %s\n", path, SDL_GetError() );
-	SDL_FreeSurface(loaded);
-	return NULL;
-    }
-    SDL_SetColorKey(loaded, SDL_TRUE, SDL_MapRGB( loaded->format, 0, 0x00, 0x00 ) );
-
-    SDL_Texture* newTexture = SDL_CreateTextureFromSurface( gRenderer, loaded);
-    if( newTexture == NULL )
-    {
-	printf( "Unable to create texture! SDL Error: %s\n", SDL_GetError() );
-	SDL_FreeSurface(loaded);
-	return NULL;
-    }
-
-    SDL_FreeSurface(loaded);
-    return newTexture;
+uint16_t get_pixel(uint8_t x, uint8_t y) {
+	return buffer[x+y*128];
 }
 
 void video_close()
@@ -120,7 +123,6 @@ void video_close()
     gRenderer = NULL;
 
     //Quit SDL subsystems
-    IMG_Quit();
     SDL_Quit();
 }
 
@@ -157,6 +159,14 @@ bool handle_input() {
 		    buttons[3] = 1;
 		    break;
 
+		case SDLK_x:
+		    buttons[4] = 1;
+		    break;
+
+		case SDLK_z:
+		    buttons[5] = 1;
+		    break;
+
 	    }
 	} else if (e.type == SDL_KEYUP) {
 	    switch( e.key.keysym.sym )
@@ -177,15 +187,31 @@ bool handle_input() {
 		    buttons[3] = 0;
 		    break;
 
+		case SDLK_x:
+		    buttons[4] = 0;
+		    break;
+
+		case SDLK_z:
+		    buttons[5] = 0;
+		    break;
+
 	    }
 	}
     }
     return false;
 }
 
-void gfx_cls() {
-    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+void gfx_cls(uint8_t* color) {
+    SDL_SetRenderDrawColor( gRenderer, color[0], color[1], color[2], 0x00 );
     SDL_RenderClear( gRenderer );
+}
+
+void gfx_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color) {
+    if ( color != NULL ) {
+	SDL_SetRenderDrawColor(gRenderer, color[0], color[1], color[2], 255);
+    }
+    SDL_Rect rect = {.x = x, .y = y, .w = w, .h = h };
+    SDL_RenderDrawRect(gRenderer, &rect);
 }
 
 void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color) {
@@ -199,4 +225,11 @@ uint64_t now() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (((long long)tv.tv_sec)*1000)+(tv.tv_usec/1000);
+}
+
+void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* color) {
+    if ( color != NULL ) {
+	SDL_SetRenderDrawColor(gRenderer, color[0], color[1], color[2], 255);
+    }
+	SDL_RenderDrawLine(gRenderer, x0, y0, x1, y1);
 }

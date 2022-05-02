@@ -14,6 +14,9 @@ struct DrawState {
 	uint8_t fg_color;
 	int16_t camera_x;
 	int16_t camera_y;
+	uint16_t line_x;
+	uint16_t line_y;
+	uint8_t transparent[15];
 };
 
 typedef struct DrawState DrawState;

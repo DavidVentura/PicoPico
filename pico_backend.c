@@ -20,7 +20,16 @@ static uint8_t backbuffer[160*80*2]; // TODO: fixme, LCD size
 
 void put_buffer();
 
+uint16_t get_pixel(uint8_t x, uint8_t y) {
+	return frontbuffer[x+y*160]; // FIXME: lcd size
+}
+
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color){
+}
+void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* color) {
+	for(uint8_t x=x0; x<x1-x0; x++)
+		for(uint8_t y=y0; y<y1-y0; y++)
+			put_pixel(x, y, color);
 }
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
     if (y >= 80) {
@@ -44,8 +53,22 @@ void delay(uint8_t ms) {
     sleep_ms(ms);
 }
 
-void gfx_cls() {
-    memset(frontbuffer, 0, sizeof(frontbuffer));
+void gfx_cls(uint8_t* color) {
+    for(uint8_t x=0; x<160; x++)
+    for(uint8_t y=0; y<80; y++){
+	    put_pixel(x, y, color);
+    }
+    // FIXME: put back to memset when front/backbuffers are uint16_t
+    // but that needs SPI code to work with write16
+    // memset(frontbuffer, val, sizeof(frontbuffer));
+}
+
+void gfx_rect(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h, const uint8_t* color) {
+    for(uint8_t x=x0; x<=x0+w; x++)
+    for(uint8_t y=y0; y<=y0+w; y++){
+	    if (x==x0 || x == (x0+w) || y==y0 || y == y0+w)
+	    put_pixel(x, y, color);
+    }
 }
 
 void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color) {

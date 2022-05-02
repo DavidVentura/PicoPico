@@ -78,6 +78,7 @@ bool _lua_fn_exists(char* fn) {
     if (lua_isfunction(L, -1)) {
 	    return true;
     } else {
+	    printf("Function %s does not exist\n", fn);
 	    return false;
     }
 }
@@ -87,6 +88,7 @@ void _to_lua_call(char* fn) {
 		lua_pop(L, lua_gettop(L));
 	} else {
 		puts(lua_tostring(L, lua_gettop(L)));
+		lua_pop(L, lua_gettop(L));
 	}
 }
 lua_State* init_lua(char* script_text) {

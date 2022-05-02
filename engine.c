@@ -93,7 +93,11 @@ void _to_lua_call(char* fn) {
 }
 lua_State* init_lua(char* script_text) {
     lua_State *state = luaL_newstate();
-    luaL_openlibs(state);
+    // luaL_openlibs(state);
+
+    if (luaL_dostring(state, stdlib_stdlib_lua) == LUA_OK) {
+	lua_pop(state, lua_gettop(state));
+    }
 
     if (luaL_dostring(state, script_text) == LUA_OK) {
 	lua_pop(state, lua_gettop(state));

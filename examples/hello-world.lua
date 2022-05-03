@@ -2,9 +2,6 @@ pico-8 cartridge // http://www.pico-8.com
 version 36
 __lua__
 t = 0
-function cos(angle)
-	return math.cos(2 * math.pi * angle)
-end
 
 -- music(0) -- play music from pattern 0
 function _draw()
@@ -21,7 +18,7 @@ function _draw()
   print("this is pico-8", 37, 50, 14)
   print("nice to meet you", 34, 60, 12)
   spr(1, 64-4, 70) -- draw heart sprite
-  t = t+1
+  t += 1
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

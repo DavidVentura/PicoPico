@@ -15,31 +15,33 @@
 #define RIGHT_BUTTON_GPIO 20
 #define MASK_GPIO (1 << A_BUTTON_GPIO) | (1<<B_BUTTON_GPIO) | (1<<UP_BUTTON_GPIO) | (1<<DOWN_BUTTON_GPIO) | (1<<LEFT_BUTTON_GPIO) | (1<<RIGHT_BUTTON_GPIO)
 
-static uint8_t frontbuffer[160*80*2]; // TODO: fixme, LCD size
-static uint8_t backbuffer[160*80*2]; // TODO: fixme, LCD size
+static uint8_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT*2];
+static uint8_t backbuffer[SCREEN_WIDTH*SCREEN_HEIGHT*2];
 
 void put_buffer();
 
 uint16_t get_pixel(uint8_t x, uint8_t y) {
-	return frontbuffer[x+y*160]; // FIXME: lcd size
+	// FIXME: this is incredibly broken
+	return frontbuffer[x+y*SCREEN_WIDTH];
 }
 
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color){
 }
-void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* color) {
-	for(uint8_t x=x0; x<x1-x0; x++)
-		for(uint8_t y=y0; y<y1-y0; y++)
+void gfx_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, const uint8_t* color) {
+	for(uint16_t x=x0; x<x1-x0; x++)
+		for(uint16_t y=y0; y<y1-y0; y++)
 			put_pixel(x, y, color);
 }
+
+// callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
-    if (y >= 80) {
-	return;
-    }
-    // TODO: fixme, lcd size
+    //if (y >= SCREEN_HEIGHT) {
+    //        return;
+    //}
     const uint16_t color = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
     // frontbuffer[(y*160+x)  ] = color;
-    frontbuffer[2*(y*160+x)  ] = color >> 8;
-    frontbuffer[2*(y*160+x)+1] = color & 0xF;
+    frontbuffer[2*(y*SCREEN_WIDTH+x)  ] = color >> 8;
+    frontbuffer[2*(y*SCREEN_WIDTH+x)+1] = color & 0xF;
 }
 void video_close(){
 }
@@ -49,13 +51,13 @@ void gfx_flip() {
     multicore_fifo_push_blocking(READY_TO_RENDER_FLAG);
 }
 
-void delay(uint8_t ms) {
+void delay(uint16_t ms) {
     sleep_ms(ms);
 }
 
 void gfx_cls(uint8_t* color) {
-    for(uint8_t x=0; x<160; x++)
-    for(uint8_t y=0; y<80; y++){
+    for(uint8_t x=0; x<SCREEN_WIDTH; x++)
+        for(uint8_t y=0; y<SCREEN_HEIGHT; y++){
 	    put_pixel(x, y, color);
     }
     // FIXME: put back to memset when front/backbuffers are uint16_t
@@ -63,15 +65,15 @@ void gfx_cls(uint8_t* color) {
     // memset(frontbuffer, val, sizeof(frontbuffer));
 }
 
-void gfx_rect(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h, const uint8_t* color) {
-    for(uint8_t x=x0; x<=x0+w; x++)
-    for(uint8_t y=y0; y<=y0+w; y++){
+void gfx_rect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, const uint8_t* color) {
+    for(uint16_t x=x0; x<=x0+w; x++)
+    for(uint16_t y=y0; y<=y0+w; y++){
 	    if (x==x0 || x == (x0+w) || y==y0 || y == y0+w)
 	    put_pixel(x, y, color);
     }
 }
 
-void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color) {
+void gfx_rectfill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color) {
 }
 
 void init_gpio() {

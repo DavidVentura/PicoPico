@@ -57,6 +57,7 @@ add_executable(hello_pico
     ${st_src}
 )
 
+target_compile_options(hello_pico PRIVATE -DSCREEN_HEIGHT=80 -DSCREEN_WIDTH=160)
 #add_dependencies(hello_pico static_game_data.h)
 #UART
 ## pico_enable_stdio_usb(hello_pico 1)

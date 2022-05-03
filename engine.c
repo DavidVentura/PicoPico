@@ -61,18 +61,18 @@ static uint8_t* P_BLUE = palette[1];
 static uint8_t* P_RED = palette[8];
 static uint8_t* P_YELLOW = palette[10];
 
-void render(Spritesheet* s, uint8_t n, uint8_t x0, uint8_t y0, int paletteIdx);
+void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx);
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
 static void gfx_map(uint8_t mapX, uint8_t mapY,
 		    uint8_t screenX, uint8_t screenY,
 		    uint8_t cellW, uint8_t cellH, uint8_t layerFlags);
 void gfx_cls(uint8_t*);
-void gfx_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color);
-void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color);
+void gfx_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color);
+void gfx_rectfill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color);
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color);
 bool init_video();
 bool handle_input();
-void delay(uint8_t ms);
+void delay(uint16_t ms);
 void gfx_flip();
 void video_close();
 uint64_t now();
@@ -226,11 +226,13 @@ void cartParser(uint8_t* text) {
     free(buf);
 }
 
-void _render(Spritesheet* s, uint8_t sx, uint8_t sy, uint8_t x0, uint8_t y0, int paletteIdx) {
-    uint8_t idx, val;
+void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0, int paletteIdx) {
+    uint16_t idx, val;
+    if(x0 >= SCREEN_WIDTH) return;
+    if(y0 >= SCREEN_HEIGHT) return;
 
-    for (uint8_t y=0; y<8; y++) {
-	for (uint8_t x=0; x<8; x++) {
+    for (uint16_t y=0; y<8; y++) {
+	for (uint16_t x=0; x<8; x++) {
 	    val = s->sprite_data[(sy+y)*128 + x + sx];
 	    if (paletteIdx != -1) {
 		    idx = paletteIdx;
@@ -244,23 +246,25 @@ void _render(Spritesheet* s, uint8_t sx, uint8_t sy, uint8_t x0, uint8_t y0, int
 	}
     }
 }
-void render(Spritesheet* s, uint8_t n, uint8_t x0, uint8_t y0, int paletteIdx) {
+void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx) {
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;
     _render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx);
 }
 
-void render_stretched(Spritesheet* s, uint8_t sx, uint8_t sy, uint8_t sw, uint8_t sh, uint8_t dx, uint8_t dy,
-		      uint8_t dw, uint8_t dh) {
+void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy,
+		      uint16_t dw, uint16_t dh) {
     if(dw == sw && dh == sh) return _render(s, sx, sy, dx, dy, -1);
+    if(dx >= SCREEN_WIDTH) return;
+    if(dy >= SCREEN_HEIGHT) return;
 
     // TODO: this does not clip or flip
     uint32_t ratio_x = (sw << 16)/ dw;
     uint32_t ratio_y = (sh << 16)/ dh;
-    for (uint8_t y=0; y<dh; y++) {
+    for (uint16_t y=0; y<dh; y++) {
 	uint16_t yoff = (((y*ratio_y)>>16)+sy)*128;
-	for (uint8_t x=0; x<dw; x++) {
+	for (uint16_t x=0; x<dw; x++) {
 	    uint8_t val = s->sprite_data[yoff + ((x*ratio_x) >> 16)+sx];
 	    if (drawstate.transparent[val] == 0){
 		    const uint8_t* p = palette[val];

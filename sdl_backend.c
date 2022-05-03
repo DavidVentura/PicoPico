@@ -1,5 +1,4 @@
 #include <SDL.h>
-#include <SDL_image.h>
 #include <sys/time.h>
 #ifndef ENGINE
 #include "engine.c"

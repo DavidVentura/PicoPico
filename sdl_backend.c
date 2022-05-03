@@ -8,8 +8,6 @@
 //Screen dimension constants
 const int V_SCREEN_WIDTH = 128;
 const int V_SCREEN_HEIGHT = 128;
-const int SCREEN_WIDTH = 512;
-const int SCREEN_HEIGHT = 512;
 
 static uint16_t buffer[128*128];
 SDL_Window* gWindow = NULL;

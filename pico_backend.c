@@ -130,6 +130,8 @@ bool handle_input() {
     buttons[1] = !gpio_get(RIGHT_BUTTON_GPIO);
     buttons[2] = !gpio_get(UP_BUTTON_GPIO);
     buttons[3] = !gpio_get(DOWN_BUTTON_GPIO);
+    buttons[4] = !gpio_get(A_BUTTON_GPIO);
+    buttons[5] = !gpio_get(B_BUTTON_GPIO);
     return false;
 }
 

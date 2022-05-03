@@ -4,7 +4,7 @@
 
 uint8_t parseChar(char c);
 
-uint32_t readLine(char** text, char* line) {
+uint32_t readLine(uint8_t** text, uint8_t* line) {
     uint32_t count = 0;
 
     while(**text != '\0') {
@@ -20,7 +20,7 @@ uint32_t readLine(char** text, char* line) {
     return count;
 }
 
-void gfxParser(char* line, int spriteLineCount, Spritesheet* s) {
+void gfxParser(uint8_t* line, int spriteLineCount, Spritesheet* s) {
     const int offset = spriteLineCount * 128;
     for (uint8_t i = 0; i < 128; i++) {
 	s->sprite_data[ i + offset] = parseChar(line[i]);

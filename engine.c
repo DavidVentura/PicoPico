@@ -3,9 +3,10 @@
 #include "parser.c"
 #include <string.h>
 
-lua_State *L = NULL;
+static lua_State *L = NULL;
 int buttons[6] = {0};
 
+static uint8_t ram[32768];
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 static uint8_t map_data[32 * 128];
@@ -105,21 +106,34 @@ void _to_lua_call(const char* fn) {
 		lua_pop(L, lua_gettop(L));
 	}
 }
-lua_State* init_lua(const char* script_text) {
-    lua_State *state = luaL_newstate();
-    luaopen_pico8(state);
+bool init_lua(const char* script_text) {
+    L = luaL_newstate();
+    if (L == NULL) {
+	printf("cannot create LUA state: not enough memory\n");
+	return false;
+    }
+    printf("setting mem\n");
+    lua_setpico8memory(L, ram);
+    printf("checking version\n");
+    luaL_checkversion(L);
+    printf("stop gc\n");
+    lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
+    printf("open libs\n");
+    luaL_openlibs(L);  /* open libraries */
+    printf("restart gc\n");
+    lua_gc(L, LUA_GCRESTART, 0);
 
-    if (luaL_dostring(state, stdlib_stdlib_lua) == LUA_OK) {
-	lua_pop(state, lua_gettop(state));
+    if (luaL_dostring(L, (const char*)stdlib_stdlib_lua) == LUA_OK) {
+	lua_pop(L, lua_gettop(L));
     }
 
-    if (luaL_dostring(state, script_text) == LUA_OK) {
-	lua_pop(state, lua_gettop(state));
-	return state;
+    if (luaL_dostring(L, script_text) == LUA_OK) {
+	lua_pop(L, lua_gettop(L));
+	return true;
     }
-    puts(lua_tostring(state, lua_gettop(state)));
-    lua_close(state);
-    return NULL;
+    printf("Fail: %s\n", lua_tostring(L, lua_gettop(L)));
+    lua_close(L);
+    return false;
 }
 
 void engine_init() {
@@ -129,9 +143,9 @@ void engine_init() {
     memset(&fontsheet.sprite_data, 0xFF, 128*120);
     memset(map_data, 0, sizeof(map_data));
 }
-void fontParser(char* text) {
+void fontParser(uint8_t* text) {
     int spriteCount = 0;
-    char* buf = (char*)malloc(129);
+    uint8_t* buf = (uint8_t*)malloc(129);
     do {
 	readLine(&text, buf);
 	gfxParser(buf, spriteCount, &fontsheet);
@@ -140,7 +154,7 @@ void fontParser(char* text) {
     free(buf);
 }
 
-void cartParser(char* text) {
+void cartParser(uint8_t* text) {
     uint8_t section = 0;
     uint32_t spriteCount = 0;
     char* buf = (char*)malloc(257);
@@ -150,7 +164,7 @@ void cartParser(char* text) {
     uint32_t lineLen = 0;
     uint32_t bytesRead = 0;
     do {
-	lineLen = readLine(&text, buf);
+	lineLen = readLine(&text, (uint8_t*)buf);
 	if (strncmp(buf, "__lua__", 7) == 0) {
 	    section = SECT_LUA;
 	    bytesRead = 0;
@@ -192,7 +206,7 @@ void cartParser(char* text) {
 		memcpy(cart.code+bytesRead, buf, lineLen);
 		break;
 	    case SECT_GFX:
-		gfxParser(buf, spriteCount, &spritesheet);
+		gfxParser((uint8_t*)buf, spriteCount, &spritesheet);
 		spriteCount++;
 		break;
 	    case SECT_MAP:

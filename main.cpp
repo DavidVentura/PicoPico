@@ -1,5 +1,5 @@
-#include <lauxlib.h>
 #include <lua.h>
+#include <lauxlib.h>
 #include <lualib.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -266,22 +266,29 @@ int main( int argc, char* args[] )
     }
 
     engine_init();
+    gfx_cls(P_BLUE);
+    gfx_flip();
     // cartParser(examples_map_p8);
+    printf("Parsing cart \n");
     cartParser(examples_hello_world_lua);
     // cartParser(examples_tennis_p8);
     // cartParser(examples_dice_p8);
+    printf("Parsing font \n");
     fontParser(artifacts_font_lua);
 
-    L = init_lua(cart.code);
-    if ( L == NULL ) {
+    printf("init lua \n");
+    bool lua_ok = init_lua(cart.code);
+    printf("init done \n");
+    if ( !lua_ok ) {
 	printf( "Failed to initialize LUA!\n" );
 	return 1;
     }
-    gfx_cls(P_BLUE);
-    gfx_flip();
+    printf("register functions\n");
     registerLuaFunctions();
+    printf("register functions done\n");
     gfx_cls(P_RED);
     gfx_flip();
+
 
     bool quit = false;
     bool call_update = _lua_fn_exists("_update");

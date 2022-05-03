@@ -17,7 +17,7 @@ for fname in sys.argv[1:]:
     # add a null byte
     data += b'\0'
 
-    print(f'char {bname}[] = {{')
+    print(f'uint8_t {bname}[] = {{')
     for chunk in chunked(data, 16):
         print('  ' + ', '.join([f'0x{b:02x}' for b in chunk]), end=',\n')
     print('};')

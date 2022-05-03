@@ -2,54 +2,75 @@ cmake_minimum_required(VERSION 3.13)
 
 # initialize the SDK based on PICO_SDK_PATH
 # note: this must happen before project()
-include(pico_sdk_import.cmake)
+#!include(pico_sdk_import.cmake)
 
 project(my_project C CXX ASM)
 
-file (GLOB st_src CONFIGURE_DEPENDS "/home/david/git/pico_st7735_80x160/st7735_80x160/*")
+#!file (GLOB st_src CONFIGURE_DEPENDS "/home/david/git/pico_st7735_80x160/st7735_80x160/*")
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # initialize the Raspberry Pi Pico SDK
-pico_sdk_init()
+#!pico_sdk_init()
 
+add_subdirectory(SDL)
 add_subdirectory(lua)
 add_compile_options(
-	-Werror
+	#	-Werror
+	-g3
 )
 
 # rest of your project
-add_executable(hello_pico
+add_executable(pc_pico
     main.cpp
     ${lua_src}
-    ${st_src}
 )
+
+#!add_executable(hello_pico
+#!    main.cpp
+#!    ${lua_src}
+#!    ${st_src}
+#!)
 
 #UART
 ## pico_enable_stdio_usb(hello_pico 1)
 #pico_enable_stdio_uart(hello_pico 1)
 
 #USB
-pico_enable_stdio_usb(hello_pico 1)
-pico_enable_stdio_uart(hello_pico 0)
+#!pico_enable_stdio_usb(hello_pico 1)
+#!pico_enable_stdio_uart(hello_pico 0)
 
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(hello_pico
-	# hardware_uart
-    hardware_pwm
-    hardware_clocks
-    hardware_spi
-
+target_link_libraries(pc_pico
     app_lib
-    pico_stdlib
-    pico_multicore
+    SDL2::SDL2
+    SDL2::SDL2main
 )
 
-target_include_directories(hello_pico PUBLIC
-    ../pico_st7735_80x160
+#!target_link_libraries(hello_pico
+#!	# hardware_uart
+#!    hardware_pwm
+#!    hardware_clocks
+#!    hardware_spi
+#!
+#!    app_lib
+#!    pico_stdlib
+#!    pico_multicore
+#!)
+#!
+#!target_include_directories(hello_pico PUBLIC
+#!    ../pico_st7735_80x160
+#!    lua
+#!    )
+
+#include_directories(pc_pico ${SDL2_INCLUDE_DIRS})
+target_include_directories(pc_pico PUBLIC
     lua
+    SDL
     )
 
+target_compile_options(pc_pico PRIVATE -DSDL_BACKEND=1 -DLUA_USE_LINUX=1)
+
 # create map/bin/hex/uf2 file in addition to ELF.
-pico_add_extra_outputs(hello_pico)
+#!pico_add_extra_outputs(hello_pico)

@@ -97,4 +97,18 @@ void hexDump (
 
     printf ("  %s\n", buff);
 }
+void smallHexDump (const void * addr, const int len) {
+    int i;
+    unsigned char buff[len+1];
+    const unsigned char * pc = (const unsigned char *)addr;
+
+    for (i = 0; i < len; i++) {
+        if ((i % len) == 0) {
+            if (i != 0) printf ("  %s\n", buff);
+        }
+        printf (" %02x", pc[i]);
+        buff[(i % len) + 1] = '\0';
+    }
+    printf ("  %s\n", buff);
+}
 #endif

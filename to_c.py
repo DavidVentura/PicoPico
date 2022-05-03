@@ -13,22 +13,51 @@ class ProcessType(enum.Enum):
 def chunked(lst, chunk_size: int):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
+def rle_decompression(data: bytes):
+    out = []
+    idx = 0
+    while idx < len(data):
+        c = data[idx] & 0x7F
+        mult = (data[idx] & 0x80) == 0x80
+        if mult:
+            count = data[idx+1] + 1
+            idx += 1
+        else:
+            count = 1
+        idx += 1
+        out.extend([c] * count)
+    return out
+
 def rle_compression(data: bytes):
     assert len(data)
     acc = []
     cur = []
     last = data[0]
     for b in data:
-        if b == last:
+        assert b < 128  # using highest bit to indicate repetitions
+        # can do only up to 255 repetitions per group (1 byte for count)
+        if b == last and len(cur) < 256:
             cur.append(b)
         else:
             acc.append(cur)
             last = b
             cur = [b]
 
+    if cur:
+        acc.append(cur)
     ret = b''
     for r in acc:
-        ret += bytes([len(r), r[0]])
+        count = len(r)
+        char = r[0]
+        if count > 1:  # highest bit set = repeated
+            char = char | 0x80
+            ret += bytes([char, count-1])
+        else:
+            ret += bytes([char])
+
+    data = list(data)
+    dec = rle_decompression(ret)
+    assert data == dec
     return ret
 
 def process_cart(data: bytes, strip_label: bool=False):
@@ -64,11 +93,9 @@ def process_cart(data: bytes, strip_label: bool=False):
         if not line:
             continue
 
-        _encoded = rle_compression(line)
-        if len(_encoded) >= len(line):
-            compressed += b'\1' + line + b'\n'
-        else:
-            compressed += b'\2' + _encoded + b'\n'
+        encoded = rle_compression(line)
+        assert list(line) == rle_decompression(encoded)
+        compressed += encoded + b'\n'
 
     return compressed
 

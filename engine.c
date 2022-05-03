@@ -158,6 +158,8 @@ void fontParser(uint8_t* text) {
     // 1 byte per line for \0
 
     uint16_t lineLen = 0;
+    memset(decbuf, 0, 129);
+    memset(rawbuf, 0, 129);
     do {
 	lineLen = readLine(&text, rawbuf);
 	decodeRLE(decbuf, rawbuf, lineLen);
@@ -171,11 +173,10 @@ void fontParser(uint8_t* text) {
 void cartParser(uint8_t* text) {
     uint8_t section = 0;
     uint32_t spriteCount = 0;
-    char* rawbuf = (char*)malloc(258);
+    char* rawbuf = (char*)malloc(257);
     char* decbuf = (char*)malloc(257);
     // up to 256 bytes per line
     // 1 byte for \0
-    // 1 byte to indicate whether it's RLE-encoded
 
     memset(rawbuf, 0, 258);
     memset(cart.code, 0, sizeof(cart.code));
@@ -226,7 +227,7 @@ void cartParser(uint8_t* text) {
 		break;
 	    case SECT_GFX:
 		decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
-		gfxParser((uint8_t*)rawbuf, spriteCount, &spritesheet);
+		gfxParser((uint8_t*)decbuf, spriteCount, &spritesheet);
 		spriteCount++;
 		break;
 	    case SECT_MAP:

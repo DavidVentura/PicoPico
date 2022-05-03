@@ -10,7 +10,7 @@ uint32_t readLine(uint8_t** text, uint8_t* line) {
     while(**text != '\0') {
 	count++;
 	*line++ = *(*text)++;
-	if (**text == '\r' || **text == '\n') {
+	if (**text == '\n') {
 	    count++;
 	    *line++ = *(*text)++;
 	    break;
@@ -21,15 +21,17 @@ uint32_t readLine(uint8_t** text, uint8_t* line) {
 }
 
 void decodeRLE(uint8_t* decbuf, uint8_t* rawbuf, uint16_t rawLen) {
-	if (rawbuf[0] == 1) {
-		// not RLE encoded, just skip the header byte
-		memcpy(decbuf, rawbuf+1, rawLen-1);
-		return;
-	}
 	uint16_t decPos = 0;
-	for(uint16_t i=1; i<rawLen; i+=2) {
-		uint8_t count = rawbuf[i];
-		uint8_t chr = rawbuf[i+1];
+	uint8_t count = 1;
+	for(uint8_t i=0; i<rawLen; i++) {
+		uint8_t chr = rawbuf[i] & 0x7F;
+		bool multiple = (rawbuf[i] & 0x80) == 0x80;
+		if(multiple == true) {
+			i++;
+			count = rawbuf[i] + 1;
+		} else {
+			count = 1;
+		}
 		memset(decbuf+decPos, chr, count);
 		decPos += count;
 	}
@@ -84,5 +86,5 @@ inline uint8_t parseChar(char c) {
 	case 'f':
 	    return 15;
     }
-    return 0xFF;
+    return 0xAA;
 }

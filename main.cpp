@@ -259,14 +259,14 @@ int main( int argc, char* args[] )
 
     engine_init();
     printf("Parsing cart \n");
-    cartParser(examples_map_p8);
-    // cartParser(examples_hello_world_lua);
-    // cartParser(examples_tennis_p8);
+    // cartParser(examples_map_p8);
+    cartParser(examples_hello_world_lua);
     // cartParser(examples_dice_p8);
+
+    // cartParser(examples_tennis_p8);
     printf("Parsing font \n");
     fontParser(artifacts_font_lua);
 
-    sleep_ms(2000);
     printf("init lua \n");
     bool lua_ok = init_lua(cart.code);
     printf("init done \n");
@@ -302,7 +302,7 @@ int main( int argc, char* args[] )
 	frame_end_time = now();
 	int delta = ms_delay - (frame_end_time - frame_start_time);
 	if(delta > 0) delay(delta);
-	 printf("This frame took: %d (del is %d, ms_del is %d)\n", ms_delay - delta, delta, ms_delay);
+	// printf("This frame took: %d (del is %d, ms_del is %d)\n", ms_delay - delta, delta, ms_delay);
     }
 
     lua_close(L);

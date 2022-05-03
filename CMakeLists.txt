@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 unset(PICO CACHE)
-OPTION(PICO "Pico?" OFF)
+OPTION(PICO "Pico?" ON)
 
 if(PICO)
 include(pico_sdk_import.cmake)

@@ -13,6 +13,13 @@ Be aware, the code will be terrible, this is a project to learn:
 * Lua
     * And how to adapt / modify languages
 
+
+This project uses [z8lua](https://github.com/DavidVentura/z8lua) to implement Pico8's lua dialect; I've whacked the original repo to make it build 
+with the Pico as a target, it was all implicit casting, which I hopefully got right.
+
+This project also gets some "inspiration" from [tac08](https://github.com/0xcafed00d/tac08/tree/master/src) - ideas for things I don't know how to solve, and the "firmware.lua" file 
+for basic implementations.
+
 ## Demo
 
 In emulator (SDL backed)
@@ -38,14 +45,13 @@ Memory requirements:
     * Sound itself should come from flash
 * Music patterns, 64x6 = 384B
     * Music itself should come from flash
-* Display buffer (optional, if double-buffered), ~128x128 = 16KB~, 160x80x2=25KB
-    * 160x80 = the only screen I have available, otherwise it'd be slightly larger
-    * x2 => each pixel needs "2 bytes" (currently, set for RGB565), it _might_ be possible, depending on driver to use 1.5bpp (12 bits) 
-* Game memory = 64KB
+* Front buffer 128x128 = 16KB (x/y position -> palette; could be 8KB if using only a nibble per pixel)
+* Back buffer 128x128x2 = 32KB (x/y position -> color, at 16bpp)
+* Game memory = 32KB
     * Lua = ???KB
     * how to measure?
 
-~145KB, should have plenty of space for things going wrong. However, the biggest unknown is lua overhead.  
+~130KB, should have plenty of space for things going wrong. However, the biggest unknown is lua overhead.  
 Both Spritesheet (16KB), Fontsheet (16KB) and Map (4KB) can be squeezed to half, as they need a nibble per pixel, instead of a byte.  
 Not sure how much CPU it'd take to have every single render to the backbuffer expand the pixels back bytes.
 

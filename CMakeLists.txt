@@ -22,7 +22,7 @@ add_compile_options(
 
 add_custom_command(
 	OUTPUT static_game_data.h
-	COMMAND python3 to_c.py stdlib/stdlib.lua artifacts/font.lua examples/* > ${CMAKE_SOURCE_DIR}/static_game_data.h
+	COMMAND python3 to_c.py > ${CMAKE_SOURCE_DIR}/static_game_data.h
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	#	DEPENDS stdlib/stdlib.lua artifacts/font.lua examples/*
 	)

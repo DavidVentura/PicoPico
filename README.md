@@ -72,13 +72,25 @@ Immediate:
 * ~Read code from p8 file instead of having split files~
 * ~Implement map~
 * ~Implement camera~
-* Lua dialect
-    * how to modify lua?
-* Unify the build systems (Make for pc / CMake for pico)
+* ~Lua dialect~ (using z8lua)
+* ~Unify the build systems (Make for pc / CMake for pico)~
+  * ugh, it's more broken than before, can't get the pico stuff not compiling on the pc target and have to manually comment it out
 
 Later:
 
 * Investigate pushing pixels to display via DMA
+
+# Other stuff
+
+There's a basic RLE encoding mechanism in place, to compress:
+
+* Font data (17KB -> 6KB)
+* Examples:
+    * Hello wolrd: 4KB -> 1KB
+    * Dice: 25KB -> 8KB
+    * Tennis: 21KB -> 4KB
+
+Not entirely sure yet why I was running out of memory, even with 40KB of (font+dice), it should be enough
 
 # Hardware
 

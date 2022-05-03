@@ -20,6 +20,20 @@ uint32_t readLine(uint8_t** text, uint8_t* line) {
     return count;
 }
 
+void decodeRLE(uint8_t* decbuf, uint8_t* rawbuf, uint16_t rawLen) {
+	if (rawbuf[0] == 1) {
+		// not RLE encoded, just skip the header byte
+		memcpy(decbuf, rawbuf+1, rawLen-1);
+		return;
+	}
+	uint16_t decPos = 0;
+	for(uint16_t i=1; i<rawLen; i+=2) {
+		uint8_t count = rawbuf[i];
+		uint8_t chr = rawbuf[i+1];
+		memset(decbuf+decPos, chr, count);
+		decPos += count;
+	}
+}
 void gfxParser(uint8_t* line, int spriteLineCount, Spritesheet* s) {
     const int offset = spriteLineCount * 128;
     for (uint8_t i = 0; i < 128; i++) {

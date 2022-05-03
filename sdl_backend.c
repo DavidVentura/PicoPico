@@ -129,7 +129,7 @@ void gfx_flip() {
     SDL_RenderPresent(gRenderer);
     SDL_UpdateWindowSurface( gWindow );
 }
-void delay(uint8_t ms) {
+void delay(uint16_t ms) {
     SDL_Delay(ms);
 }
 bool handle_input() {

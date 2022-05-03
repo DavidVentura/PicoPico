@@ -124,18 +124,19 @@ bool init_lua(const char* script_text) {
     lua_pushcfunction(L, &p_init_lua);
     int status = lua_pcall(L, 0, 1, 0);
     if (status != LUA_OK) { // err
-    	int result = lua_toboolean(L, -1);
+	int result = lua_toboolean(L, -1);
 	printf("Error loading lua VM: %s\n", lua_tostring(L, lua_gettop(L)));
-        return false;
+	return false;
     }
 
     if (luaL_dostring(L, (const char*)stdlib_stdlib_lua) == LUA_OK) {
+	printf("stdlib loaded\n");
 	lua_pop(L, lua_gettop(L));
-    }
 
-    if (luaL_dostring(L, script_text) == LUA_OK) {
-	lua_pop(L, lua_gettop(L));
-	return true;
+	if (luaL_dostring(L, script_text) == LUA_OK) {
+	    lua_pop(L, lua_gettop(L));
+	    return true;
+	}
     }
     printf("Fail: %s\n", lua_tostring(L, lua_gettop(L)));
     lua_close(L);

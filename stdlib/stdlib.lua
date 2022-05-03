@@ -1,16 +1,3 @@
-function _debug_dump(o)
-    if type(o) == 'table' then
-	local s = '{ '
-	for k,v in pairs(o) do
-	    if type(k) ~= 'number' then k = '"'..k..'"' end
-	    s = s .. '['..k..'] = ' .. _debug_dump(v) .. ','
-	end
-	return s .. '} '
-    else
-	return tostring(o)
-    end
-end
-
 printh = print
 
 function all(a)
@@ -30,10 +17,6 @@ function all(a)
 	    return t[i]
 	end 
     end	
-end
-
-function __tac08__.allfiles()
-    return __tac08__.files
 end
 
 sub = string.sub
@@ -65,11 +48,6 @@ function foreach(a, f)
     end
 end
 
-function __tac08__.foreachpair(a, f)
-    for k, v in pairs(a) do
-	f(k, v)
-    end
-end
 
 __assert = assert
 function assert(cond, msg) 
@@ -91,13 +69,3 @@ costatus = coroutine.status
 ⬇️ = 3
 🅾 = 4
 ❎ = 5
-
-
-function _test_add()
-    t = {1, 5}
-    v = add(t, 7)  -- t = {1, 5, 7}
-    assert(table.concat(t) == table.concat({1, 5, 7}))
-    assert(v == 7)
-    add(t, 3, 2)  -- t = {1, 3, 5, 7, 9}
-    assert(table.concat(t) == table.concat({1, 3, 5, 7}))
-end

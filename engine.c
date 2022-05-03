@@ -106,22 +106,28 @@ void _to_lua_call(const char* fn) {
 		lua_pop(L, lua_gettop(L));
 	}
 }
+
+static int p_init_lua(lua_State* L) {
+    luaL_checkversion(L);
+    lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
+    luaL_openlibs(L);  /* open libraries */
+    lua_gc(L, LUA_GCRESTART, 0);
+    return 1;
+}
 bool init_lua(const char* script_text) {
     L = luaL_newstate();
     if (L == NULL) {
 	printf("cannot create LUA state: not enough memory\n");
 	return false;
     }
-    printf("setting mem\n");
     lua_setpico8memory(L, ram);
-    printf("checking version\n");
-    luaL_checkversion(L);
-    printf("stop gc\n");
-    lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
-    printf("open libs\n");
-    luaL_openlibs(L);  /* open libraries */
-    printf("restart gc\n");
-    lua_gc(L, LUA_GCRESTART, 0);
+    lua_pushcfunction(L, &p_init_lua);
+    int status = lua_pcall(L, 0, 1, 0);
+    if (status != LUA_OK) { // err
+    	int result = lua_toboolean(L, -1);
+	printf("Error loading lua VM: %s\n", lua_tostring(L, lua_gettop(L)));
+        return false;
+    }
 
     if (luaL_dostring(L, (const char*)stdlib_stdlib_lua) == LUA_OK) {
 	lua_pop(L, lua_gettop(L));

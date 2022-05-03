@@ -199,12 +199,6 @@ int _lua_time(lua_State* L) {
     return 1;
 }
 
-int _lua_abs(lua_State* L) {
-    float val = luaL_checknumber(L, 1);
-    lua_pushinteger(L, abs(val));
-    return 1;
-}
-
 int _lua_printh(lua_State* L) {
     const char* val = luaL_checkstring(L, 1);
     printf("> %s\n", val);
@@ -249,8 +243,6 @@ void registerLuaFunctions() {
     lua_setglobal(L, "pget");
     lua_pushcfunction(L, _lua_time);
     lua_setglobal(L, "time");
-    lua_pushcfunction(L, _lua_abs);
-    lua_setglobal(L, "abs");
     lua_pushcfunction(L, _lua_sfx);
     lua_setglobal(L, "sfx");
     lua_pushcfunction(L, _lua_printh);
@@ -266,28 +258,27 @@ int main( int argc, char* args[] )
     }
 
     engine_init();
-    gfx_cls(P_BLUE);
-    gfx_flip();
-    // cartParser(examples_map_p8);
     printf("Parsing cart \n");
-    cartParser(examples_hello_world_lua);
+    cartParser(examples_map_p8);
+    // cartParser(examples_hello_world_lua);
     // cartParser(examples_tennis_p8);
     // cartParser(examples_dice_p8);
     printf("Parsing font \n");
     fontParser(artifacts_font_lua);
 
+    sleep_ms(2000);
     printf("init lua \n");
     bool lua_ok = init_lua(cart.code);
     printf("init done \n");
     if ( !lua_ok ) {
 	printf( "Failed to initialize LUA!\n" );
+	while (true) {
+		handle_input();
+		delay(100);
+	}
 	return 1;
     }
-    printf("register functions\n");
     registerLuaFunctions();
-    printf("register functions done\n");
-    gfx_cls(P_RED);
-    gfx_flip();
 
 
     bool quit = false;

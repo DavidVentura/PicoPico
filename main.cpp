@@ -173,7 +173,7 @@ int _lua_circfill(lua_State* L) {
         // newColor = RED;
     }
 
-    // gfx_circlefill(x, y, r, newColor);
+    gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, newColor);
     return 0;
 }
 
@@ -241,7 +241,7 @@ int _lua_pset(lua_State* L) {
     uint8_t x = luaL_checkinteger(L, 1);
     uint8_t y = luaL_checkinteger(L, 2);
     uint8_t idx = luaL_optinteger(L, 3, drawstate.fg_color);
-    put_pixel(x, y, palette[idx]);
+    put_pixel(x-drawstate.camera_x, y-drawstate.camera_y, palette[idx]);
     return 0;
 }
 

@@ -371,6 +371,7 @@ void registerLuaFunctions() {
 
 int main( int argc, char* args[] )
 {
+    bool quit = false;
     if( !init_video() )
     {
 	printf( "Failed to initialize video!\n" );
@@ -392,16 +393,14 @@ int main( int argc, char* args[] )
     printf("init done \n");
     if ( !lua_ok ) {
 	printf( "Failed to initialize LUA!\n" );
-	while (true) {
-		handle_input();
+	while (!quit) {
+		quit = handle_input();
 		delay(100);
 	}
 	return 1;
     }
     registerLuaFunctions();
 
-
-    bool quit = false;
     bool call_update = _lua_fn_exists("_update");
     bool call_draw = _lua_fn_exists("_draw");
 

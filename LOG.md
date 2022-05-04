@@ -99,3 +99,7 @@ With this in mind, the algorithm is:
 * Repeat
 
 However! the code has to special-case the value where the repetition count is `10` (that is `\n`); as this would confuse the "read file based on newlines" algorithm. The "special" value `0xFF` is used in this case.
+
+
+Realized that copying the backbuffer to screen takes 11.5ms because the SPI clock frequency is set to 30MHz. Setting it to 62.5MHz (number from `GameTiger` repo) makes the transfer take ~4ms.
+

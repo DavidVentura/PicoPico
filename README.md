@@ -59,15 +59,15 @@ Not sure how much CPU it'd take to have every single render to the backbuffer ex
 
 Running `hello_world.lua`:
 
-* Normal: 23ms / frame; of which:
+* Normal: 13ms / frame; of which:
     * Lua: ~9ms / frame
-    * Copying backbuffer to screen (`uint8_t`): ~12ms / frame
+    * Copying backbuffer to screen (`uint8_t`): ~4ms / frame
 
-* Display on 2nd core: 10.5ms / frame; of which:
-    * Lua: ~9ms / frame
+* Display on 2nd core: 7.5ms / frame; of which:
+    * Lua: ~7ms / frame
     * ~Copying backbuffer to screen~ happens "for free" in the other core
 
-* Multicore + overclock to 260MHz: 5ms/frame
+* Multicore + overclock to 260MHz: 3.5ms/frame
 
 # TODO
 

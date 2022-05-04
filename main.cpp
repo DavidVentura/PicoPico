@@ -35,7 +35,36 @@ int _lua_print(lua_State* L) {
     return 0;
 }
 
+int _lua_palt(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+    if (argcount == 0) {
+        // reset for all colors
+        memset(drawstate.transparent, 0, sizeof(drawstate.transparent));
+        drawstate.transparent[0] = 1;
+        return 0;
+    }
+    if (argcount == 1) {
+        // TODO: should this use fix32??
+        uint16_t bitfield = luaL_checkinteger(L, 1);
+        for(uint8_t idx = 0; idx < 16; idx++) {
+            drawstate.transparent[idx] = (bitfield & 1);
+            bitfield >>= 1;
+        }
+        return 0;
+    }
+    uint8_t idx = luaL_checkinteger(L, 1);
+    bool transparent = lua_toboolean(L, 2);
+    drawstate.transparent[idx] = transparent;
+
+    return 0;
+}
+
 int _lua_pal(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+    if (argcount == 0) {
+        memcpy(palette, original_palette, sizeof(original_palette));
+        return 0;
+    }
     int origIdx = luaL_checkinteger(L, 1);
     int newIdx = luaL_checkinteger(L, 2);
     const uint8_t* origColor = palette[origIdx];
@@ -149,24 +178,13 @@ int _lua_map(lua_State* L) {
     int screenY = luaL_checkinteger(L, 4);
     int cellW = luaL_checkinteger(L, 5);
     int cellH = luaL_checkinteger(L, 6);
-    int layerFlags = luaL_optinteger(L, 7, 0xF);
+    uint32_t layerFlags = luaL_optinteger(L, 7, 0x0);
 
     gfx_map(mapX, mapY, screenX, screenY, cellW, cellH, layerFlags);
     //printf("mx %d, my: %d, sx %d, sy: %d, cw: %d, ch: %d, fl %d\n", mapX, mapY, screenX, screenY, cellW, cellH, layerFlags);
     return 0;
 }
 
-int _lua_camera(lua_State* L) {
-    int x = luaL_optinteger(L, 1, 0xFFFF);
-    int y = luaL_optinteger(L, 2, 0xFFFF);
-
-    if (x != 0xFFFF)
-	    drawstate.camera_x = x;
-
-    if (y != 0xFFFF)
-	    drawstate.camera_y = y;
-    return 0;
-}
 int _lua_btnp(lua_State* L) {
 	// FIXME this is just _btn
     int idx = luaL_checkinteger(L, 1);
@@ -181,7 +199,11 @@ int _lua_btn(lua_State* L) {
 }
 int _lua_rnd(lua_State* L) {
     if(lua_istable(L, 1)) {
-	    printf("rnd for table not implemented\n");
+        lua_len(L, 1);  // table len in top of stack
+        uint32_t len = luaL_checkinteger(L, 2);
+        uint32_t choice = (rand() % len) + 1;
+        lua_pushinteger(L, choice);
+        lua_gettable(L, 1);
 	    return 1;
     }
     int limit = luaL_optinteger(L, 1, 1);
@@ -189,12 +211,32 @@ int _lua_rnd(lua_State* L) {
     lua_pushnumber(L, x);
     return 1;
 }
+int _lua_sget(lua_State* L) {
+    int16_t x = luaL_checkinteger(L, 1);
+    int16_t y = luaL_checkinteger(L, 2);
+
+    if (x < 0 || x > 127 || y < 0 || y > 127) {
+        lua_pushinteger(L, 0);
+    } else {
+        lua_pushinteger(L, spritesheet.sprite_data[y*128+x]);
+    }
+    return 1;
+}
+
 int _lua_pget(lua_State* L) {
     uint8_t x = luaL_checkinteger(L, 1);
     uint8_t y = luaL_checkinteger(L, 2);
     uint16_t p = get_pixel(x, y);
     lua_pushinteger(L, p);
     return 1;
+}
+
+int _lua_pset(lua_State* L) {
+    uint8_t x = luaL_checkinteger(L, 1);
+    uint8_t y = luaL_checkinteger(L, 2);
+    uint8_t idx = luaL_optinteger(L, 3, drawstate.fg_color);
+    put_pixel(x, y, palette[idx]);
+    return 0;
 }
 
 int _lua_flr(lua_State* L) {
@@ -209,6 +251,27 @@ int _lua_time(lua_State* L) {
     return 1;
 }
 
+int _lua_cartdata(lua_State* L) {
+    // TODO: implement
+    const char* key = luaL_checkstring(L, 1);
+    printf("> Requested to key cartdata with '%s'\n", key);
+    return 0;
+}
+
+int _lua_dget(lua_State* L) {
+    const uint8_t idx = luaL_checkinteger(L, 1);
+    lua_pushinteger(L, cartdata[idx]);
+    return 1;
+}
+
+int _lua_dset(lua_State* L) {
+    const uint8_t idx = luaL_checkinteger(L, 1);
+    const uint32_t val = luaL_checkinteger(L, 2);
+    cartdata[idx] = val;
+    return 0;
+}
+
+
 int _lua_printh(lua_State* L) {
     const char* val = luaL_checkstring(L, 1);
     printf("> %s\n", val);
@@ -220,6 +283,34 @@ int _lua_sfx(lua_State* L) {
     return 0;
 }
 
+int _lua_menuitem(lua_State* L) {
+	// TODO: implement
+    /*
+     menuitem(1, "restart puzzle", function() reset_puzzle() sfx(10) end)
+     function display_hints()
+       hint_shown = level_id
+     end
+     menuitem(2, "show hints", display_hints)
+     menuitem(3, "foo", function(b) if (b&1 > 0) then printh("left was pressed") end end)
+    */
+    return 0;
+}
+
+int _lua_camera(lua_State* L) {
+    int32_t x = luaL_optinteger(L, 1, 0);
+    int32_t y = luaL_optinteger(L, 2, 0);
+    int32_t old_x = drawstate.camera_x;
+    int32_t old_y = drawstate.camera_y;
+
+    drawstate.camera_x = x;
+    drawstate.camera_y = y;
+
+    lua_pushinteger(L, old_x);
+    lua_pushinteger(L, old_y);
+    return 2;
+}
+
+
 void registerLuaFunctions() {
     lua_pushcfunction(L, _lua_spr);
     lua_setglobal(L, "spr");
@@ -227,6 +318,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "sspr");
     lua_pushcfunction(L, _lua_cls);
     lua_setglobal(L, "cls");
+    lua_pushcfunction(L, _lua_palt);
+    lua_setglobal(L, "palt");
     lua_pushcfunction(L, _lua_pal);
     lua_setglobal(L, "pal");
     lua_pushcfunction(L, _lua_print);
@@ -249,14 +342,28 @@ void registerLuaFunctions() {
     lua_setglobal(L, "rnd");
     lua_pushcfunction(L, _lua_flr);
     lua_setglobal(L, "flr");
+    lua_pushcfunction(L, _lua_pset);
+    lua_setglobal(L, "pset");
     lua_pushcfunction(L, _lua_pget);
     lua_setglobal(L, "pget");
+    lua_pushcfunction(L, _lua_sget);
+    lua_setglobal(L, "sget");
     lua_pushcfunction(L, _lua_time);
     lua_setglobal(L, "time");
     lua_pushcfunction(L, _lua_sfx);
     lua_setglobal(L, "sfx");
     lua_pushcfunction(L, _lua_printh);
     lua_setglobal(L, "printh");
+    lua_pushcfunction(L, _lua_cartdata);
+    lua_setglobal(L, "cartdata");
+    lua_pushcfunction(L, _lua_dget);
+    lua_setglobal(L, "dget");
+    lua_pushcfunction(L, _lua_dset);
+    lua_setglobal(L, "dset");
+    lua_pushcfunction(L, _lua_menuitem);
+    lua_setglobal(L, "menuitem");
+    lua_pushcfunction(L, _lua_camera);
+    lua_setglobal(L, "camera");
 }
 
 int main( int argc, char* args[] )

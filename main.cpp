@@ -42,8 +42,7 @@ int _lua_palt(lua_State* L) {
     uint8_t argcount = lua_gettop(L);
     if (argcount == 0) {
         // reset for all colors
-        memset(drawstate.transparent, 0, sizeof(drawstate.transparent));
-        drawstate.transparent[0] = 1;
+        reset_transparency();
         return 0;
     }
     if (argcount == 1) {
@@ -63,9 +62,12 @@ int _lua_palt(lua_State* L) {
 }
 
 int _lua_pal(lua_State* L) {
+    // TODO: significant functionality missing
+    // https://pico-8.fandom.com/wiki/Pal
     uint8_t argcount = lua_gettop(L);
     if (argcount == 0) {
         memcpy(palette, original_palette, sizeof(original_palette));
+        reset_transparency();
         return 0;
     }
     int origIdx = luaL_checkinteger(L, 1);

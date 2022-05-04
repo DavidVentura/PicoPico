@@ -20,16 +20,19 @@ int _lua_print(lua_State* L) {
 
     // printf("Requested to print [%d] '%s'\n", textLen, text);
     for (int i = 0; i<textLen; i++) {
-	uint8_t c = text[i];
-	if (c == 0xe2) { // ❎ = 0xe2 0x9d 0x8e
-		i += 2;
-		c = 'X';
-	}
-	if (c == 0xf0) { // 🅾  = 0xf0 0x9f 0x85 0xbe
-		i += 3;
-		c = 'O';
-	}
-	render(&fontsheet, c, x + i * 4, y, paletteIdx);
+        uint8_t c = text[i];
+        if (c == 0xe2) { // ❎ = 0xe2 0x9d 0x8e
+            c = 151; // X in font
+            render(&fontsheet, c, x + i * 4 + 2, y, paletteIdx);
+            i += 2;
+        }
+        else if (c == 0xf0) { // 🅾  = 0xf0 0x9f 0x85 0xbe
+            c = 142; // "circle" in font (square)
+            render(&fontsheet, c, x + i * 4 + 2, y, paletteIdx);
+            i += 3;
+        } else {
+            render(&fontsheet, c, x + i * 4, y, paletteIdx);
+        }
     }
     // FIXME: this only works for ascii
     return 0;

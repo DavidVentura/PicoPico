@@ -19,7 +19,7 @@ int _lua_print(lua_State* L) {
     const int y = luaL_checkinteger(L, 3);
     const int paletteIdx = luaL_checkinteger(L, 4);
 
-    // printf("Requested to print [%d] '%s'\n", textLen, text);
+    // printf("Requested to print [%d] '%s' at x: %d, y %d\n", textLen, text, x, y);
     for (int i = 0; i<textLen; i++) {
         uint8_t c = text[i];
         if (c == 0xe2) { // ❎ = 0xe2 0x9d 0x8e
@@ -47,7 +47,7 @@ int _lua_palt(lua_State* L) {
         return 0;
     }
     if (argcount == 1) {
-        // TODO: should this use fix32??
+        // TODO: should this use fix32?? not sure if rotr is what i want
         uint16_t bitfield = luaL_checkinteger(L, 1);
         for(uint8_t idx = 0; idx < 16; idx++) {
             drawstate.transparent[idx] = (bitfield & 1);
@@ -187,7 +187,6 @@ int _lua_map(lua_State* L) {
     uint32_t layerFlags = luaL_optinteger(L, 7, 0x0);
 
     gfx_map(mapX, mapY, screenX, screenY, cellW, cellH, layerFlags);
-    //printf("mx %d, my: %d, sx %d, sy: %d, cw: %d, ch: %d, fl %d\n", mapX, mapY, screenX, screenY, cellW, cellH, layerFlags);
     return 0;
 }
 
@@ -375,6 +374,8 @@ void registerLuaFunctions() {
 int main( int argc, char* args[] )
 {
     bool quit = false;
+
+    bootup_time = now();
     if( !init_video() )
     {
 	printf( "Failed to initialize video!\n" );
@@ -382,12 +383,14 @@ int main( int argc, char* args[] )
     }
 
     engine_init();
+
     printf("Parsing cart \n");
     // cartParser(examples_map_p8);
-    cartParser(examples_hello_world_lua);
+    // cartParser(examples_hello_world_lua);
     // cartParser(examples_dice_p8);
-
     // cartParser(examples_tennis_p8);
+    cartParser(examples_rockets_p8);
+
     printf("Parsing font \n");
     fontParser(artifacts_font_lua);
 
@@ -403,6 +406,8 @@ int main( int argc, char* args[] )
 	return 1;
     }
     registerLuaFunctions();
+    uint64_t init_done = now();
+    printf("Parsing and initializing took %ldms\n", init_done-bootup_time);
 
     bool call_update = _lua_fn_exists("_update");
     bool call_draw = _lua_fn_exists("_draw");
@@ -410,9 +415,8 @@ int main( int argc, char* args[] )
     quit = false;
     uint64_t frame_start_time;
     uint64_t frame_end_time;
-    const uint8_t target_fps = 60;
+    const uint8_t target_fps = 30;
     const uint8_t ms_delay = 1000 / target_fps;
-    bootup_time = now();
 
     if (_lua_fn_exists("_init")) _to_lua_call("_init");
     while (!quit) {

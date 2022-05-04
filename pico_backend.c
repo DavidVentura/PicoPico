@@ -144,6 +144,7 @@ void put_buffer()
     while (true) {
 	//TODO: investigate how to do DMA?
 	multicore_fifo_pop_blocking();
+	// uint64_t frame_start_time = now();
 	u16 x,y;
 	u16 h = LCD_H();
 	u16 w = LCD_W();
@@ -152,5 +153,8 @@ void put_buffer()
 	OLED_CS_Clr();
 	spi_write_blocking(SPI_INST, backbuffer, sizeof(backbuffer));
 	OLED_CS_Set();
+	// uint64_t frame_end_time = now();
+	// int delta = (frame_end_time - frame_start_time);
+	// printf("Copying to SPI took: %d\n", delta);
     }
 }

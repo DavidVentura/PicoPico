@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
-unset(PICO CACHE)
-OPTION(PICO "Pico?" ON)
+if(NOT DEFINED PICO)
+	message(FATAL_ERROR "You must define the variable PICO (to either 1 or 0)" )
+endif()
 
 if(PICO)
 include(pico_sdk_import.cmake)
@@ -82,7 +83,6 @@ else()
 	    SDL2::SDL2main
 	)
 	
-	#include_directories(pc_pico ${SDL2_INCLUDE_DIRS})
 	target_include_directories(pc_pico PUBLIC
 	    lua
 	    SDL

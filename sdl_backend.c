@@ -102,10 +102,12 @@ bool init_video()
 }
 
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
+    if (y >= V_SCREEN_HEIGHT) return;
+    if (x >= V_SCREEN_WIDTH) return;
 	SDL_SetRenderDrawColor(gRenderer, *p, *(p+1), *(p+2), 0xFF );
     SDL_RenderDrawPoint(gRenderer, x, y);
     // FIXME this is wrong
-    buffer[x+y*128] = (p-palette[0])/3;
+    buffer[x+y*V_SCREEN_HEIGHT] = (p-palette[0])/3;
 }
 
 uint16_t get_pixel(uint8_t x, uint8_t y) {

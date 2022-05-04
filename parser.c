@@ -28,10 +28,15 @@ void decodeRLE(uint8_t* decbuf, uint8_t* rawbuf, uint16_t rawLen) {
 		bool multiple = (rawbuf[i] & 0x80) == 0x80;
 		if(multiple == true) {
 			i++;
-			count = rawbuf[i] + 1;
+			if (rawbuf[i] == 0xFF) {
+				count = 11; // HACK: can't encode a 10 (\n) as it breaks the newline parser
+			} else {
+				count = rawbuf[i] + 1;
+			}
 		} else {
 			count = 1;
 		}
+
 		memset(decbuf+decPos, chr, count);
 		decPos += count;
 	}

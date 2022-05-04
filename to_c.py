@@ -24,6 +24,9 @@ def rle_decompression(data: bytes):
             idx += 1
         else:
             count = 1
+
+        if count == 0xFF+1: # FIXME hack
+            count = 11
         idx += 1
         out.extend([c] * count)
     return out
@@ -36,7 +39,8 @@ def rle_compression(data: bytes):
     for b in data:
         assert b < 128  # using highest bit to indicate repetitions
         # can do only up to 255 repetitions per group (1 byte for count)
-        if b == last and len(cur) < 256:
+        # and value 0xFF (255) is reserved for newline
+        if b == last and len(cur) < 254:
             cur.append(b)
         else:
             acc.append(cur)
@@ -51,6 +55,9 @@ def rle_compression(data: bytes):
         char = r[0]
         if count > 1:  # highest bit set = repeated
             char = char | 0x80
+
+            if count == 11:  # FIXME: HACK: 10 == '\n'; which messes up the read-liner
+                count = 0xFF+1
             ret += bytes([char, count-1])
         else:
             ret += bytes([char])
@@ -132,7 +139,6 @@ def parse(fname: Path, process_as: ProcessType, strip_label: bool, debug: bool=F
 
     if debug:
         print(f'[{bname}] {initial_len=} {new_len=}', file=sys.stderr)
-
     return '\n'.join(output)
 
 def main():

@@ -1,3 +1,4 @@
+#include "fix32.h"
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
@@ -246,7 +247,7 @@ int _lua_pset(lua_State* L) {
 
 int _lua_flr(lua_State* L) {
     float val = luaL_checknumber(L, 1);
-    lua_pushinteger(L, (uint16_t)val);
+    lua_pushinteger(L, z8::fix32::floor(val));
     return 1;
 }
 

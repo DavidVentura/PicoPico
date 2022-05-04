@@ -7,6 +7,7 @@ static lua_State *L = NULL;
 int buttons[6] = {0};
 
 static uint8_t ram[32768];
+static uint32_t cartdata[64];
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 static uint8_t map_data[32 * 128];
@@ -64,7 +65,7 @@ static uint8_t* P_YELLOW = palette[10];
 void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx);
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
 static void gfx_map(uint8_t mapX, uint8_t mapY,
-		    uint8_t screenX, uint8_t screenY,
+		    int16_t screenX, int16_t screenY,
 		    uint8_t cellW, uint8_t cellH, uint8_t layerFlags);
 void gfx_cls(uint8_t*);
 void gfx_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color);
@@ -78,12 +79,15 @@ void video_close();
 uint64_t now();
 
 static void gfx_map(uint8_t mapX, uint8_t mapY,
-		    uint8_t screenX, uint8_t screenY,
+		    int16_t screenX, int16_t screenY,
 		    uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
 
     for(uint8_t y = mapY; y < mapY+cellH; y++) {
 	for(uint8_t x = mapX; x < mapX+cellW; x++) {
-	    render(&spritesheet, map_data[x+y*128], screenX+(x-mapX)*8, screenY+(y-mapY)*8, -1);
+        int16_t tx = screenX+(x-mapX)*8;
+        int16_t ty = screenY+(y-mapY)*8;
+        if (tx < 0 || ty < 0) continue; // FIXME ??
+	    render(&spritesheet, map_data[x+y*128], tx, ty, -1);
 	}
     }
 }
@@ -149,6 +153,8 @@ void engine_init() {
 
     memset(&fontsheet.sprite_data, 0xFF, sizeof(fontsheet.sprite_data));
     memset(map_data, 0, sizeof(map_data));
+
+    memset(cartdata, 0, sizeof(cartdata));
 }
 
 void fontParser(uint8_t* text) {
@@ -185,59 +191,61 @@ void cartParser(uint8_t* text) {
     uint16_t lineLen = 0;
     uint32_t bytesRead = 0;
     do {
-	lineLen = readLine(&text, (uint8_t*)rawbuf);
-	if (strncmp(rawbuf, "__lua__", 7) == 0) {
-	    section = SECT_LUA;
-	    bytesRead = 0;
-	    continue;
-	}
-	if (strncmp(rawbuf, "__gfx__", 7) == 0) {
-	    section = SECT_GFX;
-	    spriteCount = 0;
-	    bytesRead = 0;
-	    continue;
-	}
-	if (strncmp(rawbuf, "__gff__", 7) == 0) {
-	    section = SECT_GFF;
-	    continue;
-	}
-	if (strncmp(rawbuf, "__label__", 7) == 0) {
-	    section = SECT_LABEL;
-	    continue;
-	}
-	if (strncmp(rawbuf, "__map__", 7) == 0) {
-	    section = SECT_MAP;
-	    spriteCount = 0;
-	    bytesRead = 0;
-	    continue;
-	}
-	if (strncmp(rawbuf, "__sfx__", 7) == 0) {
-	    section = SECT_SFX;
-	    continue;
-	}
-	if (strncmp(rawbuf, "__music__", 7) == 0) {
-	    section = SECT_MUSIC;
-	    continue;
-	}
-	if (section > SECT_MAP) {
-		break;
-	}
-	switch (section) {
-	    case SECT_LUA:
-		memcpy(cart.code+bytesRead, rawbuf, lineLen);
-		break;
-	    case SECT_GFX:
-		decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
-		gfxParser((uint8_t*)decbuf, spriteCount, &spritesheet);
-		spriteCount++;
-		break;
-	    case SECT_MAP:
-		decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
-		mapParser(decbuf, spriteCount, map_data);
-		spriteCount++;
-		break;
-	}
-	bytesRead += lineLen;
+        lineLen = readLine(&text, (uint8_t*)rawbuf);
+        // FIXME: BUG: readLine does not take 2 newlines in a row too happily
+        if (strncmp(rawbuf, "__lua__", 7) == 0) {
+            section = SECT_LUA;
+            bytesRead = 0;
+            continue;
+        }
+        if (strncmp(rawbuf, "__gfx__", 7) == 0) {
+            section = SECT_GFX;
+            spriteCount = 0;
+            bytesRead = 0;
+            continue;
+        }
+        if (strncmp(rawbuf, "__gff__", 7) == 0) {
+            section = SECT_GFF;
+            continue;
+        }
+        if (strncmp(rawbuf, "__label__", 7) == 0) {
+            section = SECT_LABEL;
+            continue;
+        }
+        if (strncmp(rawbuf, "__map__", 7) == 0) {
+            section = SECT_MAP;
+            spriteCount = 0;
+            bytesRead = 0;
+            continue;
+        }
+        if (strncmp(rawbuf, "__sfx__", 7) == 0) {
+            section = SECT_SFX;
+            continue;
+        }
+        if (strncmp(rawbuf, "__music__", 7) == 0) {
+            section = SECT_MUSIC;
+            continue;
+        }
+        if (section > SECT_MAP) {
+            break;
+            // TODO: implement SFX etc
+        }
+        switch (section) {
+            case SECT_LUA:
+                memcpy(cart.code+bytesRead, rawbuf, lineLen);
+                break;
+            case SECT_GFX:
+                decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
+                gfxParser((uint8_t*)decbuf, spriteCount, &spritesheet);
+                spriteCount++;
+                break;
+            case SECT_MAP:
+                decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
+                mapParser(decbuf, spriteCount, map_data);
+                spriteCount++;
+                break;
+        }
+        bytesRead += lineLen;
     } while (*text != 0);
     free(decbuf);
     free(rawbuf);

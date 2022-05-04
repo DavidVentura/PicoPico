@@ -233,7 +233,7 @@ void cartParser(uint8_t* text) {
 		break;
 	    case SECT_MAP:
 		decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
-		mapParser(rawbuf, spriteCount, map_data);
+		mapParser(decbuf, spriteCount, map_data);
 		spriteCount++;
 		break;
 	}

@@ -147,9 +147,10 @@ void engine_init() {
     memset(drawstate.transparent, 0, sizeof(drawstate.transparent));
     drawstate.transparent[0] = 1;
 
-    memset(&fontsheet.sprite_data, 0xFF, 128*120);
+    memset(&fontsheet.sprite_data, 0xFF, sizeof(fontsheet.sprite_data));
     memset(map_data, 0, sizeof(map_data));
 }
+
 void fontParser(uint8_t* text) {
     int spriteCount = 0;
     uint8_t* rawbuf = (uint8_t*)malloc(129);

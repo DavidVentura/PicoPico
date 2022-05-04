@@ -35,9 +35,9 @@ void gfx_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, const uint8_t*
 
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
-    //if (y >= SCREEN_HEIGHT) {
-    //        return;
-    //}
+    if (y >= SCREEN_HEIGHT) {
+            return;
+    }
     const uint16_t color = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
     // frontbuffer[(y*160+x)  ] = color;
     frontbuffer[2*(y*SCREEN_WIDTH+x)  ] = color >> 8;

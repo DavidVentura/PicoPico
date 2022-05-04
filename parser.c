@@ -23,7 +23,7 @@ uint32_t readLine(uint8_t** text, uint8_t* line) {
 void decodeRLE(uint8_t* decbuf, uint8_t* rawbuf, uint16_t rawLen) {
 	uint16_t decPos = 0;
 	uint8_t count = 1;
-	for(uint8_t i=0; i<rawLen; i++) {
+	for(uint16_t i=0; i<rawLen; i++) {
 		uint8_t chr = rawbuf[i] & 0x7F;
 		bool multiple = (rawbuf[i] & 0x80) == 0x80;
 		if(multiple == true) {
@@ -36,7 +36,6 @@ void decodeRLE(uint8_t* decbuf, uint8_t* rawbuf, uint16_t rawLen) {
 		} else {
 			count = 1;
 		}
-
 		memset(decbuf+decPos, chr, count);
 		decPos += count;
 	}

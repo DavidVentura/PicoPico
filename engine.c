@@ -83,12 +83,11 @@ static void gfx_map(uint8_t mapX, uint8_t mapY,
 		    uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
 
     for(uint8_t y = mapY; y < mapY+cellH; y++) {
-	for(uint8_t x = mapX; x < mapX+cellW; x++) {
-        int16_t tx = screenX+(x-mapX)*8;
-        int16_t ty = screenY+(y-mapY)*8;
-        if (tx < 0 || ty < 0) continue; // FIXME ??
-	    render(&spritesheet, map_data[x+y*128], tx, ty, -1);
-	}
+        for(uint8_t x = mapX; x < mapX+cellW; x++) {
+            int16_t tx = screenX+(x-mapX)*8;
+            int16_t ty = screenY+(y-mapY)*8;
+            render(&spritesheet, map_data[x+y*128], tx, ty, -1);
+        }
     }
 }
 
@@ -147,9 +146,12 @@ bool init_lua(const char* script_text) {
     return false;
 }
 
-void engine_init() {
+void reset_transparency() {
     memset(drawstate.transparent, 0, sizeof(drawstate.transparent));
     drawstate.transparent[0] = 1;
+}
+void engine_init() {
+    reset_transparency();
 
     memset(&fontsheet.sprite_data, 0xFF, sizeof(fontsheet.sprite_data));
     memset(map_data, 0, sizeof(map_data));

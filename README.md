@@ -84,8 +84,12 @@ Immediate:
 
 Later:
 
+* ~Clock rate on SPI?~ set to 62.5MHz; not sure if it can go higher
+* Implement flash
+    * cartdata command could use it
+    * carts could be stored in flash instead of static data
+    * music, sfx
 * Investigate pushing pixels to display via DMA
-* Clock rate on SPI?
 * Sound ??
 
 # Other stuff

@@ -85,6 +85,8 @@ Immediate:
 Later:
 
 * Investigate pushing pixels to display via DMA
+* Clock rate on SPI?
+* Sound ??
 
 # Other stuff
 
@@ -127,3 +129,4 @@ you can press `r` on it to reboot into mass-storage mode; which will trigger the
 * [Storing data in flash](https://kevinboone.me/picoflash.html?i=1)
 * [Udev rule to copy build automatically](https://forums.raspberrypi.com/viewtopic.php?t=333160)
 * [Getting started on basic Pico8 Gamedev](https://lukemerrett.com/getting-started-with-pico-8/)
+* [GameTiger, another Pico-based console](https://github.com/codetiger/GameTiger-Console)

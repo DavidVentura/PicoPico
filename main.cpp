@@ -18,8 +18,18 @@ int _lua_print(lua_State* L) {
     const int y = luaL_checkinteger(L, 3);
     const int paletteIdx = luaL_checkinteger(L, 4);
 
+    // printf("Requested to print [%d] '%s'\n", textLen, text);
     for (int i = 0; i<textLen; i++) {
-	render(&fontsheet, text[i], x + i * 4, y, paletteIdx);
+	uint8_t c = text[i];
+	if (c == 0xe2) { // ❎ = 0xe2 0x9d 0x8e
+		i += 2;
+		c = 'X';
+	}
+	if (c == 0xf0) { // 🅾  = 0xf0 0x9f 0x85 0xbe
+		i += 3;
+		c = 'O';
+	}
+	render(&fontsheet, c, x + i * 4, y, paletteIdx);
     }
     // FIXME: this only works for ascii
     return 0;

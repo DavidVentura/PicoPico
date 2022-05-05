@@ -25,6 +25,20 @@ uint16_t get_pixel(uint8_t x, uint8_t y) {
 	return frontbuffer[x+y*SCREEN_WIDTH];
 }
 
+void gfx_circlefill(int32_t x, int32_t y, int32_t radius, uint8_t* color){
+    for (int w = 0; w < radius * 2; w++)
+    {
+        for (int h = 0; h < radius * 2; h++)
+        {
+            int dx = radius - w; // horizontal offset
+            int dy = radius - h; // vertical offset
+            if ((dx*dx + dy*dy) <= (radius * radius))
+            {
+                put_pixel(x + dx, y + dy, color);
+            }
+        }
+    }
+}
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color){
 }
 void gfx_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, const uint8_t* color) {

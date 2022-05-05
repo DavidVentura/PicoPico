@@ -236,10 +236,14 @@ int _lua_pget(lua_State* L) {
 }
 
 int _lua_pset(lua_State* L) {
-    uint8_t x = luaL_checkinteger(L, 1);
-    uint8_t y = luaL_checkinteger(L, 2);
+    int16_t x = luaL_checkinteger(L, 1);
+    int16_t y = luaL_checkinteger(L, 2);
     uint8_t idx = luaL_optinteger(L, 3, drawstate.fg_color);
-    put_pixel(x-drawstate.camera_x, y-drawstate.camera_y, palette[idx]);
+
+    int16_t tx = x-drawstate.camera_x;
+    int16_t ty = y-drawstate.camera_y;
+    if (tx < 0 || tx >= SCREEN_WIDTH || ty < 0 || ty  >= SCREEN_HEIGHT) return 0;
+    put_pixel(tx, ty, palette[idx]);
     return 0;
 }
 

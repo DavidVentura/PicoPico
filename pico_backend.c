@@ -25,12 +25,17 @@ uint16_t get_pixel(uint8_t x, uint8_t y) {
 }
 
 void gfx_circlefill(int32_t x, int32_t y, int32_t radius, uint8_t* color){
+    if(x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
     for (int w = 0; w < radius * 2; w++)
     {
+        int dx = radius - w; // horizontal offset
+        if((x + dx) < 0) continue;
+        if((x + dx) >= SCREEN_WIDTH) break;
         for (int h = 0; h < radius * 2; h++)
         {
-            int dx = radius - w; // horizontal offset
             int dy = radius - h; // vertical offset
+            if((y + dy) >= SCREEN_HEIGHT) break;
+            if((y + dy) < 0) continue;
             if ((dx*dx + dy*dy) <= (radius * radius))
             {
                 put_pixel(x + dx, y + dy, color);
@@ -48,9 +53,6 @@ void gfx_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, const uint8_t*
 
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
 static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
-    if (y >= SCREEN_HEIGHT) {
-            return;
-    }
     const uint16_t color = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
     // frontbuffer[(y*160+x)  ] = color;
     frontbuffer[2*(y*SCREEN_WIDTH+x)  ] = color >> 8;

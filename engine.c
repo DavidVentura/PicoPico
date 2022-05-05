@@ -259,22 +259,26 @@ void cartParser(const uint8_t* text) {
 
 void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0, int paletteIdx) {
     uint16_t idx, val;
-    if(x0 >= SCREEN_WIDTH) return;
-    if(y0 >= SCREEN_HEIGHT) return;
+    if(x0-drawstate.camera_x >= SCREEN_WIDTH) return;
+    if(y0-drawstate.camera_y >= SCREEN_HEIGHT) return;
 
     for (uint16_t y=0; y<8; y++) {
-	for (uint16_t x=0; x<8; x++) {
-	    val = s->sprite_data[(sy+y)*128 + x + sx];
-	    if (paletteIdx != -1) {
-		    idx = paletteIdx;
-	    } else {
-		    idx = val;
-	    }
-	    if (drawstate.transparent[val] == 0) {
-		    const uint8_t* p = palette[idx];
-		    put_pixel(x0+x-drawstate.camera_x, y0+y-drawstate.camera_y, p);
-	    }
-	}
+        int16_t screen_y = y0+y-drawstate.camera_y;
+        if (screen_y < 0) continue;
+        if (screen_y >= SCREEN_HEIGHT) return;
+
+        for (uint16_t x=0; x<8; x++) {
+            val = s->sprite_data[(sy+y)*128 + x + sx];
+            if (paletteIdx != -1) {
+                idx = paletteIdx;
+            } else {
+                idx = val;
+            }
+            if (drawstate.transparent[val] == 0) {
+                const uint8_t* p = palette[idx];
+                put_pixel(x0+x-drawstate.camera_x, screen_y, p);
+            }
+        }
     }
 }
 void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx) {
@@ -294,13 +298,17 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
     uint32_t ratio_x = (sw << 16)/ dw;
     uint32_t ratio_y = (sh << 16)/ dh;
     for (uint16_t y=0; y<dh; y++) {
-	uint16_t yoff = (((y*ratio_y)>>16)+sy)*128;
-	for (uint16_t x=0; x<dw; x++) {
-	    uint8_t val = s->sprite_data[yoff + ((x*ratio_x) >> 16)+sx];
-	    if (drawstate.transparent[val] == 0){
-		    const uint8_t* p = palette[val];
-		    put_pixel(dx+x-drawstate.camera_x, dy+y-drawstate.camera_y, p);
-	    }
-	}
+        int16_t screen_y = dy+y-drawstate.camera_y;
+        if (screen_y < 0) continue;
+        if (screen_y >= SCREEN_HEIGHT) return;
+        uint16_t yoff = (((y*ratio_y)>>16)+sy)*128;
+
+        for (uint16_t x=0; x<dw; x++) {
+            uint8_t val = s->sprite_data[yoff + ((x*ratio_x) >> 16)+sx];
+            if (drawstate.transparent[val] == 0){
+                const uint8_t* p = palette[val];
+                put_pixel(dx+x-drawstate.camera_x, screen_y, p);
+            }
+        }
     }
 }

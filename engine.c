@@ -159,7 +159,7 @@ void engine_init() {
     memset(cartdata, 0, sizeof(cartdata));
 }
 
-void fontParser(uint8_t* text) {
+void fontParser(const uint8_t* text) {
     int spriteCount = 0;
     uint8_t* rawbuf = (uint8_t*)malloc(129);
     uint8_t* decbuf = (uint8_t*)malloc(129);
@@ -179,7 +179,7 @@ void fontParser(uint8_t* text) {
     free(rawbuf);
 }
 
-void cartParser(uint8_t* text) {
+void cartParser(const uint8_t* text) {
     uint8_t section = 0;
     uint32_t spriteCount = 0;
     char* rawbuf = (char*)malloc(257);

@@ -1,10 +1,9 @@
 #include "data.h"
-#include <string.h>
-#include <stdlib.h>
+#include <cstring> // memset
 
 uint8_t parseChar(char c);
 
-uint32_t readLine(uint8_t** text, uint8_t* line) {
+uint32_t readLine(const uint8_t** text, uint8_t* line) {
     uint32_t count = 0;
 
     while(**text != '\0') {

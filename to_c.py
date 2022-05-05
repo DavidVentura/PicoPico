@@ -132,7 +132,7 @@ def parse(fname: Path, process_as: ProcessType, strip_label: bool, debug: bool=F
     new_len = len(processed_data)
 
     output = []
-    output.append(f'uint8_t {bname}[] = {{')
+    output.append(f'const uint8_t {bname}[] = {{')
     for chunk in chunked(processed_data, 16):
         output.append('  ' + ', '.join([f'0x{b:02x}' for b in chunk]) + ',')
     output.append('};')

@@ -441,6 +441,7 @@ int main( int argc, char* args[] )
         draw_start_time = now();
         if (call_draw && !skip_next_render) _to_lua_call("_draw");
         draw_end_time = now();
+
         if (draw_end_time - draw_start_time > ms_delay)
             skip_next_render = true;
         else
@@ -450,9 +451,10 @@ int main( int argc, char* args[] )
         int delta = ms_delay - (frame_end_time - frame_start_time);
         if(delta > 0) delay(delta);
 
-        printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);
-        printf("Frame: %d [U: %d, D: %d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
         lua_gc(L, LUA_GCSTEP, 0);
+
+        // printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);
+        printf("Frame: %03d [U: %d, D: %03d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
     }
 
     lua_close(L);

@@ -1,4 +1,3 @@
-#include <string.h>
 #include "pico/stdlib.h"
 #include "st7735_80x160/my_lcd.h"
 #include "hardware/pwm.h"

@@ -1,10 +1,9 @@
 #ifndef DATA
 #define DATA
-#include <stdio.h>
 #include <stdint.h>
 
 struct Spritesheet {
-	uint8_t sprite_data[128 * 128];
+	uint8_t sprite_data[128 * 128]; // 16KB, could be 8 with nibble packing
 	uint8_t flags[256];
 };
 typedef struct Spritesheet Spritesheet;
@@ -22,8 +21,9 @@ struct DrawState {
 typedef struct DrawState DrawState;
 
 struct Cart {
-    char code[65535];
+    char* code;
 };
+
 typedef struct Cart Cart;
 static Cart cart;
 
@@ -112,3 +112,4 @@ void smallHexDump (const void * addr, const int len) {
     printf ("  %s\n", buff);
 }
 #endif
+

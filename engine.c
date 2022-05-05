@@ -1,12 +1,15 @@
 #define ENGINE
 #include "data.h"
 #include "parser.c"
-#include <string.h>
+#include <cstring>
 
 static lua_State *L = NULL;
 int buttons[6] = {0};
 
-static uint8_t ram[32768];
+// The memory used by Lua is entirely separate from the PICO-8 memory and is limited to 2 MiB. 
+// RIP
+static uint8_t ram[0x5DFF - 0x4300]; // 7KB
+// this does not include the "General use / extended map" 32KB chunk
 static uint32_t cartdata[64];
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
@@ -188,7 +191,8 @@ void cartParser(const uint8_t* text) {
     // 1 byte for \0
 
     memset(rawbuf, 0, 258);
-    memset(cart.code, 0, sizeof(cart.code));
+    cart.code = (char*)malloc(0xFFFF);
+    memset(cart.code, 0, 0xFFFF);
 
     uint16_t lineLen = 0;
     uint32_t bytesRead = 0;

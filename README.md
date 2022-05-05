@@ -80,7 +80,13 @@ Immediate:
 * ~Implement camera~
 * ~Lua dialect~ (using z8lua)
 * ~Unify the build systems (Make for pc / CMake for pico)~
-  * ugh, it's more broken than before, can't get the pico stuff not compiling on the pc target and have to manually comment it out
+* Make some more space in RAM:
+    * ~cart->code should be freed (64KB)~
+    * fontsheet (16KB -> 2KB, only need 1 bit per coord)
+    * Could be halved:
+        * mapdata = 32x128 = 4KB -> 2KB
+        * spritesheet = 128x128 = 16KB -> 8KB 
+    * total: 24KB
 
 Later:
 

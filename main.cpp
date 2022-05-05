@@ -395,6 +395,7 @@ int main( int argc, char* args[] )
 
     printf("init lua \n");
     bool lua_ok = init_lua(cart.code);
+    free(cart.code);
     printf("init done \n");
     if ( !lua_ok ) {
         printf( "Failed to initialize LUA!\n" );

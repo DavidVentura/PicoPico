@@ -3,7 +3,6 @@
 #include <lauxlib.h>
 #include <lualib.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include "static_game_data.h"
 #include "engine.c"
 #ifdef SDL_BACKEND
@@ -398,37 +397,56 @@ int main( int argc, char* args[] )
     bool lua_ok = init_lua(cart.code);
     printf("init done \n");
     if ( !lua_ok ) {
-	printf( "Failed to initialize LUA!\n" );
-	while (!quit) {
-		quit = handle_input();
-		delay(100);
-	}
-	return 1;
+        printf( "Failed to initialize LUA!\n" );
+        while (!quit) {
+            quit = handle_input();
+            delay(100);
+        }
+        return 1;
     }
     registerLuaFunctions();
-    uint64_t init_done = now();
+    uint32_t init_done = now();
     printf("Parsing and initializing took %ldms\n", init_done-bootup_time);
 
     bool call_update = _lua_fn_exists("_update");
     bool call_draw = _lua_fn_exists("_draw");
 
     quit = false;
-    uint64_t frame_start_time;
-    uint64_t frame_end_time;
+    uint32_t frame_start_time;
+    uint32_t update_start_time;
+    uint32_t draw_start_time;
+
+    uint32_t frame_end_time;
+    uint32_t update_end_time;
+    uint32_t draw_end_time;
+
     const uint8_t target_fps = 30;
     const uint8_t ms_delay = 1000 / target_fps;
+    bool skip_next_render;
 
     if (_lua_fn_exists("_init")) _to_lua_call("_init");
     while (!quit) {
-	frame_start_time = now();
-	gfx_flip();
-	quit = handle_input();
-	if (call_update) _to_lua_call("_update");
-	if (call_draw) _to_lua_call("_draw");
-	frame_end_time = now();
-	int delta = ms_delay - (frame_end_time - frame_start_time);
-	if(delta > 0) delay(delta);
-	// printf("This frame took: %d (del is %d, ms_del is %d)\n", ms_delay - delta, delta, ms_delay);
+        frame_start_time = now();
+        gfx_flip();
+        quit = handle_input();
+        update_start_time = now();
+        if (call_update) _to_lua_call("_update");
+        update_end_time = now();
+
+        draw_start_time = now();
+        if (call_draw && !skip_next_render) _to_lua_call("_draw");
+        draw_end_time = now();
+        if (draw_end_time - draw_start_time > ms_delay)
+            skip_next_render = true;
+        else
+            skip_next_render = false;
+
+        frame_end_time = now();
+        int delta = ms_delay - (frame_end_time - frame_start_time);
+        if(delta > 0) delay(delta);
+
+        printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);
+        printf("Frame: %d [U: %d, D: %d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
     }
 
     lua_close(L);

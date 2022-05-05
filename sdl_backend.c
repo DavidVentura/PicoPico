@@ -220,7 +220,7 @@ void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* col
     SDL_Rect rect = {.x = x, .y = y, .w = w, .h = h };
     SDL_RenderFillRect(gRenderer, &rect);
 }
-uint64_t now() {
+uint32_t now() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (((long long)tv.tv_sec)*1000)+(tv.tv_usec/1000);

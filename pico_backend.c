@@ -149,7 +149,7 @@ bool handle_input() {
     return false;
 }
 
-uint64_t now(){
+uint32_t now(){
     return to_ms_since_boot(get_absolute_time());
 }
 

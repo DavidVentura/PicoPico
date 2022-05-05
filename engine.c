@@ -11,7 +11,7 @@ static uint32_t cartdata[64];
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 static uint8_t map_data[32 * 128];
-static uint64_t bootup_time;
+static uint32_t bootup_time;
 
 #define SECT_LUA   1
 #define SECT_GFX   2
@@ -76,7 +76,7 @@ bool handle_input();
 void delay(uint16_t ms);
 void gfx_flip();
 void video_close();
-uint64_t now();
+uint32_t now();
 
 static void gfx_map(uint8_t mapX, uint8_t mapY,
 		    int16_t screenX, int16_t screenY,

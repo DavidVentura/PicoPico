@@ -14,7 +14,7 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Event e;
 
-void gfx_circlefill(int x, int y, int radius, uint8_t* color)
+void gfx_circlefill(int16_t x, int16_t y, int16_t radius, uint8_t* color)
 {
     if (color != NULL)
 	SDL_SetRenderDrawColor(gRenderer, color[0], color[1], color[2], 255);

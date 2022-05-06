@@ -39,6 +39,15 @@ void decodeRLE(uint8_t* decbuf, uint8_t* rawbuf, uint16_t rawLen) {
 		decPos += count;
 	}
 }
+void flagParser(uint8_t* line, int spriteLineCount, Spritesheet* s) {
+    const int offset = spriteLineCount * 128;
+    for (uint8_t i = 0; i < 128; i++) {
+        uint8_t msn = parseChar(line[i*2  ]);
+        uint8_t lsn = parseChar(line[i*2+1]);
+        uint8_t flag = ((msn & 0xf) << 4) | (lsn & 0xf);
+        s->flags[i+offset] = flag;
+    }
+}
 void gfxParser(uint8_t* line, int spriteLineCount, Spritesheet* s) {
     const int offset = spriteLineCount * 128;
     for (uint8_t i = 0; i < 128; i++) {

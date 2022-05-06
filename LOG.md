@@ -103,3 +103,12 @@ However! the code has to special-case the value where the repetition count is `1
 
 Realized that copying the backbuffer to screen takes 11.5ms because the SPI clock frequency is set to 30MHz. Setting it to 62.5MHz (number from `GameTiger` repo) makes the transfer take ~4ms.
 
+# Thu May 5
+
+I ran out of memory again, when trying to run "Rockets!". After a lot of poking around with the linker map, I realized that the static assets (cart data, font, stdlib) weren't declared as `const`! Making them `const` released ~50KB.  
+I also looked for some easy memory and noticed I was allocating a static 32KB buffer for the code _text_ which is not used after Lua initializes the VM; so I made that dynamic memory and freed it after using it. Easy 32KB.
+I'll probably release another 10KB later.
+
+Struggling with the performance of `Rockets!`, seems that manually drawing rotated sprites, pixel by pixel, is _slow_. Not sure why, these ~400 calculations take ~30ms.
+
+Will first look at converting the SPI transfers to 16bit wide (been pending for a bit..) and maybe after use the new 240x240 screen I got

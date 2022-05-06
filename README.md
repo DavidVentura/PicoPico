@@ -82,7 +82,8 @@ Immediate:
 * ~Unify the build systems (Make for pc / CMake for pico)~
 * Make some more space in RAM:
     * ~cart->code should be freed (64KB)~
-    * fontsheet (16KB -> 2KB, only need 1 bit per coord)
+    * ~fontsheet (16KB -> 2KB, only need 1 bit per coord)~
+        * is now `const`
     * Could be halved:
         * mapdata = 32x128 = 4KB -> 2KB
         * spritesheet = 128x128 = 16KB -> 8KB 

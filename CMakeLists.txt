@@ -1,16 +1,18 @@
 cmake_minimum_required(VERSION 3.13)
 
-if(NOT DEFINED PICO)
-	message(FATAL_ERROR "You must define the variable PICO (to either 1 or 0)" )
+if(NOT DEFINED BACKEND)
+	message(FATAL_ERROR "You must define the variable BACKEND (to either PICO, ESP32 or PC)" )
 endif()
 
-if(PICO)
+if(BACKEND STREQUAL "PICO")
 include(pico_sdk_import.cmake)
+elseif(BACKEND STREQUAL "ESP32")
+set(EXTRA_COMPONENT_DIRS "esp")
+set(COMPONENTS "esp")
+include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 endif()
 
 project(my_project C CXX ASM)
-
-file (GLOB st_src CONFIGURE_DEPENDS "/home/david/git/pico_st7735_80x160/st7735_80x160/*")
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -28,8 +30,9 @@ add_custom_command(
 	#	DEPENDS stdlib/stdlib.lua artifacts/font.lua examples/*
 	)
 
-if(PICO)
+if(BACKEND STREQUAL "PICO")
 	# initialize the Raspberry Pi Pico SDK
+	file (GLOB st_src CONFIGURE_DEPENDS "/home/david/git/pico_st7735_80x160/st7735_80x160/*")
 	pico_sdk_init()
 	
 	add_executable(hello_pico
@@ -68,7 +71,7 @@ if(PICO)
 	# create map/bin/hex/uf2 file in addition to ELF.
 	pico_add_extra_outputs(hello_pico)
 
-else()
+elseif(BACKEND STREQUAL "PC")
 	add_executable(pc_pico
 	    static_game_data.h
 	    main.cpp
@@ -90,4 +93,5 @@ else()
 	
 	target_compile_options(pc_pico PRIVATE -DSDL_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_HEIGHT=512 -DSCREEN_WIDTH=512)
 
+elseif(BACKEND STREQUAL "ESP32")
 endif()

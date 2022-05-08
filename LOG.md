@@ -143,3 +143,5 @@ Calling `put_pixel` 50k times:
 maybe `-Os` is ignoring the `inline` ?
 
 Still can't get the SPI data transfer to be LSB to avoid having to flip endiannes on the front->backbuffer copy. Can probably do it anyway when writing to the FB..
+
+[ESP32 SPIRAM speed](https://www.esp32.com/viewtopic.php?t=13356) ~20MB/s, more if hitting the cache.

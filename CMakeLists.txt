@@ -17,10 +17,11 @@ project(my_project C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(lua)
+#add_subdirectory(lua)
 add_compile_options(
 	#	-Werror
 	#-g3
+        -Wno-unused-variable
 )
 
 add_custom_command(
@@ -58,7 +59,7 @@ if(BACKEND STREQUAL "PICO")
 	    hardware_clocks
 	    hardware_spi
 	
-	    app_lib
+	    my_lua_lib
 	    pico_stdlib
 	    pico_multicore
 	)
@@ -78,10 +79,11 @@ elseif(BACKEND STREQUAL "PC")
 	    ${lua_src}
 	)
 	add_subdirectory(SDL)
+	add_subdirectory(lua)
 	
 	# Add pico_stdlib library which aggregates commonly used features
 	target_link_libraries(pc_pico
-	    app_lib
+	    my_lua_lib
 	    SDL2::SDL2
 	    SDL2::SDL2main
 	)

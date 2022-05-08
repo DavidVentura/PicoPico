@@ -220,8 +220,8 @@ int _lua_line(lua_State* L) {
 int _lua_rect(lua_State* L) {
     uint8_t x = luaL_checkinteger(L, 1);
     uint8_t y = luaL_checkinteger(L, 2);
-    uint8_t w = luaL_checkinteger(L, 3);
-    uint8_t h = luaL_checkinteger(L, 4);
+    uint8_t x2 = luaL_checkinteger(L, 3);
+    uint8_t y2 = luaL_checkinteger(L, 4);
     int col = luaL_optinteger(L, 5, -1);
     uint8_t* newColor = NULL;
     if (col != -1) {
@@ -235,8 +235,8 @@ int _lua_rect(lua_State* L) {
 int _lua_rectfill(lua_State* L) {
     uint8_t x = luaL_checkinteger(L, 1);
     uint8_t y = luaL_checkinteger(L, 2);
-    uint8_t w = luaL_checkinteger(L, 3);
-    uint8_t h = luaL_checkinteger(L, 4);
+    uint8_t x2 = luaL_checkinteger(L, 3);
+    uint8_t y2 = luaL_checkinteger(L, 4);
     int col = luaL_optinteger(L, 5, -1);
     uint8_t* newColor = NULL;
     if (col != -1) {

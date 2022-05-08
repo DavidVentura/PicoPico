@@ -107,7 +107,8 @@ static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
 	SDL_SetRenderDrawColor(gRenderer, *p, *(p+1), *(p+2), 0xFF );
     SDL_RenderDrawPoint(gRenderer, x, y);
     // FIXME this is wrong
-    buffer[x+y*V_SCREEN_HEIGHT] = (p-palette[0])/3;
+    const uint16_t color = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
+    buffer[x+y*V_SCREEN_HEIGHT] = color;
 }
 
 uint16_t get_pixel(uint8_t x, uint8_t y) {
@@ -205,7 +206,7 @@ void gfx_cls(uint8_t* color) {
     SDL_RenderClear( gRenderer );
 }
 
-void gfx_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color) {
+void gfx_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color) {
     if ( color != NULL ) {
 	SDL_SetRenderDrawColor(gRenderer, color[0], color[1], color[2], 255);
     }
@@ -213,7 +214,7 @@ void gfx_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color) 
     SDL_RenderDrawRect(gRenderer, &rect);
 }
 
-void gfx_rectfill(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* color) {
+void gfx_rectfill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color) {
     if ( color != NULL ) {
 	SDL_SetRenderDrawColor(gRenderer, color[0], color[1], color[2], 255);
     }

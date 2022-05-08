@@ -341,7 +341,8 @@ int _lua_fget(lua_State* L) {
     if (bitfield == 0xFF) {
         lua_pushinteger(L, p);
     } else {
-        lua_pushboolean(L, (p & bitfield == bitfield));
+        bool result = ((1 << bitfield) & p) == 1;
+        lua_pushboolean(L, result);
     }
     return 1;
 }
@@ -660,7 +661,7 @@ void cartParser(const uint8_t* text) {
 
 void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y) {
     uint16_t idx, val;
-    if(x0-drawstate.camera_x >= SCREEN_WIDTH) return;
+    if((x0 < -drawstate.camera_x) && (x0-drawstate.camera_x >= SCREEN_WIDTH)) return;
     if(y0-drawstate.camera_y >= SCREEN_HEIGHT) return;
 
     for (uint16_t y=0; y<8; y++) {

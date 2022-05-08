@@ -2,7 +2,7 @@
 
 Project to attempt to create hardware for the [Pico-8](https://www.lexaloffle.com/pico-8.php).
 
-I'd like to eventually get a very basic game running on a [Raspberry Pi Pico](https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html)
+I'd like to eventually get a very basic game running on a ~[Raspberry Pi Pico](https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html)~[ESP32](https://www.adafruit.com/product/3979)
 
 Be aware, the code will be terrible, this is a project to learn:
 
@@ -12,6 +12,7 @@ Be aware, the code will be terrible, this is a project to learn:
 * CMake
 * Lua
     * And how to adapt / modify languages
+* JIT-ting ??
 
 
 This project uses [z8lua](https://github.com/DavidVentura/z8lua) to implement Pico8's lua dialect; I've whacked the original repo to make it build 
@@ -54,6 +55,8 @@ Memory requirements:
 ~130KB, should have plenty of space for things going wrong. However, the biggest unknown is lua overhead.  
 Both Spritesheet (16KB), Fontsheet (16KB) and Map (4KB) can be squeezed to half, as they need a nibble per pixel, instead of a byte.  
 Not sure how much CPU it'd take to have every single render to the backbuffer expand the pixels back bytes.
+
+And **most importantly** 2MB for game RAM (Lua memory)
 
 # Current performance
 
@@ -141,3 +144,4 @@ you can press `r` on it to reboot into mass-storage mode; which will trigger the
 * [Udev rule to copy build automatically](https://forums.raspberrypi.com/viewtopic.php?t=333160)
 * [Getting started on basic Pico8 Gamedev](https://lukemerrett.com/getting-started-with-pico-8/)
 * [GameTiger, another Pico-based console](https://github.com/codetiger/GameTiger-Console)
+* [Espressif docs](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html)

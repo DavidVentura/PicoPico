@@ -324,7 +324,7 @@ int _lua_fget(lua_State* L) {
     if (bitfield == 0xFF) {
         lua_pushinteger(L, p);
     } else {
-        lua_pushboolean(L, p & bitfield);
+        lua_pushboolean(L, (p & bitfield == bitfield));
     }
     return 1;
 }

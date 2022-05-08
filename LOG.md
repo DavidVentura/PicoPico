@@ -112,3 +112,34 @@ I'll probably release another 10KB later.
 Struggling with the performance of `Rockets!`, seems that manually drawing rotated sprites, pixel by pixel, is _slow_. Not sure why, these ~400 calculations take ~30ms.
 
 Will first look at converting the SPI transfers to 16bit wide (been pending for a bit..) and maybe after use the new 240x240 screen I got
+
+
+# Sun May 8
+
+Gave up on running on RP2040 after realizing there was _no way_ I could fit the promised Lua space for _game memory_ (2MB) anywhere.  
+Went and got an ESP32 "WROOM32" which has 4MB (mega _bytes_) of SPIRAM (slow), but magic in the MMU makes it cache, so could be alright. Ordered one, and starting hacking on a spare ESP32 I had.
+
+Getting the build and compiler going was a nightmare; couldn't get the magic CMake functions to include the Lua sources so it kept failing to link.
+
+Eventually, got it going and had another nightmare: the display would randomly not turn on. Seems like it was a timing issue, as fiddling with the BLK randomly on reboot would get it going.  
+When the new WROOM32 arrived, the issue mysteriously went away.
+
+The docs on the ESP are nowhere as clear as the RP2040 docs; I kept having failures to do SPI transfers in bulk and had to chop them off in small bits. It was [right here](https://espressif-docs.readthedocs-hosted.com/projects/esp-idf/en/latest/api-reference/peripherals/spi_master.html#_CPPv4N16spi_bus_config_t15max_transfer_szE) in the docs though, that the default limit is _4094_ bytes. Still unsure why it wants to `malloc` its own chunk of memory per transaction, instead of letting me give it one (the backbuffer exists _for this reason_).
+
+After this was "running" (a _lot_ of the build is hacked / chopped), I went back to the "rockets" example, as it kept having performance issues on the Pico, with ~20-30ms to draw each rotated sprite. In the ESP this is a bit faster but still very slow (~14ms).  
+Biggest problem is that it does 400 inner loops _per frame, per sprite_ to draw the rotated sprites.  The only way I see something like this working is to JIT this _somehow_, but that seems _so_ hard.
+
+Some silly performance notes:
+
+The code for st7789, as written, would take ~500ms to render a full screen of solid color. Replacing that code with a single SPI call takes ~5-7ms. [This doc](https://austinmorlan.com/posts/embedded_game_programming_3/) helped me a bit on getting things going.
+
+Calling `put_pixel` 50k times:
+
+* At `-O2`: 2ms
+* At `-Og`: 7ms
+* At `-O0`: 10ms
+* At `-Os`: 25ms
+
+maybe `-Os` is ignoring the `inline` ?
+
+Still can't get the SPI data transfer to be LSB to avoid having to flip endiannes on the front->backbuffer copy. Can probably do it anyway when writing to the FB..

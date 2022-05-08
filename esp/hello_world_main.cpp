@@ -6,13 +6,40 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
-#include <stdio.h>
-#include "sdkconfig.h"
+#include "esp_chip_info.h"
+#include "esp_err.h"
+#include "esp_log.h"
+#include "esp_spi_flash.h"
+#include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_chip_info.h"
-#include "esp_spi_flash.h"
+#include "sdkconfig.h"
 
+
+#include <stdio.h>
+
+#include "fix32.h"
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+
+#define SCREEN_HEIGHT CONFIG_HEIGHT
+#define SCREEN_WIDTH CONFIG_WIDTH
+#include <driver/gpio.h>
+#include <driver/spi_master.h>
+
+extern "C" {
+    #include "st7789.h"
+    void app_main(void);
+}
+
+TFT_t dev;
+#include "backend.c"
+#include "main.cpp"
+
+void _main(void *pvParameters) {
+    main(0, NULL);
+}
 void app_main(void)
 {
     printf("Hello world!\n");
@@ -32,12 +59,7 @@ void app_main(void)
             (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
     printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
-
-    for (int i = 10; i >= 0; i--) {
-        printf("Restarting in %d seconds...\n", i);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-    printf("Restarting now.\n");
-    fflush(stdout);
-    esp_restart();
+    q = xQueueCreate(1, sizeof(uint8_t));
+	xTaskCreate(_main, "main", 1024*6, NULL, 2, NULL);
+	xTaskCreate(put_buffer, "put_buffer", 1024*6, NULL, 2, NULL);
 }

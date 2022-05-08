@@ -213,7 +213,7 @@ int _lua_line(lua_State* L) {
 
     drawstate.line_x = x1;
     drawstate.line_y = y1;
-    // gfx_line(x0, y0, x1, y1, newColor);
+    gfx_line(x0, y0, x1, y1, newColor);
     return 0;
 }
 
@@ -228,7 +228,7 @@ int _lua_rect(lua_State* L) {
 	    newColor = palette[col];
     }
 
-    //gfx_rect(x, y, w-x+1, h-y+1, newColor);
+    gfx_rect(x, y, x2-x+1, y2-y+1, newColor);
     return 0;
 }
 
@@ -243,7 +243,7 @@ int _lua_rectfill(lua_State* L) {
 	    newColor = palette[col];
     }
 
-    // gfx_rectfill(x, y, w, h, newColor);
+    gfx_rectfill(x, y, x2-x+1, y2-y+1, newColor);
     return 0;
 }
 
@@ -260,7 +260,7 @@ int _lua_circfill(lua_State* L) {
         // newColor = RED;
     }
 
-    // gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, newColor);
+    gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, newColor);
     return 0;
 }
 

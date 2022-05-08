@@ -1,5 +1,3 @@
-printh = print
-
 function all(a)
     if (a == nil) return function() end
 

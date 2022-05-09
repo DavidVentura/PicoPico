@@ -72,6 +72,8 @@ void lcdBacklightOff(TFT_t * dev);
 void lcdBacklightOn(TFT_t * dev);
 void lcdInversionOff(TFT_t * dev);
 void lcdInversionOn(TFT_t * dev);
+void send_buffer(TFT_t* dev, uint8_t *buffer, uint16_t bufferLen);
+void blankFullDisplay(TFT_t *dev);
 
 static const int SPI_Command_Mode = 0;
 static const int SPI_Data_Mode = 1;

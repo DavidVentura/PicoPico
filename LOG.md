@@ -145,3 +145,19 @@ maybe `-Os` is ignoring the `inline` ?
 Still can't get the SPI data transfer to be LSB to avoid having to flip endiannes on the front->backbuffer copy. Can probably do it anyway when writing to the FB..
 
 [ESP32 SPIRAM speed](https://www.esp32.com/viewtopic.php?t=13356) ~20MB/s, more if hitting the cache.
+
+# Mon May 9
+
+Merged ESP32 branch (breaking other targets in the process). Gave up on trying to scale up the game to my 1.33" 240x240 display; bought a 160x128 1.44" display (will have to futz around with the other driver.. again).  
+But the image at least should be a lot larger & clearer.
+
+Mostly gave up when calculated that at 40MHz, I could do over (1-bit) SPI, at MOST 40FPS, if the core did nothing but transfer data.. yet I would need to dynamically stretch the image on every frame, as there's not enough space for a 240x240x2 
+framebuffer in DRAM (can use PSRAM, but that's slower). Alternative is to find and use a 8-bit SPI display, but still, not great to have to resize the image on every frame.
+
+Thinking about audio, but that sounds super complicated so will leave that in the background and keep reading.
+
+Found [this report](https://nymphium.github.io/pdf/opeth_report.pdf) about lua bytecode optimization and really want to look into doing something like it. Particularly lowering the cost of a function call for the "standard library"
+
+After a couple of minutes of executing the `celeste` level; the same corruption appears on the map (a couple of black pixels); not sure why yet.
+
+Want to configure a joystick / buttons to actually _use_ the console, but the ADC always read either 0 or 4095 and the multimeter is broken ((

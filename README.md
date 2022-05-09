@@ -29,9 +29,11 @@ In emulator (SDL backed)
 
 In Raspberry pi Pico
 
-
 https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
 
+Celeste in ESP32
+
+https://user-images.githubusercontent.com/3650670/167492170-9b68312e-e375-4b8d-a32e-3a35d07acea9.mp4
 
 
 # Basic analysis / feasibility:

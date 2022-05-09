@@ -190,12 +190,14 @@ int _lua_sspr(lua_State* L) {
     int dw = luaL_optinteger(L, 7, sw);
     int dh = luaL_optinteger(L, 8, sh);
     render_stretched(&spritesheet, sx, sy, sw, sh, dx, dy, dw, dh);
-    return 0; // 1 = success
+    return 0;
 }
 
 int _lua_spr(lua_State* L) {
-    // TODO: optional w/h/flip_x/flip_y
+    // TODO: optional w/h
     uint8_t argcount = lua_gettop(L);
+    if (argcount < 3)
+        return 0;
 
     int n = luaL_checkinteger(L, 1);
     int x = luaL_checkinteger(L, 2);
@@ -212,7 +214,7 @@ int _lua_spr(lua_State* L) {
         flip_y = lua_toboolean(L, 7);
 
     render(&spritesheet, n, x, y, -1, flip_x==1, flip_y==1);
-    return 0; // 1 = success
+    return 0;
 }
 
 int _lua_line(lua_State* L) {
@@ -245,7 +247,7 @@ int _lua_rect(lua_State* L) {
 	    newColor = palette[col];
     }
 
-    gfx_rect(x, y, x2-x+1, y2-y+1, newColor);
+    gfx_rect(x, y, x2, y2, newColor);
     return 0;
 }
 
@@ -260,7 +262,7 @@ int _lua_rectfill(lua_State* L) {
 	    newColor = palette[col];
     }
 
-    gfx_rectfill(x, y, x2-x+1, y2-y+1, newColor);
+    gfx_rectfill(x, y, x2, y2, newColor);
     return 0;
 }
 

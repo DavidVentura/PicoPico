@@ -37,7 +37,7 @@ void gfx_circlefill(int32_t x, int32_t y, int32_t radius, uint8_t* color){
 }
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color){
 }
-void gfx_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, const uint8_t* color) {
+void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* color) {
 	for(uint16_t x=x0; x<x1-x0; x++)
 		for(uint16_t y=y0; y<y1-y0; y++)
 			put_pixel(x, y, color);
@@ -77,24 +77,40 @@ void gfx_cls(uint8_t* p) {
     memset(frontbuffer, val, sizeof(frontbuffer));
 }
 
-void gfx_rect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, const uint8_t* color) {
-    for(uint16_t x=x0; x<=x0+w; x++)
-        for(uint16_t y=y0; y<=y0+w; y++){
-            if (x==x0 || x == (x0+w) || y==y0 || y == y0+w)
+void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const uint8_t* color) {
+    for(uint16_t y=y0; y<=y2; y++)
+        for(uint8_t x=x0; x<=x2; x++)
+            if ((y==y0) || (y==y2) || (x==x0) || (x==x2))
                 put_pixel(x, y, color);
-        }
 }
 
-void gfx_rectfill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color) {
+void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const uint8_t* color) {
+    for(uint16_t y=y0; y<=y2; y++)
+        for(uint16_t x=x0; x<=x2; x++)
+            put_pixel(x, y, color);
 }
 
 bool init_video() {
     spi_master_init(&dev, (gpio_num_t)CONFIG_MOSI_GPIO, (gpio_num_t)CONFIG_SCLK_GPIO, (gpio_num_t)CONFIG_CS_GPIO, (gpio_num_t)CONFIG_DC_GPIO, (gpio_num_t)CONFIG_RESET_GPIO, (gpio_num_t)CONFIG_BL_GPIO);
     lcdInit(&dev, CONFIG_WIDTH, CONFIG_HEIGHT, CONFIG_OFFSETX, CONFIG_OFFSETY);
+
+
+    // 32 x (ch4) 
+    // 33 y (ch5)
+    // 35 btn1 (digital)
+    //adc1_config_width((adc_bits_width_t)ADC_WIDTH_BIT_DEFAULT);
+    //adc1_config_channel_atten(ADC1_CHANNEL_4, ADC_ATTEN_DB_11);
+    //adc1_config_channel_atten(ADC1_CHANNEL_5, ADC_ATTEN_DB_11);
+    // docs say attenuation of 11 = 150-2450mV range
+
     return true;
 }
 
 bool handle_input() {
+//    int xraw = adc1_get_raw(ADC1_CHANNEL_4);
+//    int yraw = adc1_get_raw(ADC1_CHANNEL_5);
+//
+//    printf("xraw %d, yraw %d\n", xraw, yraw);
     /*
        int c = getchar_timeout_us(0);
        switch (c) {

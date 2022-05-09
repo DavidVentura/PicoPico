@@ -5,11 +5,14 @@
 #include <stdbool.h>
 #include "static_game_data.h"
 #include "engine.c"
-#ifdef SDL_BACKEND
-#include "sdl_backend.c"
-#else
-#include "pico_backend.c"
-#endif
+//#ifdef BACKEND == "PC"
+//#include "sdl_backend.c"
+//#elif BACKEND == "PICO"
+//#include "pico_backend.c"
+//#elif BACKEND == "ESP32"
+//#include "esp32_backend.cpp"
+//#endif
+//#include "esp/backend.c"
 
 
 int main( int argc, char* args[] )
@@ -24,10 +27,9 @@ int main( int argc, char* args[] )
     }
 
     engine_init();
-    delay(1500);
 
     printf("Parsing cart \n");
-    cartParser(examples_map_p8);
+    // cartParser(examples_map_p8);
     // cartParser(examples_hello_world_lua);
     // cartParser(examples_dice_p8);
     // cartParser(examples_tennis_p8);
@@ -66,7 +68,7 @@ int main( int argc, char* args[] )
 
     const uint8_t target_fps = 30;
     const uint8_t ms_delay = 1000 / target_fps;
-    bool skip_next_render;
+    bool skip_next_render = false;
 
     if (_lua_fn_exists("_init")) _to_lua_call("_init");
     while (!quit) {
@@ -78,7 +80,8 @@ int main( int argc, char* args[] )
         update_end_time = now();
 
         draw_start_time = now();
-        if (call_draw && !skip_next_render) _to_lua_call("_draw");
+        //if (call_draw && !skip_next_render) _to_lua_call("_draw");
+        _to_lua_call("_draw");
         draw_end_time = now();
 
         if (draw_end_time - draw_start_time > ms_delay)
@@ -90,10 +93,10 @@ int main( int argc, char* args[] )
         int delta = ms_delay - (frame_end_time - frame_start_time);
         if(delta > 0) delay(delta);
 
-        lua_gc(L, LUA_GCSTEP, 0);
+        // lua_gc(L, LUA_GCSTEP, 0);
 
         // printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);
-        // printf("Frame: %03d [U: %d, D: %03d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
+        printf("Frame: %03d [U: %d, D: %03d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
     }
 
     lua_close(L);

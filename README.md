@@ -103,6 +103,7 @@ Later:
     * music, sfx
 * Investigate pushing pixels to display via DMA
 * Sound ??
+* Look at optimizing lua bytecode for "fast function calls", for "standard library"
 
 # Other stuff
 
@@ -118,6 +119,80 @@ Not entirely sure yet why I was running out of memory, even with 40KB of (font+d
 
 This whole thing (compression) is a bit of a hack -- it is nice for development to have full carts accessible; 
 there is no code to read/write flash, nor any way to store the actual carts on flash yet.
+
+# API Support
+
+## Graphics
+
+|    Function   | Supported |                     Notes |
+|---------------|-----------|---------------------------|
+|camera         |✅         |                           |
+|circ           |✅         |                           |
+|circfill       |✅         |                           |
+|oval           |❌         |                           |
+|ovalfill       |❌         |                           |
+|clip           |❌         |                           |
+|cls            |✅         |                           |
+|color          |❌         |                           |
+|cursor         |❌         |                           |
+|fget           |✅         |                           |
+|fillp          |❌         |                           |
+|fset           |❌         |                           |
+|line           |❌         |                           |
+|pal            |✅         |                           |
+|palt           |✅         |                           |
+|pget           |✅         |                           |
+|print          |⚠️          |Does not automatically scroll|
+|pset           |✅         |                           |
+|rect           |✅         |                           |
+|rectfill       |✅         |                           |
+|sget           |✅         |                           |
+|spr            |✅         |                           |
+|sset           |❌         |                           |
+|sspr           |⚠️          |                           |
+|tline          |❌         |                           |
+
+## Tables
+
+All implemented (z8lua)
+
+## Input
+
+`btn` implemented; `btnp` is just an alias to `btn`
+
+## Sound
+
+Not implemented
+
+## Map
+
+All implemented
+
+## Memory
+
+Not implemented
+
+## Math
+
+All implemented (z8lua)
+
+## Cartridge data
+
+cartdata/dget/dset are _technically_ implemented, there's no persistence layer though.
+
+cstore/reload are not implemented.
+
+## Coroutines
+
+Implemented by aliasing (z8lua)
+
+## Strings 
+
+Implemented (z8lua)
+
+## Values and objects
+
+Implemented (z8lua)
 
 # Hardware
 

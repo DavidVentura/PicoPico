@@ -4,6 +4,7 @@
 #include "parser.c"
 #include <cstring>
 
+typedef uint16_t color_t;
 static lua_State *L = NULL;
 
 // The memory used by Lua is entirely separate from the PICO-8 memory and is limited to 2 MiB. 
@@ -15,7 +16,7 @@ static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 static uint8_t map_data[32 * 128];
 static uint32_t bootup_time;
-static uint16_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
+static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 #define SECT_LUA   1
 #define SECT_GFX   2
@@ -26,7 +27,6 @@ static uint16_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 #define SECT_MUSIC 7
 #define to_rgb565(r, g, b) (((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3))
 
-typedef uint16_t color_t;
 static const color_t original_palette[] = {
     to_rgb565(0, 0, 0),         //	black
     to_rgb565(29, 43, 83),      //	dark-blue
@@ -90,9 +90,10 @@ static void gfx_map(uint8_t mapX, uint8_t mapY,
             uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
 
     for(uint8_t y = mapY; y < mapY+cellH; y++) {
+        int16_t ty = screenY+(y-mapY)*8;
+
         for(uint8_t x = mapX; x < mapX+cellW; x++) {
             int16_t tx = screenX+(x-mapX)*8;
-            int16_t ty = screenY+(y-mapY)*8;
             uint8_t sprite = map_data[x+y*128];
             uint8_t flags = spritesheet.flags[sprite];
             if ((flags & layerFlags) == layerFlags) {
@@ -251,10 +252,10 @@ int _lua_rect(lua_State* L) {
 }
 
 int _lua_rectfill(lua_State* L) {
-    uint8_t x = luaL_checkinteger(L, 1);
-    uint8_t y = luaL_checkinteger(L, 2);
-    uint8_t x2 = luaL_checkinteger(L, 3);
-    uint8_t y2 = luaL_checkinteger(L, 4);
+    int8_t x = luaL_checkinteger(L, 1);
+    int8_t y = luaL_checkinteger(L, 2);
+    int8_t x2 = luaL_checkinteger(L, 3);
+    int8_t y2 = luaL_checkinteger(L, 4);
     int col = luaL_optinteger(L, 5, -1);
     if (col == -1) {
         printf("lua_rectfill: unknown color not implemented\n");
@@ -729,7 +730,7 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
     }
 }
 void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, color_t color){
-    if(x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
+    if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
     for (int w = 0; w <= radius * 2; w++)
     {
         int dx = radius - w; // horizontal offset
@@ -784,9 +785,9 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, color_t color)
     }
 }
 void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const color_t color) {
-	for(uint16_t x=x0; x<x1-x0; x++)
-		for(uint16_t y=y0; y<y1-y0; y++)
-			put_pixel(x, y, color);
+    for(uint16_t y=y0; y<y1-y0; y++)
+        for(uint16_t x=x0; x<x1-x0; x++)
+            put_pixel(x, y, color);
 }
 
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
@@ -809,9 +810,13 @@ void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const colo
     // this is _inclusive_
     y2 = MIN(SCREEN_HEIGHT-1, y2);
     x2 = MIN(SCREEN_WIDTH-1, x2);
-    for(uint16_t y=y0; y<=y2; y++)
-        for(uint16_t x=x0; x<=x2; x++)
-            put_pixel(x, y, color);
+
+    for(uint16_t y=y0; y<=y2; y++) {
+        uint16_t yoff = y*SCREEN_WIDTH;
+        for(uint16_t x=x0; x<=x2; x++) {
+            frontbuffer[(yoff+x)  ] = color;
+        }
+    }
 }
 
 

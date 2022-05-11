@@ -166,7 +166,7 @@ Want to configure a joystick / buttons to actually _use_ the console, but the AD
 
 Fixed the build so that all platforms can build in one go, without having to comment out `#define`s; also moved most of the code that was duplicated (`gfx_*`) to be shared, managed to delete _a bunch_ of code.
 
-Curious about performance implications of all the current bit shifting done to render (given that each color on the palette is a `uint8_t[3]`). Starting point; in celeste, the frames take µs
+Curious about performance implications of all the current bit shifting done to render (given that each color on the palette is a `uint8_t[3]`). Starting point; in celeste, the frames take:
 
 ```
 Frame avg 16200µs
@@ -178,6 +178,7 @@ Frame avg 16144µs
 Frame avg 16311µs
 Frame avg 16240µs
 ```
+(Average: 16213)
 
 Moving average, over 100 frames.
 
@@ -192,5 +193,7 @@ Frame avg 13989µs
 Frame avg 13923µs
 Frame avg 13892µs
 ```
+(Average: 13944)
 
-15% faster!!
+16% faster!! that's a nice, easy win.
+

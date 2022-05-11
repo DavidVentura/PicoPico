@@ -6,7 +6,7 @@
 #include "static_game_data.h"
 #include "engine.c"
 //#ifdef BACKEND == "PC"
-//#include "sdl_backend.c"
+#include "sdl_backend.c"
 //#elif BACKEND == "PICO"
 //#include "pico_backend.c"
 //#elif BACKEND == "ESP32"
@@ -35,6 +35,7 @@ int main( int argc, char* args[] )
     // cartParser(examples_tennis_p8);
     // cartParser(examples_rockets_p8);
     cartParser(examples_celeste_p8);
+    // cartParser(examples_benchmark_p8);
 
     printf("Parsing font \n");
     fontParser(artifacts_font_lua);
@@ -70,6 +71,7 @@ int main( int argc, char* args[] )
     const uint8_t ms_delay = 1000 / target_fps;
     bool skip_next_render = false;
 
+    uint16_t frame_count = 0;
     if (_lua_fn_exists("_init")) _to_lua_call("_init");
     while (!quit) {
         frame_start_time = now();
@@ -80,8 +82,7 @@ int main( int argc, char* args[] )
         update_end_time = now();
 
         draw_start_time = now();
-        //if (call_draw && !skip_next_render) _to_lua_call("_draw");
-        _to_lua_call("_draw");
+        if (call_draw && !skip_next_render) _to_lua_call("_draw");
         draw_end_time = now();
 
         if (draw_end_time - draw_start_time > ms_delay)
@@ -96,7 +97,8 @@ int main( int argc, char* args[] )
         // lua_gc(L, LUA_GCSTEP, 0);
 
         // printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);
-        printf("Frame: %03d [U: %d, D: %03d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
+        // printf("Frame: %03d [U: %d, D: %03d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
+        frame_count++;
     }
 
     lua_close(L);

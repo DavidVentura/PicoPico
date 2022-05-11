@@ -4,7 +4,6 @@
 #include <cstring>
 
 static lua_State *L = NULL;
-int buttons[6] = {0};
 
 // The memory used by Lua is entirely separate from the PICO-8 memory and is limited to 2 MiB. 
 // RIP
@@ -15,6 +14,7 @@ static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 static uint8_t map_data[32 * 128];
 static uint32_t bootup_time;
+static uint16_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 #define SECT_LUA   1
 #define SECT_GFX   2
@@ -77,7 +77,7 @@ void gfx_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* col
 void gfx_rectfill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color);
 void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color);
 void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* color);
-void gfx_circlefill(int16_t x, int16_t y, int16_t radius, uint8_t* color);
+void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, uint8_t* color);
 bool init_video();
 bool handle_input();
 void delay(uint16_t ms);
@@ -199,7 +199,9 @@ int _lua_spr(lua_State* L) {
     if (argcount < 3)
         return 0;
 
-    int n = luaL_checkinteger(L, 1);
+    int n = luaL_optinteger(L, 1, -1);
+    if (n==-1)
+        return 0;
     int x = luaL_checkinteger(L, 2);
     int y = luaL_checkinteger(L, 3);
     z8::fix32 w = luaL_optinteger(L, 4, 1.0);
@@ -269,7 +271,7 @@ int _lua_rectfill(lua_State* L) {
 int _lua_circfill(lua_State* L) {
     int x = luaL_checkinteger(L, 1);
     int y = luaL_checkinteger(L, 2);
-    int r = luaL_checkinteger(L, 3);
+    int r = luaL_optinteger(L, 3, 4);
     int col = luaL_optinteger(L, 4, -1);
 
     uint8_t* newColor = NULL;
@@ -377,8 +379,14 @@ int _lua_pset(lua_State* L) {
     return 0;
 }
 
-int _lua_flr(lua_State* L) {
+int _lua_noop(lua_State* L) {
     float val = luaL_checknumber(L, 1);
+    lua_pushinteger(L, 0);
+    return 0;
+}
+
+int _lua_flr(lua_State* L) {
+    z8::fix32 val = luaL_checknumber(L, 1);
     lua_pushinteger(L, z8::fix32::floor(val));
     return 1;
 }
@@ -488,6 +496,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "music");
     lua_pushcfunction(L, _lua_camera);
     lua_setglobal(L, "camera");
+    lua_pushcfunction(L, _lua_noop);
+    lua_setglobal(L, "noop");
 }
 bool _lua_fn_exists(const char* fn) {
     lua_getglobal(L, fn);
@@ -722,4 +732,98 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
             }
         }
     }
+}
+void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, uint8_t* color){
+    if(x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
+    for (int w = 0; w <= radius * 2; w++)
+    {
+        int dx = radius - w; // horizontal offset
+        if((x + dx) < 0) continue;
+        if((x + dx) >= SCREEN_WIDTH) break;
+        for (int h = 0; h <= radius * 2; h++)
+        {
+            int dy = radius - h; // vertical offset
+            if((y + dy) >= SCREEN_HEIGHT) break;
+            if((y + dy) < 0) continue;
+            if ((dx*dx + dy*dy) <= (radius * radius))
+            {
+                put_pixel(x + dx, y + dy, color);
+            }
+        }
+    }
+}
+void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color){
+    const int32_t diameter = (radius * 2);
+
+    int32_t x = (radius - 1);
+    int32_t y = 0;
+    int32_t tx = 1;
+    int32_t ty = 1;
+    int32_t error = (tx - diameter);
+
+    while (x >= y)
+    {
+        //  Each of the following renders an octant of the circle
+        put_pixel(centreX + x, centreY - y, color);
+        put_pixel(centreX + x, centreY + y, color);
+        put_pixel(centreX - x, centreY - y, color);
+        put_pixel(centreX - x, centreY + y, color);
+        put_pixel(centreX + y, centreY - x, color);
+        put_pixel(centreX + y, centreY + x, color);
+        put_pixel(centreX - y, centreY - x, color);
+        put_pixel(centreX - y, centreY + x, color);
+
+        if (error <= 0)
+        {
+            ++y;
+            error += ty;
+            ty += 2;
+        }
+
+        if (error > 0)
+        {
+            --x;
+            tx += 2;
+            error += (tx - diameter);
+        }
+    }
+}
+void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* color) {
+	for(uint16_t x=x0; x<x1-x0; x++)
+		for(uint16_t y=y0; y<y1-y0; y++)
+			put_pixel(x, y, color);
+}
+
+// callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
+static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
+    const uint16_t color = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
+    frontbuffer[(y*SCREEN_WIDTH+x)  ] = color;
+
+}
+void gfx_cls(uint8_t* p) {
+    // const uint16_t val = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
+    const uint16_t val = ((p[0] & 0b11111000) << 8) | ((p[1] & 0b11111100) << 3) | (p[2] >> 3);
+    memset(frontbuffer, val, sizeof(frontbuffer));
+}
+
+void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const uint8_t* color) {
+    for(uint16_t y=y0; y<=y2; y++)
+        for(uint8_t x=x0; x<=x2; x++)
+            if ((y==y0) || (y==y2) || (x==x0) || (x==x2))
+                put_pixel(x, y, color);
+}
+
+void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const uint8_t* color) {
+    // this is _inclusive_
+    y2 = MIN(SCREEN_HEIGHT-1, y2);
+    x2 = MIN(SCREEN_WIDTH-1, x2);
+    for(uint16_t y=y0; y<=y2; y++)
+        for(uint16_t x=x0; x<=x2; x++)
+            put_pixel(x, y, color);
+}
+
+
+uint16_t get_pixel(uint8_t x, uint8_t y) {
+	// FIXME: this is incredibly broken
+	return frontbuffer[x+y*SCREEN_WIDTH];
 }

@@ -1,6 +1,7 @@
 #ifndef DATA
 #define DATA
 #include <stdint.h>
+int buttons[6] = {0};
 
 struct Spritesheet {
 	uint8_t sprite_data[128 * 128]; // 16KB, could be 8 with nibble packing
@@ -28,6 +29,9 @@ typedef struct Cart Cart;
 static Cart cart;
 
 static DrawState drawstate;
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 void hexDump (
     const char * desc,

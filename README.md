@@ -85,7 +85,7 @@ Immediate:
 * ~Implement camera~
 * ~Lua dialect~ (using z8lua)
 * ~Unify the build systems (Make for pc / CMake for pico)~
-* Pre-encode the palette colors as a RGB565 `uint16_t`; makes no sense to shift them on _every pixel write_
+* ~Pre-encode the palette colors as a RGB565 `uint16_t`; makes no sense to shift them on _every pixel write_~
 
 Later:
 

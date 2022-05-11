@@ -161,3 +161,36 @@ Found [this report](https://nymphium.github.io/pdf/opeth_report.pdf) about lua b
 After a couple of minutes of executing the `celeste` level; the same corruption appears on the map (a couple of black pixels); not sure why yet.
 
 Want to configure a joystick / buttons to actually _use_ the console, but the ADC always read either 0 or 4095 and the multimeter is broken ((
+
+# Wed May 10
+
+Fixed the build so that all platforms can build in one go, without having to comment out `#define`s; also moved most of the code that was duplicated (`gfx_*`) to be shared, managed to delete _a bunch_ of code.
+
+Curious about performance implications of all the current bit shifting done to render (given that each color on the palette is a `uint8_t[3]`). Starting point; in celeste, the frames take µs
+
+```
+Frame avg 16200µs
+Frame avg 16159µs
+Frame avg 16239µs
+Frame avg 16243µs
+Frame avg 16170µs
+Frame avg 16144µs
+Frame avg 16311µs
+Frame avg 16240µs
+```
+
+Moving average, over 100 frames.
+
+And after changing the palette lookup per pixel:
+
+```
+Frame avg 13876µs
+Frame avg 13849µs
+Frame avg 13963µs
+Frame avg 14121µs
+Frame avg 13989µs
+Frame avg 13923µs
+Frame avg 13892µs
+```
+
+15% faster!!

@@ -24,61 +24,59 @@ static uint16_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 #define SECT_MAP   5
 #define SECT_SFX   6
 #define SECT_MUSIC 7
+#define to_rgb565(r, g, b) (((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3))
 
-static uint8_t original_palette[][3] = {
-    {0, 0, 0}, //	black
-    {29, 43, 83}, //	dark-blue
-    {126, 37, 83}, //	dark-purple
-    {0, 135, 81}, //	dark-green
-    {171, 82, 54}, //	brown
-    {95, 87, 79}, //	dark-grey
-    {194, 195, 199}, //	light-grey
-    {255, 241, 232}, //	white
-    {255, 0, 77}, //	red
-    {255, 163, 0}, //	orange
-    {255, 236, 39}, //	yellow
-    {0, 228, 54}, //	green
-    {41, 173, 255}, //	blue
-    {131, 118, 156}, //	lavender
-    {255, 119, 168}, //	pink
-    {255, 204, 170}, //	light-peach 
+typedef uint16_t color_t;
+static const color_t original_palette[] = {
+    to_rgb565(0, 0, 0),         //	black
+    to_rgb565(29, 43, 83),      //	dark-blue
+    to_rgb565(126, 37, 83),     //	dark-purple
+    to_rgb565(0, 135, 81),      //	dark-green
+    to_rgb565(171, 82, 54),     //	brown
+    to_rgb565(95, 87, 79),      //	dark-grey
+    to_rgb565(194, 195, 199),   //	light-grey
+    to_rgb565(255, 241, 232),   //	white
+    to_rgb565(255, 0, 77),      //	red
+    to_rgb565(255, 163, 0),     //	orange
+    to_rgb565(255, 236, 39),    //	yellow
+    to_rgb565(0, 228, 54),      //	green
+    to_rgb565(41, 173, 255),    //	blue
+    to_rgb565(131, 118, 156),   //	lavender
+    to_rgb565(255, 119, 168),   //	pink
+    to_rgb565(255, 204, 170),   //	light-peach 
 };
-static uint8_t palette[][3] = {
-    {0, 0, 0}, //	black
-    {29, 43, 83}, //	dark-blue
-    {126, 37, 83}, //	dark-purple
-    {0, 135, 81}, //	dark-green
-    {171, 82, 54}, //	brown
-    {95, 87, 79}, //	dark-grey
-    {194, 195, 199}, //	light-grey
-    {255, 241, 232}, //	white
-    {255, 0, 77}, //	red
-    {255, 163, 0}, //	orange
-    {255, 236, 39}, //	yellow
-    {0, 228, 54}, //	green
-    {41, 173, 255}, //	blue
-    {131, 118, 156}, //	lavender
-    {255, 119, 168}, //	pink
-    {255, 204, 170}, //	light-peach 
+static color_t palette[] = {
+    to_rgb565(0, 0, 0),         //	black
+    to_rgb565(29, 43, 83),      //	dark-blue
+    to_rgb565(126, 37, 83),     //	dark-purple
+    to_rgb565(0, 135, 81),      //	dark-green
+    to_rgb565(171, 82, 54),     //	brown
+    to_rgb565(95, 87, 79),      //	dark-grey
+    to_rgb565(194, 195, 199),   //	light-grey
+    to_rgb565(255, 241, 232),   //	white
+    to_rgb565(255, 0, 77),      //	red
+    to_rgb565(255, 163, 0),     //	orange
+    to_rgb565(255, 236, 39),    //	yellow
+    to_rgb565(0, 228, 54),      //	green
+    to_rgb565(41, 173, 255),    //	blue
+    to_rgb565(131, 118, 156),   //	lavender
+    to_rgb565(255, 119, 168),   //	pink
+    to_rgb565(255, 204, 170),   //	light-peach 
 };
-
-static uint8_t* P_BLUE = palette[1];
-static uint8_t* P_RED = palette[8];
-static uint8_t* P_YELLOW = palette[10];
 
 void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y);
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy, uint16_t dw, uint16_t dh);
-static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
+static inline void put_pixel(uint8_t x, uint8_t y, const color_t p);
 uint16_t get_pixel(uint8_t x, uint8_t y);
 static void gfx_map(uint8_t mapX, uint8_t mapY,
 		    int16_t screenX, int16_t screenY,
 		    uint8_t cellW, uint8_t cellH, uint8_t layerFlags);
-void gfx_cls(uint8_t*);
-void gfx_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color);
-void gfx_rectfill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint8_t* color);
-void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color);
-void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* color);
-void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, uint8_t* color);
+void gfx_cls(color_t);
+void gfx_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const color_t color);
+void gfx_rectfill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const color_t color);
+void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, color_t color);
+void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const color_t color);
+void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, color_t color);
 bool init_video();
 bool handle_input();
 void delay(uint16_t ms);
@@ -165,16 +163,16 @@ int _lua_pal(lua_State* L) {
     }
     int origIdx = luaL_checkinteger(L, 1);
     int newIdx = luaL_checkinteger(L, 2);
-    const uint8_t* origColor = palette[origIdx];
-    const uint8_t* newColor = original_palette[newIdx];
+    const color_t origColor = palette[origIdx];
+    const color_t newColor = original_palette[newIdx];
 
-    memcpy(*(palette + origIdx), newColor, 3*sizeof(uint8_t));
+    palette[origIdx] = newColor;
     return 0;
 }
 
 int _lua_cls(lua_State* L) {
     uint8_t palIdx = luaL_optinteger(L, 1, 0);
-    uint8_t* color = palette[palIdx];
+    color_t color = palette[palIdx];
     gfx_cls(color);
     return 0;
 }
@@ -227,15 +225,13 @@ int _lua_line(lua_State* L) {
     uint8_t x1 = luaL_optinteger(L, 3, 0);
     uint8_t y1 = luaL_optinteger(L, 4, 0);
     int col = luaL_optinteger(L, 5, -1);
-    uint8_t* newColor = NULL;
-    if (col != -1) {
-	    // FIXME ??
-	    newColor = palette[col];
+    if (col == -1) {
+        printf("lua_line: unknown color not implemented\n");
+        return 0;
     }
-
     drawstate.line_x = x1;
     drawstate.line_y = y1;
-    gfx_line(x0, y0, x1, y1, newColor);
+    gfx_line(x0, y0, x1, y1, palette[col]);
     return 0;
 }
 
@@ -245,12 +241,12 @@ int _lua_rect(lua_State* L) {
     uint8_t x2 = luaL_checkinteger(L, 3);
     uint8_t y2 = luaL_checkinteger(L, 4);
     int col = luaL_optinteger(L, 5, -1);
-    uint8_t* newColor = NULL;
-    if (col != -1) {
-	    newColor = palette[col];
+    if (col == -1) {
+        printf("lua_rect: unknown color not implemented\n");
+        return 0;
     }
-
-    gfx_rect(x, y, x2, y2, newColor);
+	    
+    gfx_rect(x, y, x2, y2, palette[col]);
     return 0;
 }
 
@@ -260,12 +256,12 @@ int _lua_rectfill(lua_State* L) {
     uint8_t x2 = luaL_checkinteger(L, 3);
     uint8_t y2 = luaL_checkinteger(L, 4);
     int col = luaL_optinteger(L, 5, -1);
-    uint8_t* newColor = NULL;
-    if (col != -1) {
-	    newColor = palette[col];
+    if (col == -1) {
+        printf("lua_rectfill: unknown color not implemented\n");
+        return 0;
     }
 
-    gfx_rectfill(x, y, x2, y2, newColor);
+    gfx_rectfill(x, y, x2, y2, palette[col]);
     return 0;
 }
 
@@ -275,14 +271,12 @@ int _lua_circfill(lua_State* L) {
     int r = luaL_optinteger(L, 3, 4);
     int col = luaL_optinteger(L, 4, -1);
 
-    uint8_t* newColor = NULL;
-    if ( col != -1 ) {
-	newColor = palette[col];
-    } else {
-        // newColor = RED;
+    if (col == -1) {
+        printf("lua_circfill: unknown color not implemented\n");
+        return 0;
     }
 
-    gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, newColor);
+    gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, palette[col]);
     return 0;
 }
 
@@ -692,7 +686,7 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0,
                 idx = val;
             }
             if (drawstate.transparent[val] == 0) {
-                const uint8_t* p = palette[idx];
+                const color_t p = palette[idx];
                 if(flip_x) {
                     put_pixel(screen_x+8-2*x, screen_y, p);
                 } else {
@@ -728,13 +722,13 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
         for (uint16_t x=0; x<dw; x++) {
             uint8_t val = s->sprite_data[yoff + ((x*ratio_x) >> 16)+sx];
             if (drawstate.transparent[val] == 0){
-                const uint8_t* p = palette[val];
+                const color_t p = palette[val];
                 put_pixel(dx+x-drawstate.camera_x, screen_y, p);
             }
         }
     }
 }
-void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, uint8_t* color){
+void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, color_t color){
     if(x < 0 || y < 0 || x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
     for (int w = 0; w <= radius * 2; w++)
     {
@@ -753,7 +747,7 @@ void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, uint8_t* color){
         }
     }
 }
-void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color){
+void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, color_t color){
     const int32_t diameter = (radius * 2);
 
     int32_t x = (radius - 1);
@@ -789,32 +783,29 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, uint8_t* color
         }
     }
 }
-void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t* color) {
+void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const color_t color) {
 	for(uint16_t x=x0; x<x1-x0; x++)
 		for(uint16_t y=y0; y<y1-y0; y++)
 			put_pixel(x, y, color);
 }
 
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
-static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p){
-    const uint16_t color = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
-    frontbuffer[(y*SCREEN_WIDTH+x)  ] = color;
+static inline void put_pixel(uint8_t x, uint8_t y, const color_t c){
+    frontbuffer[(y*SCREEN_WIDTH+x)  ] = c;
 
 }
-void gfx_cls(uint8_t* p) {
-    // const uint16_t val = ((p[0] >> 3) << 11) | ((p[1] >> 2) << 5) | (p[2] >> 3);
-    const uint16_t val = ((p[0] & 0b11111000) << 8) | ((p[1] & 0b11111100) << 3) | (p[2] >> 3);
-    memset(frontbuffer, val, sizeof(frontbuffer));
+void gfx_cls(color_t c) {
+    memset(frontbuffer, c, sizeof(frontbuffer));
 }
 
-void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const uint8_t* color) {
+void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const color_t color) {
     for(uint16_t y=y0; y<=y2; y++)
         for(uint8_t x=x0; x<=x2; x++)
             if ((y==y0) || (y==y2) || (x==x0) || (x==x2))
                 put_pixel(x, y, color);
 }
 
-void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const uint8_t* color) {
+void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const color_t color) {
     // this is _inclusive_
     y2 = MIN(SCREEN_HEIGHT-1, y2);
     x2 = MIN(SCREEN_WIDTH-1, x2);

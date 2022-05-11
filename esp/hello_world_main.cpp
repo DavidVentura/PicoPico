@@ -29,7 +29,8 @@
 #include <driver/spi_master.h>
 
 extern "C" {
-    #include "st7789.h"
+    //#include "st7789.h"
+    #include "ili9340.h"
     void app_main(void);
 }
 

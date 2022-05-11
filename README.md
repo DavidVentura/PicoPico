@@ -85,14 +85,7 @@ Immediate:
 * ~Implement camera~
 * ~Lua dialect~ (using z8lua)
 * ~Unify the build systems (Make for pc / CMake for pico)~
-* Make some more space in RAM:
-    * ~cart->code should be freed (64KB)~
-    * ~fontsheet (16KB -> 2KB, only need 1 bit per coord)~
-        * is now `const`
-    * Could be halved:
-        * mapdata = 32x128 = 4KB -> 2KB
-        * spritesheet = 128x128 = 16KB -> 8KB 
-    * total: 24KB
+* Pre-encode the palette colors as a RGB565 `uint16_t`; makes no sense to shift them on _every pixel write_
 
 Later:
 

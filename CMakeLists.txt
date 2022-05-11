@@ -93,7 +93,10 @@ elseif(BACKEND STREQUAL "PC")
 	    SDL
 	    )
 	
-	target_compile_options(pc_pico PRIVATE -DSDL_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_HEIGHT=512 -DSCREEN_WIDTH=512)
+    target_compile_options(pc_pico PRIVATE -DSDL_BACKEND=1 -DLUA_USE_LINUX=1 -DW_SCREEN_HEIGHT=512 -DW_SCREEN_WIDTH=512 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128)
+    add_compile_options(
+            -g3
+            )
 
 elseif(BACKEND STREQUAL "ESP32")
 endif()

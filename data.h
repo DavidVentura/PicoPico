@@ -1,6 +1,8 @@
 #ifndef DATA
 #define DATA
 #include <stdint.h>
+#include "static_game_data.h"
+
 int buttons[6] = {0};
 
 struct Spritesheet {

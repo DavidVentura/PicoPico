@@ -4,6 +4,7 @@
 #include "esp_attr.h"
 #include "driver/adc.h"
 #include "data.h"
+#include "engine.c"
 
 static uint8_t backbuffer[CONFIG_WIDTH*CONFIG_HEIGHT*2];
 static QueueHandle_t q;

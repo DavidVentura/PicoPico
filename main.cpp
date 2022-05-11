@@ -3,16 +3,14 @@
 #include <lauxlib.h>
 #include <lualib.h>
 #include <stdbool.h>
-#include "static_game_data.h"
 #include "engine.c"
-//#ifdef BACKEND == "PC"
+#if defined(SDL_BACKEND)
 #include "sdl_backend.c"
-//#elif BACKEND == "PICO"
-//#include "pico_backend.c"
-//#elif BACKEND == "ESP32"
-//#include "esp32_backend.cpp"
-//#endif
+#elif defined(PICO_BACKEND)
+#include "pico_backend.c"
+#elif defined(ESP_BACKEND)
 //#include "esp/backend.c"
+#endif
 
 
 int main( int argc, char* args[] )

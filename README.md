@@ -97,6 +97,7 @@ Later:
 * Investigate pushing pixels to display via DMA
 * Sound ??
 * Look at optimizing lua bytecode for "fast function calls", for "standard library"
+* Use headers instead of stupid ifdefs
 
 # Other stuff
 

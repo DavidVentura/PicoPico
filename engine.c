@@ -1,3 +1,4 @@
+#ifndef ENGINE
 #define ENGINE
 #include "data.h"
 #include "parser.c"
@@ -827,3 +828,4 @@ uint16_t get_pixel(uint8_t x, uint8_t y) {
 	// FIXME: this is incredibly broken
 	return frontbuffer[x+y*SCREEN_WIDTH];
 }
+#endif

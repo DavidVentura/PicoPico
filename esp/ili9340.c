@@ -202,7 +202,8 @@ void lcdInit(TFT_t * dev, uint16_t model, int width, int height, int offsetx, in
 		spi_master_write_data_byte(dev, 0x86);
 
 		spi_master_write_comm_byte(dev, 0x36);	//Memory Access Control
-		spi_master_write_data_byte(dev, 0x08 | 0x40 | 0x20);	//Right top start, BGR color filter panel
+        // change from 0x08 to 0x00
+		spi_master_write_data_byte(dev, 0x00 | 0x40 | 0x20) ; // | 0x40 | 0x20);	//Right top start, BGR color filter panel
 		//spi_master_write_data_byte(dev, 0x00);//Right top start, RGB color filter panel
         // 0x40 0x20 are rotate 2x?
 
@@ -307,33 +308,36 @@ void lcdInit(TFT_t * dev, uint16_t model, int width, int height, int offsetx, in
     printf("setting largert window\n");
     // https://stackoverflow.com/a/45622027
     // display is actually 132 x 132
+
+    // blank entire window
     spi_master_write_comm_byte(dev, 0x2A);	// set column(x) address
     spi_master_write_data_word(dev, 0);
-    spi_master_write_data_word(dev, 131);
+    spi_master_write_data_word(dev, 160);
 
     spi_master_write_comm_byte(dev, 0x2B);	// set Page(y) address
     spi_master_write_data_word(dev, 0);
-    spi_master_write_data_word(dev, 131);
+    spi_master_write_data_word(dev, 128);
 
 
-    uint8_t buffer[132*2];
+    uint8_t buffer[160*2];
     memset(buffer, 0x0, sizeof(buffer));
     gpio_set_level(dev->_dc, SPI_Command_Mode);
     spi_master_write_comm_byte(dev, 0x2C);	//	Memory Write
     gpio_set_level(dev->_dc, SPI_Data_Mode);
-    for(uint8_t y=0; y<132; y++) {
+    for(uint8_t y=0; y<128; y++) {
         spi_master_write_byte(dev->_TFT_Handle, buffer, sizeof(buffer));
     }
 
 
+    // set regular window
     printf("setting window\n");
     spi_master_write_comm_byte(dev, 0x2A);	// set column(x) address
-    spi_master_write_data_word(dev, 1);
-    spi_master_write_data_word(dev, 1+127);
+    spi_master_write_data_word(dev, 16);
+    spi_master_write_data_word(dev, 16+127);
 
     spi_master_write_comm_byte(dev, 0x2B);	// set Page(y) address
-    spi_master_write_data_word(dev, 2);
-    spi_master_write_data_word(dev, 2+127);
+    spi_master_write_data_word(dev, 0);
+    spi_master_write_data_word(dev, 127);
 
 }
 

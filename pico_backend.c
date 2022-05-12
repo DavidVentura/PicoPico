@@ -137,3 +137,7 @@ void put_buffer()
         // printf("Copying to SPI took: %d\n", delta);
     }
 }
+
+bool init_audio() {
+    return true;
+}

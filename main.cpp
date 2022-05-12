@@ -20,8 +20,14 @@ int main( int argc, char* args[] )
     bootup_time = now();
     if( !init_video() )
     {
-	printf( "Failed to initialize video!\n" );
-	return 1;
+        printf( "Failed to initialize video!\n" );
+        return 1;
+    }
+
+    if( !init_audio() )
+    {
+        printf( "Failed to initialize audio!\n" );
+        return 1;
     }
 
     engine_init();

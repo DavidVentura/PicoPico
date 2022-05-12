@@ -2,7 +2,7 @@
 #define DATA
 #include <stdint.h>
 #include "static_game_data.h"
-
+#define SOUND_FREQ 22050
 int buttons[6] = {0};
 
 struct Spritesheet {

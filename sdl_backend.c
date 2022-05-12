@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <SDL_mixer.h>
 #include <sys/time.h>
 #ifndef ENGINE
 #include "engine.c"
@@ -7,6 +8,7 @@
 
 //Screen dimension constants
 
+Mix_Chunk aSound;
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Event e;
@@ -16,7 +18,7 @@ bool init_video()
 	memset(frontbuffer, 0, sizeof(frontbuffer));
 
     //Initialize SDL
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+    if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 )
     {
 	printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
 	return false;
@@ -94,6 +96,9 @@ bool handle_input() {
 		    break;
 
 		case SDLK_z:
+            printf("sound\n");
+            Mix_PlayChannel(-1, &aSound, 0);
+            // channel, sound, repeat#
 		    buttons[4] = 1;
 		    break;
 
@@ -138,4 +143,18 @@ uint32_t now() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (((long long)tv.tv_sec)*1000)+(tv.tv_usec/1000);
+}
+
+bool init_audio() {
+    if( Mix_OpenAudio(SOUND_FREQ, MIX_DEFAULT_FORMAT, 1, 2048 ) < 0 ) {
+        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+        return false;
+    }
+    aSound = {
+        .allocated = 0,
+        .abuf = NULL, // FIXME
+        .alen = 0, // FIXME
+        .volume = 127,
+    };
+    return true;
 }

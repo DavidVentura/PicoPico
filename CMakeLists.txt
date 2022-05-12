@@ -82,6 +82,7 @@ elseif(BACKEND STREQUAL "PC")
 	    main.cpp
 	    ${lua_src}
 	)
+	add_subdirectory(SDL_mixer)
 	add_subdirectory(SDL)
 	add_subdirectory(lua)
 	
@@ -90,11 +91,13 @@ elseif(BACKEND STREQUAL "PC")
 	    my_lua_lib
 	    SDL2::SDL2
 	    SDL2::SDL2main
+	    SDL2_mixer
 	)
 	
 	target_include_directories(pc_pico PUBLIC
 	    lua
 	    SDL
+	    SDL_mixer
 	    )
 	
     target_compile_options(pc_pico PRIVATE -DSDL_BACKEND=1 -DLUA_USE_LINUX=1 -DW_SCREEN_HEIGHT=512 -DW_SCREEN_WIDTH=512 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128)

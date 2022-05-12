@@ -39,6 +39,9 @@ void delay(uint16_t ms) {
     vTaskDelay(ms / portTICK_PERIOD_MS);
 }
 
+bool init_audio() {
+    return true;
+}
 bool init_video() {
     spi_master_init(&dev, (gpio_num_t)CONFIG_MOSI_GPIO, (gpio_num_t)CONFIG_SCLK_GPIO, (gpio_num_t)CONFIG_CS_GPIO, (gpio_num_t)CONFIG_DC_GPIO, (gpio_num_t)CONFIG_RESET_GPIO, (gpio_num_t)CONFIG_BL_GPIO);
     lcdInit(&dev, 0x7735, CONFIG_WIDTH, CONFIG_HEIGHT, 0, 0);

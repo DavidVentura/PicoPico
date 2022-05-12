@@ -2,6 +2,7 @@
 #define ENGINE
 #include "data.h"
 #include "parser.c"
+#include "synth.c"
 #include <cstring>
 
 typedef uint16_t color_t;

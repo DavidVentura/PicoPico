@@ -8,10 +8,11 @@
 
 //Screen dimension constants
 
-Mix_Chunk aSound;
+Mix_Chunk* aSound;
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Event e;
+uint8_t audiobuf[SAMPLE_RATE]; // FIXME: this is 22k big buffer
 
 bool init_video()
 {
@@ -97,7 +98,7 @@ bool handle_input() {
 
 		case SDLK_z:
             printf("sound\n");
-            Mix_PlayChannel(-1, &aSound, 0);
+            Mix_PlayChannel(-1, aSound, 0);
             // channel, sound, repeat#
 		    buttons[4] = 1;
 		    break;
@@ -145,16 +146,45 @@ uint32_t now() {
     return (((long long)tv.tv_sec)*1000)+(tv.tv_usec/1000);
 }
 
+static float key_to_freq(float key)
+{
+    return 440.f * exp2f((key - 33.f) / 12.f);
+}
+
 bool init_audio() {
-    if( Mix_OpenAudio(SOUND_FREQ, MIX_DEFAULT_FORMAT, 1, 2048 ) < 0 ) {
+    if( Mix_OpenAudio(SAMPLE_RATE, AUDIO_S16MSB, 1, 256 ) < 0 ) { // 256 = BUFFER SIZE
         printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
         return false;
     }
-    aSound = {
-        .allocated = 0,
-        .abuf = NULL, // FIXME
-        .alen = 0, // FIXME
-        .volume = 127,
-    };
+    float phi = 0;
+    uint8_t volume = 96;
+
+    float const speed = 15;
+    float const offset_per_second = 22050.f / (183.f * speed);
+    float const offset_per_sample = offset_per_second / SAMPLE_RATE;
+
+    uint8_t keys[] = {17, 11+7, 23+2, 35+1};
+
+    memset(audiobuf, 255, sizeof(audiobuf));
+    for(uint16_t s=0; s<sizeof(keys); s++) {
+        float freq = key_to_freq(keys[s]);
+        const uint16_t samples = 183 * speed;
+        for(uint16_t i=0; i<samples; i++) {
+            const float w = waveform(INST_TRIANGLE, phi);
+            int16_t sample = (int16_t)(32767.99f*w);
+            const uint16_t offset = s*samples*2+(i*2  );
+            printf("%d\n", offset);
+            audiobuf[offset  ] = sample >> 8;
+            audiobuf[offset+1] = sample & 0x00ff;
+            phi = phi + (freq / (SAMPLE_RATE));
+        }
+    }
+
+    aSound = (Mix_Chunk*)malloc(sizeof(Mix_Chunk));
+    aSound->allocated = 0;
+    aSound->abuf = audiobuf; // FIXME
+    aSound->alen = sizeof(audiobuf); // FIXME
+    aSound->volume = volume;
+
     return true;
 }

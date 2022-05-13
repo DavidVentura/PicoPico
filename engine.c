@@ -426,10 +426,11 @@ int _lua_sfx(lua_State* L) {
     int16_t length  = luaL_optinteger(L, 4, 31);
     printf("Play sfx %d on channel %d with offset %d and len %d\n", n, channel, offset, length);
     //if(n==1 || n==5 || n ==0 || n == 4) {
-    if(n!=4) {
-        play_sfx(&sfx[n]);
-        play_sfx_buffer();
-    }
+    uint32_t n1 = now();
+    play_sfx(&sfx[n]);
+    play_sfx_buffer();
+    uint32_t n2 = now();
+    printf("took %d\n", n2 -n1);
     return 0;
 }
 int _lua_stub(lua_State* L) {
@@ -868,20 +869,30 @@ void play_sfx(SFX* sfx) {
     float const offset_per_sample = offset_per_second / SAMPLE_RATE;
 
     memset(audiobuf, 255, sizeof(audiobuf));
-    for(uint16_t s=0; s<32; s++) {
-    //for(uint16_t s=0; s<4; s++) {
+    //for(uint16_t s=0; s<32; s++) {
+    const uint16_t samples = 183 * sfx->speed;
+
+    for(uint16_t s=0; s<30; s++) {
         // TODO: this plays all notes; maybe should stop?
-        float freq = key_to_freq(sfx->notes[s].key);
-        const uint16_t samples = 183 * sfx->speed;
-         // printf("Going to read %d samples for note %d with key %d\n", samples, s, sfx->notes[s].key);
         Note n = sfx->notes[s];
+        const float freq = key_to_freq(n.key);
+        const float delta = freq / SAMPLE_RATE;
+        const float norm_vol = 32767.99f*n.volume/7.f;
+        const uint16_t sample_offset = s*samples*2;
+        const uint16_t n_effect = n.effect; // alias for memory access?
+
+         // printf("Going to read %d samples for note %d with key %d\n", samples, s, sfx->notes[s].key);
         for(uint16_t i=0; i<samples; i++) {
-            const float w = waveform(n.effect, phi);
-            int16_t sample = (int16_t)(32767.99f*w*n.volume/7.f);
-            const uint16_t offset = s*samples*2+(i*2  );
+            // this will be called ~11 thousand times at speed 2
+            // more at higher speeds?
+            const float w = waveform(n_effect, phi);
+            const int16_t sample = (int16_t)(norm_vol*w);
+            const uint16_t offset = sample_offset+(i*2);
+
             audiobuf[offset  ] = sample >> 8;
             audiobuf[offset+1] = sample & 0x00ff;
-            phi = phi + (freq / (SAMPLE_RATE));
+
+            phi = phi + delta;
         }
     }
 }

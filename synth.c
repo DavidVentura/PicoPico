@@ -2,7 +2,7 @@
 
 float waveform(int instrument, float advance)
 {
-    float t = fmodf(advance, 1.f);
+    float t = advance - truncf(advance);
     float ret = 0.f;
 
     // Multipliers were measured from PICO-8 WAV exports. Waveforms are

@@ -18,10 +18,79 @@ static Spritesheet fontsheet;
 static uint8_t map_data[32 * 128];
 static uint32_t bootup_time;
 static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
+
+const z8::fix32 VOL_NORMALIZER = 32767.99f/7.f;
 static SFX sfx[64];
 uint8_t audiobuf[SAMPLE_RATE*2]; // FIXME: this is 22k big buffer
 void play_sfx_buffer();
 
+// return 440.f * exp2f((key - 33.f) / 12.f);
+static z8::fix32 key_to_freq[64] = {
+    65.40639132514966,
+    69.29565774421802,
+    73.41619197935188,
+    77.78174593052023,
+    82.4068892282175,
+    87.30705785825097,
+    92.4986056779086,
+    97.99885899543733,
+    103.82617439498628,
+    110.0,
+    116.54094037952248,
+    123.47082531403103,
+    130.8127826502993,
+    138.59131548843604,
+    146.8323839587038,
+    155.56349186104046,
+    164.81377845643496,
+    174.61411571650194,
+    184.9972113558172,
+    195.99771799087463,
+    207.65234878997256,
+    220.0,
+    233.08188075904496,
+    246.94165062806206,
+    261.6255653005986,
+    277.1826309768721,
+    293.6647679174076,
+    311.1269837220809,
+    329.6275569128699,
+    349.2282314330039,
+    369.9944227116344,
+    391.99543598174927,
+    415.3046975799451,
+    440.0,
+    466.1637615180899,
+    493.8833012561241,
+    523.2511306011972,
+    554.3652619537442,
+    587.3295358348151,
+    622.2539674441618,
+    659.2551138257398,
+    698.4564628660078,
+    739.9888454232688,
+    783.9908719634985,
+    830.6093951598903,
+    880.0,
+    932.3275230361799,
+    987.7666025122483,
+    1046.5022612023945,
+    1108.7305239074883,
+    1174.6590716696303,
+    1244.5079348883237,
+    1318.5102276514797,
+    1396.9129257320155,
+    1479.9776908465376,
+    1567.981743926997,
+    1661.2187903197805,
+    1760.0,
+    1864.6550460723597,
+    1975.533205024496,
+    2093.004522404789,
+    2217.4610478149766,
+    2349.31814333926,
+    2489.0158697766474,
+};
 void play_sfx(SFX* sfx);
 #define SECT_LUA   1
 #define SECT_GFX   2
@@ -857,16 +926,12 @@ uint16_t get_pixel(uint8_t x, uint8_t y) {
 	return frontbuffer[x+y*SCREEN_WIDTH];
 }
 
-static float key_to_freq(float key) {
-    return 440.f * exp2f((key - 33.f) / 12.f);
-}
-
 void play_sfx(SFX* sfx) {
-    float phi = 0;
+    z8::fix32 phi = 0;
     uint8_t volume = 96;
 
-    float const offset_per_second = SAMPLE_RATE / (183.f * sfx->speed);
-    float const offset_per_sample = offset_per_second / SAMPLE_RATE;
+    //float const offset_per_second = SAMPLE_RATE / (183.f * sfx->speed);
+    //float const offset_per_sample = offset_per_second / SAMPLE_RATE;
 
     memset(audiobuf, 255, sizeof(audiobuf));
     //for(uint16_t s=0; s<32; s++) {
@@ -875,9 +940,9 @@ void play_sfx(SFX* sfx) {
     for(uint16_t s=0; s<30; s++) {
         // TODO: this plays all notes; maybe should stop?
         Note n = sfx->notes[s];
-        const float freq = key_to_freq(n.key);
-        const float delta = freq / SAMPLE_RATE;
-        const float norm_vol = 32767.99f*n.volume/7.f;
+        const z8::fix32 freq = key_to_freq[n.key];
+        const z8::fix32 delta = freq / SAMPLE_RATE;
+        const z8::fix32 norm_vol = VOL_NORMALIZER*n.volume;
         const uint16_t sample_offset = s*samples*2;
         const uint16_t n_effect = n.effect; // alias for memory access?
 
@@ -885,7 +950,7 @@ void play_sfx(SFX* sfx) {
         for(uint16_t i=0; i<samples; i++) {
             // this will be called ~11 thousand times at speed 2
             // more at higher speeds?
-            const float w = waveform(n_effect, phi);
+            const z8::fix32 w = waveform(n_effect, phi);
             const int16_t sample = (int16_t)(norm_vol*w);
             const uint16_t offset = sample_offset+(i*2);
 

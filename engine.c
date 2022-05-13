@@ -18,7 +18,11 @@ static Spritesheet fontsheet;
 static uint8_t map_data[32 * 128];
 static uint32_t bootup_time;
 static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
+static SFX sfx[64];
+uint8_t audiobuf[SAMPLE_RATE*2]; // FIXME: this is 22k big buffer
+void play_sfx_buffer();
 
+void play_sfx(SFX* sfx);
 #define SECT_LUA   1
 #define SECT_GFX   2
 #define SECT_GFF   3
@@ -414,6 +418,20 @@ int _lua_printh(lua_State* L) {
     return 0;
 }
 
+
+int _lua_sfx(lua_State* L) {
+    int16_t n       = luaL_checkinteger(L, 1);
+    int16_t channel = luaL_optinteger(L, 2, -1);
+    int16_t offset  = luaL_optinteger(L, 3, 0);
+    int16_t length  = luaL_optinteger(L, 4, 31);
+    printf("Play sfx %d on channel %d with offset %d and len %d\n", n, channel, offset, length);
+    //if(n==1 || n==5 || n ==0 || n == 4) {
+    if(n!=4) {
+        play_sfx(&sfx[n]);
+        play_sfx_buffer();
+    }
+    return 0;
+}
 int _lua_stub(lua_State* L) {
 	// TODO: implement
     return 0;
@@ -477,7 +495,7 @@ void registerLuaFunctions() {
     lua_setglobal(L, "sget");
     lua_pushcfunction(L, _lua_time);
     lua_setglobal(L, "time");
-    lua_pushcfunction(L, _lua_stub);
+    lua_pushcfunction(L, _lua_sfx);
     lua_setglobal(L, "sfx");
     lua_pushcfunction(L, _lua_printh);
     lua_setglobal(L, "printh");
@@ -631,13 +649,14 @@ void cartParser(const uint8_t* text) {
         }
         if (strncmp(rawbuf, "__sfx__", 7) == 0) {
             section = SECT_SFX;
+            spriteCount = 0;
             continue;
         }
         if (strncmp(rawbuf, "__music__", 7) == 0) {
             section = SECT_MUSIC;
             continue;
         }
-        if (section > SECT_MAP) {
+        if (section > SECT_SFX) {
             break;
             // TODO: implement SFX etc
         }
@@ -655,6 +674,11 @@ void cartParser(const uint8_t* text) {
                 flagParser((uint8_t*)decbuf, spriteCount, &spritesheet);
                 spriteCount++;
                 break;
+            case SECT_SFX:
+                decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
+                SFXParser(decbuf, spriteCount, sfx);
+                spriteCount++;
+                break;
             case SECT_MAP:
                 decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
                 mapParser(decbuf, spriteCount, map_data);
@@ -663,7 +687,13 @@ void cartParser(const uint8_t* text) {
         }
         bytesRead += lineLen;
     } while (*text != 0);
-    hexDump("Sprites", spritesheet.flags, 256, 64);
+    // hexDump("Sprites", spritesheet.flags, 256, 64);
+    // hexDump("SFX 2", &sfx[1], 256, 64);
+    printf("speed %d\n", sfx[1].speed);
+    for(uint8_t i=0; i<32; i++) {
+        Note n = sfx[1].notes[i];
+        printf("key %d w %d vol %d fx %d\n", n.key, n.waveform, n.volume, n.effect);
+    }
     free(decbuf);
     free(rawbuf);
 }
@@ -824,5 +854,35 @@ void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const colo
 uint16_t get_pixel(uint8_t x, uint8_t y) {
 	// FIXME: this is incredibly broken
 	return frontbuffer[x+y*SCREEN_WIDTH];
+}
+
+static float key_to_freq(float key) {
+    return 440.f * exp2f((key - 33.f) / 12.f);
+}
+
+void play_sfx(SFX* sfx) {
+    float phi = 0;
+    uint8_t volume = 96;
+
+    float const offset_per_second = SAMPLE_RATE / (183.f * sfx->speed);
+    float const offset_per_sample = offset_per_second / SAMPLE_RATE;
+
+    memset(audiobuf, 255, sizeof(audiobuf));
+    for(uint16_t s=0; s<32; s++) {
+    //for(uint16_t s=0; s<4; s++) {
+        // TODO: this plays all notes; maybe should stop?
+        float freq = key_to_freq(sfx->notes[s].key);
+        const uint16_t samples = 183 * sfx->speed;
+         // printf("Going to read %d samples for note %d with key %d\n", samples, s, sfx->notes[s].key);
+        Note n = sfx->notes[s];
+        for(uint16_t i=0; i<samples; i++) {
+            const float w = waveform(n.effect, phi);
+            int16_t sample = (int16_t)(32767.99f*w*n.volume/7.f);
+            const uint16_t offset = s*samples*2+(i*2  );
+            audiobuf[offset  ] = sample >> 8;
+            audiobuf[offset+1] = sample & 0x00ff;
+            phi = phi + (freq / (SAMPLE_RATE));
+        }
+    }
 }
 #endif

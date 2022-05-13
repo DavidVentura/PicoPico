@@ -30,6 +30,27 @@ struct Cart {
 typedef struct Cart Cart;
 static Cart cart;
 
+struct Note {
+    uint8_t key;        //  pitch / C# / etc ; 0-0x40
+    uint8_t waveform;   // triangle / ..; 0-0xF
+    uint8_t volume;     // 0-7
+    uint8_t effect;     // 0-7
+};
+typedef struct Note Note;
+// this takes 32 bits but actually need 10 (4->2bytes)
+// 6 for key (pitch), 1 for each of waveform, volume, effect
+// times 32 notes per SFX = 64 bytes wasted
+// times 64 SFX per game = 4KB wasted
+// need to check performance first to see if it's not a problem
+
+struct SFX {
+    uint8_t speed;
+    uint8_t loop_start;
+    uint8_t loop_end;
+    Note notes[32];
+};
+typedef struct SFX SFX;
+
 static DrawState drawstate;
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))

@@ -157,7 +157,7 @@ bool init_audio() {
     aSound = (Mix_Chunk*)malloc(sizeof(Mix_Chunk));
     aSound->allocated = 0;
     aSound->abuf = audiobuf; // FIXME
-    aSound->alen = 366*2*4; //sizeof(audiobuf); // FIXME
+    aSound->alen = sizeof(audiobuf); // FIXME
     aSound->volume = 96;
 
     return true;

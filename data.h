@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include "static_game_data.h"
 #define SAMPLE_RATE 22050
+// FIXME this is for audio
+uint32_t bytesLeft = 0;
 int buttons[6] = {0};
 
 struct Spritesheet {

@@ -21,7 +21,7 @@ static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 const z8::fix32 VOL_NORMALIZER = 32767.99f/7.f;
 static SFX sfx[64];
-uint16_t audiobuf[SAMPLE_RATE]; // FIXME: this is 22k big buffer
+uint16_t audiobuf[2*8192]; // FIXME: this is 22k big buffer
 void play_sfx_buffer();
 
 // return 440.f * exp2f((key - 33.f) / 12.f);
@@ -939,9 +939,15 @@ void play_sfx(SFX* sfx) {
     //for(uint16_t s=0; s<32; s++) {
     const uint16_t samples = SAMPLES_PER_DURATION * sfx->duration;
 
-    for(uint16_t s=0; s<30; s++) {
+    uint16_t lastWithVolume = 0;
+    // FIXME: 32 notes; but overflows
+    for(uint16_t s=offset; s<32; s++) {
         // TODO: this plays all notes; maybe should stop?
         Note n = sfx->notes[s];
+        if (n.volume == 0) {
+            continue;
+        }
+        lastWithVolume = s;
         const z8::fix32 freq = key_to_freq[n.key];
         const z8::fix32 delta = freq / SAMPLE_RATE;
         const z8::fix32 norm_vol = VOL_NORMALIZER*n.volume;
@@ -963,5 +969,10 @@ void play_sfx(SFX* sfx) {
             phi = phi + delta;
         }
     }
+
+    // 30 = notes
+    // 2 = uint16
+    // samples = len
+    bytesLeft = (lastWithVolume-offset)*samples; // sizeof(audiobuf);
 }
 #endif

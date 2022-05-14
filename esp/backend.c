@@ -8,6 +8,9 @@
 #include "data.h"
 #include "engine.c"
 
+uint16_t DMA_BUF_CNT = 2;
+uint16_t DMA_BUF_SEG_SIZE = 1024;
+uint16_t DMA_BUF_SIZE = DMA_BUF_CNT * DMA_BUF_SEG_SIZE;
 
 static const i2s_config_t i2s_config = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN),
@@ -17,8 +20,8 @@ static const i2s_config_t i2s_config = {
     .channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT,
     .communication_format = I2S_COMM_FORMAT_STAND_MSB,
     .intr_alloc_flags = 0, // default interrupt priority
-    .dma_desc_num = 6,
-    .dma_frame_num = 1024,
+    .dma_desc_num = DMA_BUF_CNT,
+    .dma_frame_num = DMA_BUF_SEG_SIZE,
     .use_apll = false // > 16MHz
 };
 
@@ -26,6 +29,7 @@ static uint8_t backbuffer[CONFIG_WIDTH*CONFIG_HEIGHT*2];
 static QueueHandle_t q;
 static QueueHandle_t i2s_event_queue;
 uint8_t FLAG = 1;
+uint32_t bytesTX = 0;
 // static uint16_t backbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 //GPIO34-39 can only be set as input mode and do not have software-enabled pullup or pulldown functions.
@@ -59,15 +63,20 @@ void delay(uint16_t ms) {
     vTaskDelay(ms / portTICK_PERIOD_MS);
 }
 void i2sTask(void*) {
-    uint8_t cnt = 0;
+    uint32_t bytesOut;
     while (true) {
         i2s_event_t event;
         // Wait indefinitely for a new message in the queue
         if (xQueueReceive(i2s_event_queue, &event, portMAX_DELAY) == pdTRUE) {
             if (event.type == I2S_EVENT_TX_DONE) {
-                if(++cnt == 7) {
+                if (bytesLeft > 0) {
+                    i2s_write(I2S_NUM_0, audiobuf+(bytesTX/2), MIN(bytesLeft, DMA_BUF_SIZE), &bytesOut, 100);
+                    bytesLeft -= bytesOut;
+                    bytesTX += bytesOut;
+                    printf("from task: wrote %d, total TX %d, left: %d\n", bytesOut, bytesTX, bytesLeft);
+                } else {
+                    bytesTX = 0;
                     i2s_zero_dma_buffer(I2S_NUM_0);
-                    cnt=0;
                 }
             }
         }
@@ -156,8 +165,10 @@ uint32_t now(){
 
 void play_sfx_buffer(){
     uint32_t bytesOut;
-    i2s_write(I2S_NUM_0, audiobuf, 6*1024, &bytesOut, 100);
-    printf("%d Bytes written\n", bytesOut);
+    i2s_write(I2S_NUM_0, audiobuf, MIN(bytesLeft, DMA_BUF_SIZE), &bytesOut, 100);
+    bytesLeft -= bytesOut;
+    bytesTX = bytesOut;
+    printf("%d written; %d left\n", bytesOut, bytesLeft);
 }
 void put_buffer(void *pvParameters)
 {

@@ -91,7 +91,7 @@ static z8::fix32 key_to_freq[64] = {
     2349.31814333926,
     2489.0158697766474,
 };
-void play_sfx(SFX* sfx);
+void play_sfx(SFX* sfx, uint8_t offset);
 #define SECT_LUA   1
 #define SECT_GFX   2
 #define SECT_GFF   3
@@ -496,7 +496,7 @@ int _lua_sfx(lua_State* L) {
     printf("Play sfx %d on channel %d with offset %d and len %d\n", n, channel, offset, length);
     //if(n==1 || n==5 || n ==0 || n == 4) {
     uint32_t n1 = now();
-    play_sfx(&sfx[n]);
+    play_sfx(&sfx[n], offset);
     play_sfx_buffer();
     uint32_t n2 = now();
     printf("took %d\n", n2 -n1);
@@ -926,7 +926,7 @@ uint16_t get_pixel(uint8_t x, uint8_t y) {
 	return frontbuffer[x+y*SCREEN_WIDTH];
 }
 
-void play_sfx(SFX* sfx) {
+void play_sfx(SFX* sfx, uint8_t offset) {
     z8::fix32 phi = 0;
     uint8_t volume = 96;
 
@@ -951,7 +951,7 @@ void play_sfx(SFX* sfx) {
         const z8::fix32 freq = key_to_freq[n.key];
         const z8::fix32 delta = freq / SAMPLE_RATE;
         const z8::fix32 norm_vol = VOL_NORMALIZER*n.volume;
-        const uint16_t sample_offset = s*samples;
+        const uint16_t sample_offset = (s-offset)*samples;
         const uint16_t n_effect = n.effect; // alias for memory access?
 
         for(uint16_t i=0; i<samples; i++) {

@@ -3,9 +3,10 @@
 #include <stdint.h>
 #include "static_game_data.h"
 #define SAMPLE_RATE 22050
-// FIXME this is for audio
-uint32_t bytesLeft = 0;
 int buttons[6] = {0};
+
+const uint8_t SAMPLES_PER_DURATION = 183;
+const uint8_t NOTES_PER_SFX = 32;
 
 struct Spritesheet {
 	uint8_t sprite_data[128 * 128]; // 16KB, could be 8 with nibble packing
@@ -52,6 +53,14 @@ struct SFX {
     Note notes[32];
 };
 typedef struct SFX SFX;
+
+struct Channel {
+    SFX* sfx;
+    uint16_t offset = 0; // in samples
+    z8::fix32 phi = 0;
+};
+
+typedef struct Channel Channel;
 
 static DrawState drawstate;
 

@@ -56,7 +56,7 @@ void gfxParser(uint8_t* line, int spriteLineCount, Spritesheet* s) {
 }
 
 void noteParser(char* line, Note* notes) {
-    for(uint8_t note=0; note<32; note++) {
+    for(uint8_t note=0; note<NOTES_PER_SFX; note++) {
         notes[note].key         = (parseChar(line[note*5+0]) << 4) | parseChar(line[note*5+1]);
         notes[note].waveform    = parseChar(line[note*5+2]);
         notes[note].volume      = parseChar(line[note*5+3]);

@@ -1,5 +1,4 @@
 #include <SDL.h>
-#include <SDL_mixer.h>
 #include <sys/time.h>
 #ifndef ENGINE
 #include "engine.c"
@@ -8,7 +7,6 @@
 
 //Screen dimension constants
 
-Mix_Chunk* aSound;
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Event e;
@@ -145,26 +143,33 @@ uint32_t now() {
     return (((long long)tv.tv_sec)*1000)+(tv.tv_usec/1000);
 }
 
-
-void play_sfx_buffer(){
-    for(uint16_t i=0; i<sizeof(smallbitbuf)/2; i++) {
-        smallbitbuf[i*2  ] = audiobuf[i] >> 8;
-        smallbitbuf[i*2+1] = audiobuf[i] & 0x00ff;
-    }
-    Mix_PlayChannel(-1, aSound, 0);
+void MyAudioCallback(void* userdata, Uint8* stream, int len) {
+    uint16_t samples = SAMPLES_PER_DURATION * SAMPLES_PER_BUFFER;
+    memset(stream, 0, len);
+    // fill_buffer((uint16_t*)stream, &channels[0], samples);
+    for(uint8_t i=0; i<4; i++)
+        fill_buffer((uint16_t*)stream, &channels[i], samples);
 }
 
 bool init_audio() {
-    if( Mix_OpenAudio(SAMPLE_RATE, AUDIO_S16MSB, 1, 256 ) < 0 ) { // 256 = BUFFER SIZE
-        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+
+    SDL_AudioSpec want, have;
+    SDL_AudioDeviceID dev;
+
+    SDL_memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
+    want.freq = SAMPLE_RATE;
+    want.format = AUDIO_S16LSB;
+    want.channels = 1;
+    want.samples = SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER;
+    want.callback = MyAudioCallback;  // you wrote this function elsewhere.
+    dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+    if(dev < 0) {
+        printf("Failed to OpenAudioDevice\n");
         return false;
     }
 
-    aSound = (Mix_Chunk*)malloc(sizeof(Mix_Chunk));
-    aSound->allocated = 0;
-    aSound->abuf = smallbitbuf; // FIXME
-    aSound->alen = sizeof(smallbitbuf)/2; // FIXME
-    aSound->volume = 96;
-
+    printf("dev %d\n", dev); 
+    SDL_PauseAudioDevice(dev, 0);
+    SDL_Delay(0);
     return true;
 }

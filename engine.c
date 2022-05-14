@@ -21,8 +21,15 @@ static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 const z8::fix32 VOL_NORMALIZER = 32767.99f/7.f;
 static SFX sfx[64];
-uint16_t audiobuf[2*8192]; // FIXME: this is 22k big buffer
-void play_sfx_buffer();
+static Channel channels[4];
+const uint8_t SAMPLES_PER_BUFFER = 4;
+uint16_t audiobuf[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER]; // 183*32 = 5856 = 11712 bytes
+// this is can fit an SFX of duration 1;
+// so filling this buffer $duration times will play an entire SFX
+// it could be anywhere from 1x to 32x
+// at 1x, this buffers 5.46ms of data
+// and at 32x; 174ms
+// 4x sounds reasonable; 21.8ms
 
 // return 440.f * exp2f((key - 33.f) / 12.f);
 static z8::fix32 key_to_freq[64] = {
@@ -91,7 +98,8 @@ static z8::fix32 key_to_freq[64] = {
     2349.31814333926,
     2489.0158697766474,
 };
-void play_sfx(SFX* sfx, uint8_t offset);
+void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples);
+
 #define SECT_LUA   1
 #define SECT_GFX   2
 #define SECT_GFF   3
@@ -494,10 +502,16 @@ int _lua_sfx(lua_State* L) {
     int16_t offset  = luaL_optinteger(L, 3, 0);
     int16_t length  = luaL_optinteger(L, 4, 31);
     printf("Play sfx %d on channel %d with offset %d and len %d\n", n, channel, offset, length);
-    //if(n==1 || n==5 || n ==0 || n == 4) {
     uint32_t n1 = now();
-    play_sfx(&sfx[n], offset);
-    play_sfx_buffer();
+    if(channel == -1) {
+        channel = 0;
+        // TODO: pick an empty channel
+    }
+
+    // channels[channel].length = 0; // TODO
+    channels[channel].offset = 0; // TODO
+    channels[channel].sfx = &sfx[n];
+
     uint32_t n2 = now();
     printf("took %d\n", n2 -n1);
     return 0;
@@ -652,6 +666,13 @@ void engine_init() {
     memset(map_data, 0, sizeof(map_data));
 
     memset(cartdata, 0, sizeof(cartdata));
+
+    memset(audiobuf, 0, sizeof(audiobuf));
+
+    channels[0].sfx = NULL;
+    channels[1].sfx = NULL;
+    channels[2].sfx = NULL;
+    channels[3].sfx = NULL;
 }
 
 void fontParser(const uint8_t* text) {
@@ -926,53 +947,52 @@ uint16_t get_pixel(uint8_t x, uint8_t y) {
 	return frontbuffer[x+y*SCREEN_WIDTH];
 }
 
-void play_sfx(SFX* sfx, uint8_t offset) {
-    z8::fix32 phi = 0;
-    uint8_t volume = 96;
+void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
+    // samples is always a multiple of SAMPLES_PER_DURATION (183)
 
-    const uint8_t SAMPLES_PER_DURATION = 183;
-    float const offset_per_second = SAMPLE_RATE / (SAMPLES_PER_DURATION * sfx->duration);
-    float const offset_per_sample = offset_per_second / SAMPLE_RATE;
-    printf("Each sample lasts %f\n", offset_per_sample);
-
-    memset(audiobuf, 0, sizeof(audiobuf));
-    //for(uint16_t s=0; s<32; s++) {
-    const uint16_t samples = SAMPLES_PER_DURATION * sfx->duration;
-
-    uint16_t lastWithVolume = 0;
-    // FIXME: 32 notes; but overflows
-    for(uint16_t s=offset; s<32; s++) {
-        // TODO: this plays all notes; maybe should stop?
-        Note n = sfx->notes[s];
-        if (n.volume == 0) {
-            continue;
-        }
-        lastWithVolume = s;
-        const z8::fix32 freq = key_to_freq[n.key];
-        const z8::fix32 delta = freq / SAMPLE_RATE;
-        const z8::fix32 norm_vol = VOL_NORMALIZER*n.volume;
-        const uint16_t sample_offset = (s-offset)*samples;
-        const uint16_t n_effect = n.effect; // alias for memory access?
-
-        for(uint16_t i=0; i<samples; i++) {
-            // this will be called ~11 thousand times at duration 2
-            // more at higher speeds?
-            const z8::fix32 w = waveform(n_effect, phi);
-            const int16_t sample = (int16_t)(norm_vol*w);
-            // const uint16_t offset = sample_offset+(i*2);
-
-            audiobuf[sample_offset+i] = sample;
-            //audiobuf[sample_offset+i] = (sample >> 8)| ((sample & 0x00FF) << 8);
-            //audiobuf[offset  ] = sample >> 8;
-            //audiobuf[offset+1] = sample & 0x00ff;
-
-            phi = phi + delta;
-        }
+    SFX* sfx = c->sfx;
+    if(sfx == NULL) {
+        return;
     }
 
-    // 30 = notes
-    // 2 = uint16
-    // samples = len
-    bytesLeft = (lastWithVolume-offset)*samples; // sizeof(audiobuf);
+    // buffer sizes are always multiples of SAMPLES_PER_DURATION
+    // which ensures the notes will always play _entire_ "duration" blocks
+    for(uint16_t s=0; s<samples; s++) {
+        uint16_t note_id = c->offset / (SAMPLES_PER_DURATION * sfx->duration);
+
+        Note n = sfx->notes[note_id];
+        const z8::fix32 freq = key_to_freq[n.key];
+        const z8::fix32 delta = freq / SAMPLE_RATE;
+
+        if (n.volume == 0) {
+            c->offset++;
+            c->phi += (SAMPLES_PER_DURATION * delta);
+            s+= SAMPLES_PER_DURATION;
+            continue;
+        }
+
+        const z8::fix32 norm_vol = VOL_NORMALIZER*n.volume;
+        const uint16_t sample_offset = s;
+        const uint16_t n_effect = n.effect; // alias for memory access?
+
+        for(uint16_t _s=0; _s<SAMPLES_PER_DURATION; _s++) {
+            const z8::fix32 w = waveform(n_effect, c->phi);
+            const int16_t sample = (int16_t)(norm_vol*w);
+
+            // NOTE: this is += so that all sfx can be played in parallel
+            // this probably should check for wrap-around and clip instead
+            buf[_s+sample_offset] += sample;
+            c->phi += delta;
+        }
+
+        c->offset += SAMPLES_PER_DURATION;
+        s += SAMPLES_PER_DURATION-1;
+    }
+
+    if(c->offset >= (SAMPLES_PER_DURATION*NOTES_PER_SFX*sfx->duration)) {
+        c->sfx = NULL;
+        c->offset = 0;
+        c->phi = 0;
+    }
 }
 #endif

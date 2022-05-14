@@ -8,10 +8,6 @@
 #include "data.h"
 #include "engine.c"
 
-uint16_t DMA_BUF_CNT = 2;
-uint16_t DMA_BUF_SEG_SIZE = 1024;
-uint16_t DMA_BUF_SIZE = DMA_BUF_CNT * DMA_BUF_SEG_SIZE;
-
 static const i2s_config_t i2s_config = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN),
     .sample_rate = SAMPLE_RATE,
@@ -20,8 +16,8 @@ static const i2s_config_t i2s_config = {
     .channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT,
     .communication_format = I2S_COMM_FORMAT_STAND_MSB,
     .intr_alloc_flags = 0, // default interrupt priority
-    .dma_desc_num = DMA_BUF_CNT,
-    .dma_frame_num = DMA_BUF_SEG_SIZE,
+    .dma_desc_num = SAMPLES_PER_BUFFER, // always want >1; having only one means interruptions in audio
+    .dma_frame_num = SAMPLES_PER_DURATION, // length at most = 1024
     .use_apll = false // > 16MHz
 };
 
@@ -63,21 +59,19 @@ void delay(uint16_t ms) {
     vTaskDelay(ms / portTICK_PERIOD_MS);
 }
 void i2sTask(void*) {
+    uint16_t samples = SAMPLES_PER_DURATION * SAMPLES_PER_BUFFER;
     uint32_t bytesOut;
     while (true) {
         i2s_event_t event;
         // Wait indefinitely for a new message in the queue
         if (xQueueReceive(i2s_event_queue, &event, portMAX_DELAY) == pdTRUE) {
             if (event.type == I2S_EVENT_TX_DONE) {
-                if (bytesLeft > 0) {
-                    i2s_write(I2S_NUM_0, audiobuf+(bytesTX/2), MIN(bytesLeft, DMA_BUF_SIZE), &bytesOut, 100);
-                    bytesLeft -= bytesOut;
-                    bytesTX += bytesOut;
-                    printf("from task: wrote %d, total TX %d, left: %d\n", bytesOut, bytesTX, bytesLeft);
-                } else {
-                    bytesTX = 0;
-                    i2s_zero_dma_buffer(I2S_NUM_0);
-                }
+                memset(audiobuf, 0, sizeof(audiobuf));
+
+                for(uint8_t i=0; i<4; i++)
+                    fill_buffer(audiobuf, &channels[i], samples);
+
+                i2s_write(I2S_NUM_0, audiobuf, sizeof(audiobuf), &bytesOut, 100);
             }
         }
     }
@@ -163,25 +157,18 @@ uint32_t now(){
     //return (esp_timer_get_time()) & 0xFFFFFFFF;
 }
 
-void play_sfx_buffer(){
-    uint32_t bytesOut;
-    i2s_write(I2S_NUM_0, audiobuf, MIN(bytesLeft, DMA_BUF_SIZE), &bytesOut, 100);
-    bytesLeft -= bytesOut;
-    bytesTX = bytesOut;
-    printf("%d written; %d left\n", bytesOut, bytesLeft);
-}
 void put_buffer(void *pvParameters)
 {
     uint8_t buf[1];
     while (true) {
         xQueueReceive(q, &buf, portMAX_DELAY);
 
-        uint64_t frame_start_time = now();
+        // uint64_t frame_start_time = now();
 
         send_buffer(&dev, backbuffer, sizeof(backbuffer));
 
-        uint64_t frame_end_time = now();
-        int delta = (frame_end_time - frame_start_time);
+        // uint64_t frame_end_time = now();
+        // int delta = (frame_end_time - frame_start_time);
 
         //printf("Copying to SPI took: %d\n", delta);
     }

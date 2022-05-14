@@ -22,14 +22,23 @@ static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 const z8::fix32 VOL_NORMALIZER = 32767.99f/7.f;
 static SFX sfx[64];
 static Channel channels[4];
-const uint8_t SAMPLES_PER_BUFFER = 4;
-uint16_t audiobuf[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER]; // 183*32 = 5856 = 11712 bytes
+const uint8_t SAMPLES_PER_BUFFER = 6;
+
+// FIXME: +8 -> there's a buffer overflow
+uint16_t audiobuf[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER+8]; // 183*4 = 732 = 1464 bytes
+//uint16_t audiobuf[SAMPLES_PER_BUFFER][SAMPLES_PER_DURATION]; // 183*4 = 732 = 1464 bytes
+//
 // this is can fit an SFX of duration 1;
 // so filling this buffer $duration times will play an entire SFX
 // it could be anywhere from 1x to 32x
 // at 1x, this buffers 5.46ms of data
 // and at 32x; 174ms
-// 4x sounds reasonable; 21.8ms
+// 4x sounds reasonable; 21.8ms             (1464 bytes)
+// 6x is 32.76 ~ 1 frame (33ms)             (2196 bytes)
+// 8x is 43.6ms which is fairly noticeable  (2928 bytes)
+// --------
+// this total should not exceed 4092 bytes; which is the max supported by ESP32
+// which means choices are between 4 and 8
 
 // return 440.f * exp2f((key - 33.f) / 12.f);
 static z8::fix32 key_to_freq[64] = {
@@ -98,7 +107,6 @@ static z8::fix32 key_to_freq[64] = {
     2349.31814333926,
     2489.0158697766474,
 };
-void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples);
 
 #define SECT_LUA   1
 #define SECT_GFX   2
@@ -502,7 +510,6 @@ int _lua_sfx(lua_State* L) {
     int16_t offset  = luaL_optinteger(L, 3, 0);
     int16_t length  = luaL_optinteger(L, 4, 31);
     printf("Play sfx %d on channel %d with offset %d and len %d\n", n, channel, offset, length);
-    uint32_t n1 = now();
     if(channel == -1) {
         channel = 0;
         // TODO: pick an empty channel
@@ -512,8 +519,6 @@ int _lua_sfx(lua_State* L) {
     channels[channel].offset = 0; // TODO
     channels[channel].sfx = &sfx[n];
 
-    uint32_t n2 = now();
-    printf("took %d\n", n2 -n1);
     return 0;
 }
 int _lua_stub(lua_State* L) {
@@ -948,8 +953,6 @@ uint16_t get_pixel(uint8_t x, uint8_t y) {
 }
 
 void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
-    // samples is always a multiple of SAMPLES_PER_DURATION (183)
-
     SFX* sfx = c->sfx;
     if(sfx == NULL) {
         return;
@@ -966,13 +969,12 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
 
         if (n.volume == 0) {
             c->offset++;
-            c->phi += (SAMPLES_PER_DURATION * delta);
-            s+= SAMPLES_PER_DURATION;
+            c->phi += SAMPLES_PER_DURATION * delta;
+            s += SAMPLES_PER_DURATION;
             continue;
         }
 
         const z8::fix32 norm_vol = VOL_NORMALIZER*n.volume;
-        const uint16_t sample_offset = s;
         const uint16_t n_effect = n.effect; // alias for memory access?
 
         for(uint16_t _s=0; _s<SAMPLES_PER_DURATION; _s++) {
@@ -981,12 +983,12 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
 
             // NOTE: this is += so that all sfx can be played in parallel
             // this probably should check for wrap-around and clip instead
-            buf[_s+sample_offset] += sample;
+            buf[_s+s] += sample;
             c->phi += delta;
         }
 
         c->offset += SAMPLES_PER_DURATION;
-        s += SAMPLES_PER_DURATION-1;
+        s += SAMPLES_PER_DURATION;
     }
 
     if(c->offset >= (SAMPLES_PER_DURATION*NOTES_PER_SFX*sfx->duration)) {

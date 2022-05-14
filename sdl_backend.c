@@ -146,7 +146,6 @@ uint32_t now() {
 void MyAudioCallback(void* userdata, Uint8* stream, int len) {
     uint16_t samples = SAMPLES_PER_DURATION * SAMPLES_PER_BUFFER;
     memset(stream, 0, len);
-    // fill_buffer((uint16_t*)stream, &channels[0], samples);
     for(uint8_t i=0; i<4; i++)
         fill_buffer((uint16_t*)stream, &channels[i], samples);
 }

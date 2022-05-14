@@ -759,7 +759,7 @@ void cartParser(const uint8_t* text) {
     } while (*text != 0);
     // hexDump("Sprites", spritesheet.flags, 256, 64);
     // hexDump("SFX 2", &sfx[1], 256, 64);
-    printf("speed %d\n", sfx[1].speed);
+    printf("duration %d\n", sfx[1].duration);
     for(uint8_t i=0; i<32; i++) {
         Note n = sfx[1].notes[i];
         printf("key %d w %d vol %d fx %d\n", n.key, n.waveform, n.volume, n.effect);
@@ -930,12 +930,14 @@ void play_sfx(SFX* sfx) {
     z8::fix32 phi = 0;
     uint8_t volume = 96;
 
-    //float const offset_per_second = SAMPLE_RATE / (183.f * sfx->speed);
-    //float const offset_per_sample = offset_per_second / SAMPLE_RATE;
+    const uint8_t SAMPLES_PER_DURATION = 183;
+    float const offset_per_second = SAMPLE_RATE / (SAMPLES_PER_DURATION * sfx->duration);
+    float const offset_per_sample = offset_per_second / SAMPLE_RATE;
+    printf("Each sample lasts %f\n", offset_per_sample);
 
     memset(audiobuf, 0, sizeof(audiobuf));
     //for(uint16_t s=0; s<32; s++) {
-    const uint16_t samples = 183 * sfx->speed;
+    const uint16_t samples = SAMPLES_PER_DURATION * sfx->duration;
 
     for(uint16_t s=0; s<30; s++) {
         // TODO: this plays all notes; maybe should stop?
@@ -946,9 +948,8 @@ void play_sfx(SFX* sfx) {
         const uint16_t sample_offset = s*samples;
         const uint16_t n_effect = n.effect; // alias for memory access?
 
-         // printf("Going to read %d samples for note %d with key %d\n", samples, s, sfx->notes[s].key);
         for(uint16_t i=0; i<samples; i++) {
-            // this will be called ~11 thousand times at speed 2
+            // this will be called ~11 thousand times at duration 2
             // more at higher speeds?
             const z8::fix32 w = waveform(n_effect, phi);
             const int16_t sample = (int16_t)(norm_vol*w);

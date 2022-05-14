@@ -65,7 +65,7 @@ void noteParser(char* line, Note* notes) {
 }
 void SFXParser(char* line, int n, SFX* s) {
     // byte 0 is for the editor
-    s[n].speed      = (parseChar(line[2]) << 4) | parseChar(line[3]);
+    s[n].duration   = (parseChar(line[2]) << 4) | parseChar(line[3]);
     s[n].loop_start = (parseChar(line[4]) << 4) | parseChar(line[5]);
     s[n].loop_end   = (parseChar(line[6]) << 4) | parseChar(line[7]);
     noteParser(line+8, s[n].notes);

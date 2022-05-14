@@ -44,7 +44,7 @@ typedef struct Note Note;
 // need to check performance first to see if it's not a problem
 
 struct SFX {
-    uint8_t speed;
+    uint8_t duration;
     uint8_t loop_start;
     uint8_t loop_end;
     Note notes[32];

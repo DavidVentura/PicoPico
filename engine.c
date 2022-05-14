@@ -21,7 +21,7 @@ static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 const z8::fix32 VOL_NORMALIZER = 32767.99f/7.f;
 static SFX sfx[64];
-uint8_t audiobuf[SAMPLE_RATE*2]; // FIXME: this is 22k big buffer
+uint16_t audiobuf[SAMPLE_RATE]; // FIXME: this is 22k big buffer
 void play_sfx_buffer();
 
 // return 440.f * exp2f((key - 33.f) / 12.f);
@@ -933,7 +933,7 @@ void play_sfx(SFX* sfx) {
     //float const offset_per_second = SAMPLE_RATE / (183.f * sfx->speed);
     //float const offset_per_sample = offset_per_second / SAMPLE_RATE;
 
-    memset(audiobuf, 255, sizeof(audiobuf));
+    memset(audiobuf, 0, sizeof(audiobuf));
     //for(uint16_t s=0; s<32; s++) {
     const uint16_t samples = 183 * sfx->speed;
 
@@ -943,7 +943,7 @@ void play_sfx(SFX* sfx) {
         const z8::fix32 freq = key_to_freq[n.key];
         const z8::fix32 delta = freq / SAMPLE_RATE;
         const z8::fix32 norm_vol = VOL_NORMALIZER*n.volume;
-        const uint16_t sample_offset = s*samples*2;
+        const uint16_t sample_offset = s*samples;
         const uint16_t n_effect = n.effect; // alias for memory access?
 
          // printf("Going to read %d samples for note %d with key %d\n", samples, s, sfx->notes[s].key);
@@ -952,10 +952,12 @@ void play_sfx(SFX* sfx) {
             // more at higher speeds?
             const z8::fix32 w = waveform(n_effect, phi);
             const int16_t sample = (int16_t)(norm_vol*w);
-            const uint16_t offset = sample_offset+(i*2);
+            // const uint16_t offset = sample_offset+(i*2);
 
-            audiobuf[offset  ] = sample >> 8;
-            audiobuf[offset+1] = sample & 0x00ff;
+            audiobuf[sample_offset+i] = sample;
+            //audiobuf[sample_offset+i] = (sample >> 8)| ((sample & 0x00FF) << 8);
+            //audiobuf[offset  ] = sample >> 8;
+            //audiobuf[offset+1] = sample & 0x00ff;
 
             phi = phi + delta;
         }

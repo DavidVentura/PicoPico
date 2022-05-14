@@ -2,7 +2,7 @@
 
 Project to attempt to create hardware for the [Pico-8](https://www.lexaloffle.com/pico-8.php).
 
-I'd like to eventually get a very basic game running on a ~[Raspberry Pi Pico](https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html)~[ESP32](https://www.adafruit.com/product/3979)
+I'd like to eventually get full game running on a ~[Raspberry Pi Pico](https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html)~ [ESP32](https://www.adafruit.com/product/3979)
 
 Be aware, the code will be terrible, this is a project to learn:
 
@@ -15,7 +15,7 @@ Be aware, the code will be terrible, this is a project to learn:
 * JIT-ting ??
 
 
-This project uses [z8lua](https://github.com/DavidVentura/z8lua) to implement Pico8's lua dialect; I've whacked the original repo to make it build 
+This project uses [z8lua](https://github.com/DavidVentura/z8lua) to implement Pico8's Lua dialect; I've whacked the original repo to make it build 
 with the Pico as a target, it was all implicit casting, which I hopefully got right.
 
 This project also gets some "inspiration" from [tac08](https://github.com/0xcafed00d/tac08/tree/master/src) - ideas for things I don't know how to solve, and the "firmware.lua" file 
@@ -23,19 +23,17 @@ for basic implementations.
 
 ## Demo
 
-In emulator (SDL backed)
+### In emulator (SDL backed)
 
 ![Hello world](artifacts/hello_world.gif?raw=1)
 
-In Raspberry pi Pico
-
-https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
-
-Celeste in ESP32
-
+### Celeste in ESP32
 
 https://user-images.githubusercontent.com/3650670/168416377-bf238d62-6be6-4b70-a04c-2d60ab57a269.mp4
 
+### In Raspberry pi Pico (port abandoned, not enough RAM)
+
+https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
 
 
 # Basic analysis / feasibility:
@@ -47,22 +45,23 @@ Memory requirements:
 * Map, at 32x128 = 4 KB
 * Flags, at 2x128 = 256B
 * Sound effects, 64x84 = 5376B (~5KB)
-    * Sound itself should come from flash
 * Music patterns, 64x6 = 384B
-    * Music itself should come from flash
 * Front buffer 128x128 = 16KB (x/y position -> palette; could be 8KB if using only a nibble per pixel)
 * Back buffer 128x128x2 = 32KB (x/y position -> color, at 16bpp)
 * Game memory = 32KB
     * Lua = ???KB
     * how to measure?
 
-~130KB, should have plenty of space for things going wrong. However, the biggest unknown is lua overhead.  
-Both Spritesheet (16KB), Fontsheet (16KB) and Map (4KB) can be squeezed to half, as they need a nibble per pixel, instead of a byte.  
-Not sure how much CPU it'd take to have every single render to the backbuffer expand the pixels back bytes.
 
-And **most importantly** 2MB for game RAM (Lua memory)
+~130KB, should have plenty of space for things going wrong.
+Both Spritesheet (16KB), and Map (4KB) can be squeezed to half, as they need a nibble per pixel, instead of a byte.  
+SFX can also be squeezed drastically - each of the 32 nots in the 64 SFX currently take 4 bytes instead of 2, could reclaim 4KB more DRAM.   
 
-# Current performance
+And **most importantly** 2MB for game RAM (Lua memory). This varies based on each game, but on the PICO the 256KB ran out way too fast. There's [this thing](https://github.com/yocto-8/yocto-8/blob/main/doc/extmem.md) to use _very slow, very cursed_ external RAM 
+
+# Performance
+
+In RPI Pico:
 
 Running `hello_world.lua`:
 
@@ -76,6 +75,10 @@ Running `hello_world.lua`:
 
 * Multicore + overclock to 260MHz: 3.5ms/frame
 
+In ESP32:
+
+Celeste takes about 9ms / frame (rendering happens on the second core), including SFX
+
 # TODO
 
 Immediate:
@@ -88,6 +91,9 @@ Immediate:
 * ~Lua dialect~ (using z8lua)
 * ~Unify the build systems (Make for pc / CMake for pico)~
 * ~Pre-encode the palette colors as a RGB565 `uint16_t`; makes no sense to shift them on _every pixel write_~
+* ~SFX~
+* Get reasonable audio quality out of SFX
+* Measure and output the correct number of samples out of the audio buffer, currently it's a (badly) guessed number.
 
 Later:
 
@@ -95,9 +101,9 @@ Later:
 * Implement flash
     * cartdata command could use it
     * carts could be stored in flash instead of static data
-    * music, sfx
 * Investigate pushing pixels to display via DMA
-* Sound ??
+    * worth it? the second core is idle anyway
+* Music
 * Look at optimizing lua bytecode for "fast function calls", for "standard library"
 * Use headers instead of stupid ifdefs
 
@@ -115,6 +121,11 @@ Not entirely sure yet why I was running out of memory, even with 40KB of (font+d
 
 This whole thing (compression) is a bit of a hack -- it is nice for development to have full carts accessible; 
 there is no code to read/write flash, nor any way to store the actual carts on flash yet.
+
+## Sound
+
+I yoinked [zepto8's synth](https://github.com/samhocevar/zepto8/blob/master/src/synth.cpp) and converted it to `fix32`; an example SFX went 
+from ~25ms to ~2ms on the ESP32. It works fine in SDL, and sounds like a banshee when using the ESP32's internal DAC.
 
 # API Support
 
@@ -158,7 +169,10 @@ All implemented (z8lua)
 
 ## Sound
 
-Not implemented
+|    Function   | Supported |                     Notes |
+|---------------|-----------|---------------------------|
+|sfx            |⚠️          | There is only 1 channel; and offset is not implemented |
+|music          |❌         |                           |
 
 ## Map
 

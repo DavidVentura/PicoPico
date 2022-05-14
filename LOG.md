@@ -142,7 +142,7 @@ Calling `put_pixel` 50k times:
 
 maybe `-Os` is ignoring the `inline` ?
 
-Still can't get the SPI data transfer to be LSB to avoid having to flip endiannes on the front->backbuffer copy. Can probably do it anyway when writing to the FB..
+Still can't get the SPI data transfer to be LSB to avoid having to flip endianness on the front->backbuffer copy. Can probably do it anyway when writing to the FB..
 
 [ESP32 SPIRAM speed](https://www.esp32.com/viewtopic.php?t=13356) ~20MB/s, more if hitting the cache.
 
@@ -197,3 +197,18 @@ Frame avg 13892µs
 
 16% faster!! that's a nice, easy win.
 
+# 13 May
+
+Got SFX working! Struggled to understand the basics of synths but [this video](https://www.youtube.com/watch?v=OSCzKOqtgcA) helped quite a bit.
+
+Getting SDL going also took a while; combination of sample rates and endianness blasted my ears more than necessary.
+
+When the emulator sounded OK, I ran it on the ESP32 without any output configured and saw that the simplest SFX took ~25ms to calculate (sure, the sound lasts like 400ms, but I don't want 10% of the CPU time to go to SFX!).
+
+I know the ESP32 has an FPU, which means floating point calculations are not _terribly_ slow, but they are not as fast as integer arithmethic; so made some optimizations: turns out `fmodf(advance, 1.f)` takes _8_ extra milliseconds than  `advance - truncf(advance)` (over ~11 thousand calls).  This already brought ~25ms to ~17ms.  Moved quite some constants to be static and some calculations out from the inner loop, and the execution time dropped to ~4.5ms(!)
+
+Still, the [Performance guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/performance/speed.html#improving-overall-speed) on ESP32 says
+
+>  Even though ESP32 has a single precision hardware floating point unit, floating point calculations are always slower than integer calculations. If possible then use fixed point representations [...]
+
+and I already am linking `fix32` for Lua.. so converted the synth to use fixed point and that made it at least twice as fast (down to ~2ms).

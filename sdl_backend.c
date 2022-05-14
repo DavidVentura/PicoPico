@@ -12,6 +12,7 @@ Mix_Chunk* aSound;
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Event e;
+uint8_t smallbitbuf[SAMPLE_RATE*2];
 
 bool init_video()
 {
@@ -146,8 +147,13 @@ uint32_t now() {
 
 
 void play_sfx_buffer(){
+    for(uint16_t i=0; i<sizeof(smallbitbuf)/2; i++) {
+        smallbitbuf[i*2  ] = audiobuf[i] >> 8;
+        smallbitbuf[i*2+1] = audiobuf[i] & 0x00ff;
+    }
     Mix_PlayChannel(-1, aSound, 0);
 }
+
 bool init_audio() {
     if( Mix_OpenAudio(SAMPLE_RATE, AUDIO_S16MSB, 1, 256 ) < 0 ) { // 256 = BUFFER SIZE
         printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
@@ -156,8 +162,8 @@ bool init_audio() {
 
     aSound = (Mix_Chunk*)malloc(sizeof(Mix_Chunk));
     aSound->allocated = 0;
-    aSound->abuf = audiobuf; // FIXME
-    aSound->alen = sizeof(audiobuf); // FIXME
+    aSound->abuf = smallbitbuf; // FIXME
+    aSound->alen = sizeof(smallbitbuf)/2; // FIXME
     aSound->volume = 96;
 
     return true;

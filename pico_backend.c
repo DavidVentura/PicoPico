@@ -141,3 +141,5 @@ void put_buffer()
 bool init_audio() {
     return true;
 }
+void play_sfx_buffer(){
+}

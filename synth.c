@@ -1,10 +1,18 @@
 #include "synth.h"
 
-const z8::fix32 ONE =  z8::fix32(1);
-const z8::fix32 TWO =  z8::fix32(2);
+const z8::fix32 QUARTER = z8::fix32(0.25);
+const z8::fix32 THIRD   = z8::fix32(0.3333);
+const z8::fix32 HALF    = z8::fix32(0.5);
+const z8::fix32 ONE     = z8::fix32(1);
+const z8::fix32 TWO     = z8::fix32(2);
+const z8::fix32 THREE   = z8::fix32(3);
+const z8::fix32 FOUR    = z8::fix32(4);
+const z8::fix32 SIX     = z8::fix32(6);
+
+const z8::fix32 SAW_FACTOR  = z8::fix32(0.653);
+
 z8::fix32 waveform(int instrument, z8::fix32 advance)
 {
-    // z8::fix32 t = advance - z8::fix32::floor(advance);
     z8::fix32 t = z8::fix32::decimals(advance);
     z8::fix32 ret = 0;
 
@@ -14,30 +22,25 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
     switch (instrument)
     {
         case INST_TRIANGLE:
-            //return 0.5f * (fabsf(4.f * t - 2.0f) - 1.0f);
             return (z8::fix32::abs(z8::fix32::fast_shl(t, 2) - TWO) - ONE) >> 1;
             //return z8::fix32::fast_shr(z8::fix32::abs(z8::fix32::fast_shl(t, 2) - TWO) - ONE, 1);
         case INST_TILTED_SAW:
         {
             static z8::fix32 const a = 0.9f;
-            //ret = t < a ? 2.f * t / a - 1.f
-            //            : 2.f * (1.f - t) / (1.f - a) - 1.f;
-            return ret / 2;
+            ret = t < a ? 2 * t / a - ONE
+                        : 2 * (ONE - t) / (ONE - a) - ONE;
+            return ret >> 1;
         }
         case INST_SAW:
-            return 0;
-            //return 0.653f * (t < 0.5f ? t : t - 1.f);
+            return SAW_FACTOR * (t < HALF ? t : t - ONE);
         case INST_SQUARE:
-            return 0;
-            //return t < 0.5f ? 0.25f : -0.25f;
+            return t < HALF ? QUARTER : -QUARTER;
         case INST_PULSE:
-            return 0;
-            //return t < 1.f / 3 ? 0.25f : -0.25f;
+            return t < THIRD ? QUARTER : -QUARTER;
         case INST_ORGAN:
-            return 0;
-            //ret = t < 0.5f ? 3.f - fabsf(24.f * t - 6.f)
-            //               : 1.f - fabsf(16.f * t - 12.f);
-            //return ret / 9.f;
+            ret = t < HALF ? THREE  - z8::fix32::abs(24 * t - SIX)
+                           : ONE    - z8::fix32::abs(16 * t - 12);
+            return ret / 9;
         case INST_NOISE:
         {
             // Spectral analysis indicates this is some kind of brown noise,
@@ -59,11 +62,10 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
         {   // This one has a subfrequency of freq/128 that appears
             // to modulate two signals using a triangle wave
             // FIXME: amplitude seems to be affected, too
-            return 0;
-            //z8::fix32 k = fabsf(2.f * fmodf(advance / 128.f, 1.f) - 1.f);
-            //z8::fix32 u = fmodf(t + 0.5f * k, 1.0f);
-            //ret = fabsf(4.f * u - 2.f) - fabsf(8.f * t - 4.f);
-            //return ret / 6.f;
+            z8::fix32 k = z8::fix32::abs(TWO * z8::fix32::decimals(advance >> 7) - ONE);
+            z8::fix32 u = z8::fix32::decimals(t + HALF * k);
+            ret = z8::fix32::abs((u<<2) - TWO) - z8::fix32::abs((t<<3) - FOUR);
+            return ret / SIX;
         }
     }
 

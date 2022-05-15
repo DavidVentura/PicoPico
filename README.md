@@ -92,8 +92,8 @@ Immediate:
 * ~Unify the build systems (Make for pc / CMake for pico)~
 * ~Pre-encode the palette colors as a RGB565 `uint16_t`; makes no sense to shift them on _every pixel write_~
 * ~SFX~
+* ~Measure and output the correct number of samples out of the audio buffer, currently it's a (badly) guessed number.~
 * Get reasonable audio quality out of SFX
-* Measure and output the correct number of samples out of the audio buffer, currently it's a (badly) guessed number.
 
 Later:
 
@@ -106,6 +106,10 @@ Later:
 * Music
 * Look at optimizing lua bytecode for "fast function calls", for "standard library"
 * Use headers instead of stupid ifdefs
+* Console-based UI game
+    * [Virtual keyboard](https://www.lexaloffle.com/bbs/?tid=41855) [(original, no lowercase)](https://www.lexaloffle.com/bbs/?tid=4076)
+    * Wifi menu
+    * Cart explorer?
 
 # Other stuff
 

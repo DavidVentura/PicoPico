@@ -56,6 +56,7 @@ typedef struct SFX SFX;
 
 struct Channel {
     SFX* sfx;
+    uint8_t sfx_id = 0;
     uint16_t offset = 0; // in samples
     z8::fix32 phi = 0;
 };

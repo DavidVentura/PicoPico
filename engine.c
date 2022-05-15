@@ -514,8 +514,9 @@ int _lua_sfx(lua_State* L) {
     }
 
     // channels[channel].length = 0; // TODO
-    channels[channel].offset = 0; // TODO
-    channels[channel].sfx = &sfx[n];
+    channels[channel].offset    = 0; // TODO
+    channels[channel].sfx       = &sfx[n];
+    channels[channel].sfx_id    = n;
 
     return 0;
 }

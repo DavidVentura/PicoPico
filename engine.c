@@ -649,6 +649,14 @@ int _lua_clip(lua_State* L) {
     return 4;
 }
 
+int _lua_color(lua_State* L) {
+    uint8_t c = luaL_optinteger(L, 1, 6);
+    uint8_t old_color = drawstate.pen_color;
+    drawstate.pen_color = c;
+    lua_pushinteger(L, old_color);
+    return 1;
+}
+
 
 void registerLuaFunctions() {
     lua_pushcfunction(L, _lua_spr);
@@ -721,6 +729,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "stat");
     lua_pushcfunction(L, _lua_clip);
     lua_setglobal(L, "clip");
+    lua_pushcfunction(L, _lua_color);
+    lua_setglobal(L, "color");
 }
 bool _lua_fn_exists(const char* fn) {
     lua_getglobal(L, fn);

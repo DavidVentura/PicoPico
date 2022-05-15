@@ -196,7 +196,8 @@ int _lua_print(lua_State* L) {
     const char* text = luaL_checklstring(L, 1, &textLen);
     const int x = luaL_checkinteger(L, 2);
     const int y = luaL_checkinteger(L, 3);
-    const int paletteIdx = luaL_checkinteger(L, 4);
+    const int paletteIdx = luaL_optinteger(L, 4, drawstate.pen_color);
+    drawstate.pen_color = paletteIdx;
 
     // printf("Requested to print [%d] '%s' at x: %d, y %d\n", textLen, text, x, y);
     for (int i = 0; i<textLen; i++) {
@@ -313,11 +314,8 @@ int _lua_line(lua_State* L) {
     uint8_t y0 = luaL_optinteger(L, 2, drawstate.line_y);
     uint8_t x1 = luaL_optinteger(L, 3, 0);
     uint8_t y1 = luaL_optinteger(L, 4, 0);
-    int col = luaL_optinteger(L, 5, -1);
-    if (col == -1) {
-        printf("lua_line: unknown color not implemented\n");
-        return 0;
-    }
+    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+    drawstate.pen_color = col;
     drawstate.line_x = x1;
     drawstate.line_y = y1;
     gfx_line(x0, y0, x1, y1, palette[col]);
@@ -329,11 +327,8 @@ int _lua_rect(lua_State* L) {
     uint8_t y = luaL_checkinteger(L, 2);
     uint8_t x2 = luaL_checkinteger(L, 3);
     uint8_t y2 = luaL_checkinteger(L, 4);
-    int col = luaL_optinteger(L, 5, -1);
-    if (col == -1) {
-        printf("lua_rect: unknown color not implemented\n");
-        return 0;
-    }
+    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+    drawstate.pen_color = col;
 	    
     gfx_rect(x, y, x2, y2, palette[col]);
     return 0;
@@ -344,11 +339,8 @@ int _lua_rectfill(lua_State* L) {
     int8_t y = luaL_checkinteger(L, 2);
     int8_t x2 = luaL_checkinteger(L, 3);
     int8_t y2 = luaL_checkinteger(L, 4);
-    int col = luaL_optinteger(L, 5, -1);
-    if (col == -1) {
-        printf("lua_rectfill: unknown color not implemented\n");
-        return 0;
-    }
+    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+    drawstate.pen_color = col;
 
     gfx_rectfill(x, y, x2, y2, palette[col]);
     return 0;
@@ -358,12 +350,8 @@ int _lua_circ(lua_State* L) {
     int x = luaL_checkinteger(L, 1);
     int y = luaL_checkinteger(L, 2);
     int r = luaL_optinteger(L, 3, 4);
-    int col = luaL_optinteger(L, 4, -1);
-
-    if (col == -1) {
-        printf("lua_circ: unknown color not implemented\n");
-        return 0;
-    }
+    int col = luaL_optinteger(L, 4, drawstate.pen_color);
+    drawstate.pen_color = col;
 
     gfx_circle(x-drawstate.camera_x, y-drawstate.camera_y, r, palette[col]);
     return 0;
@@ -373,12 +361,8 @@ int _lua_circfill(lua_State* L) {
     int x = luaL_checkinteger(L, 1);
     int y = luaL_checkinteger(L, 2);
     int r = luaL_optinteger(L, 3, 4);
-    int col = luaL_optinteger(L, 4, -1);
-
-    if (col == -1) {
-        printf("lua_circfill: unknown color not implemented\n");
-        return 0;
-    }
+    int col = luaL_optinteger(L, 4, drawstate.pen_color);
+    drawstate.pen_color = col;
 
     gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, palette[col]);
     return 0;
@@ -469,7 +453,8 @@ int _lua_pget(lua_State* L) {
 int _lua_pset(lua_State* L) {
     int16_t x = luaL_checkinteger(L, 1);
     int16_t y = luaL_checkinteger(L, 2);
-    uint8_t idx = luaL_optinteger(L, 3, drawstate.fg_color);
+    uint8_t idx = luaL_optinteger(L, 3, drawstate.pen_color);
+    drawstate.pen_color = idx;
 
     int16_t tx = x-drawstate.camera_x;
     int16_t ty = y-drawstate.camera_y;

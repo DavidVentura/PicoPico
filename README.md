@@ -150,7 +150,7 @@ from ~25ms to ~2ms on the ESP32. It works fine in SDL, and sounds like a banshee
 |fillp          |❌         |                           |
 |fset           |❌         |                           |
 |line           |❌         |                           |
-|pal            |✅         |                           |
+|pal            |⚠️          |Only "draw palette" is implemented|
 |palt           |✅         |                           |
 |pget           |✅         |                           |
 |print          |⚠️          |Does not automatically scroll|

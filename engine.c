@@ -242,6 +242,31 @@ int _lua_palt(lua_State* L) {
     return 0;
 }
 
+void _replace_palette(uint8_t palIdx, lua_State* L) {
+    // Push another reference to the table on top of the stack (so we know
+    // where it is, and this function can work for negative, positive and
+    // pseudo indices
+    lua_pushvalue(L, -1);
+    // stack now contains: -1 => table
+    lua_pushnil(L);
+    // stack now contains: -1 => nil; -2 => table
+    while (lua_next(L, -2))
+    {
+        // stack now contains: -1 => value; -2 => key; -3 => table
+        const uint8_t value = luaL_checkinteger(L, -1);
+        const uint8_t key = luaL_checkinteger(L, -2);
+        palette[key] = value; // replace color
+        // pop value, leaving original key
+        lua_pop(L, 1);
+        // stack now contains: -1 => key; -2 => table
+    }
+    // stack now contains: -1 => table (when lua_next returns 0 it pops the key
+    // but does not push anything.)
+    // Pop table
+    lua_pop(L, 1);
+    // Stack is now the same as it was on entry to this function
+}
+
 int _lua_pal(lua_State* L) {
     // TODO: significant functionality missing
     // https://pico-8.fandom.com/wiki/Pal
@@ -251,6 +276,12 @@ int _lua_pal(lua_State* L) {
         reset_transparency();
         return 0;
     }
+    if(lua_istable(L, 1)) {
+        uint8_t palIdx = luaL_optinteger(L, 2, 0);
+        _replace_palette(palIdx, L);
+        return 0;
+    }
+
     int origIdx = luaL_checkinteger(L, 1);
     int newIdx = luaL_checkinteger(L, 2);
     const color_t origColor = palette[origIdx];

@@ -577,19 +577,25 @@ int _lua_sfx(lua_State* L) {
     int16_t channel = luaL_optinteger(L, 2, -1);
     int16_t offset  = luaL_optinteger(L, 3, 0);
     int16_t length  = luaL_optinteger(L, 4, 31);
-    if(n==-1) { // NULL SFX
-        return 0;
-    }
-    printf("Play sfx %d on channel %d with offset %d and len %d\n", n, channel, offset, length);
     if(channel == -1) {
         channel = 0;
         // TODO: pick an empty channel
     }
 
+    if(n==-1) { // NULL SFX
+        channels[channel].sfx      = NULL;
+        channels[channel].sfx_id   = 0;
+        channels[channel].offset   = 0;
+        channels[channel].phi      = 0;
+        return 0;
+    }
+    printf("Play sfx %d on channel %d with offset %d and len %d\n", n, channel, offset, length);
+
     // channels[channel].length = 0; // TODO
     channels[channel].offset    = 0; // TODO
     channels[channel].sfx       = &sfx[n];
     channels[channel].sfx_id    = n;
+    channels[channel].phi       = 0;
 
     return 0;
 }
@@ -1136,9 +1142,10 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
     }
 
     if(c->offset >= (SAMPLES_PER_DURATION*NOTES_PER_SFX*sfx->duration)) {
-        c->sfx = NULL;
-        c->offset = 0;
-        c->phi = 0;
+        c->sfx      = NULL;
+        c->sfx_id   = 0;
+        c->offset   = 0;
+        c->phi      = 0;
     }
 }
 #endif

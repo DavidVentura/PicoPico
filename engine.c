@@ -533,10 +533,13 @@ int _lua_stat(lua_State* L) {
 }
 
 int _lua_sfx(lua_State* L) {
-    int16_t n       = luaL_checkinteger(L, 1);
+    int16_t n       = luaL_optinteger(L, 1, -1);
     int16_t channel = luaL_optinteger(L, 2, -1);
     int16_t offset  = luaL_optinteger(L, 3, 0);
     int16_t length  = luaL_optinteger(L, 4, 31);
+    if(n==-1) { // NULL SFX
+        return 0;
+    }
     printf("Play sfx %d on channel %d with offset %d and len %d\n", n, channel, offset, length);
     if(channel == -1) {
         channel = 0;

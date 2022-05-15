@@ -995,19 +995,18 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
     }
 }
 void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, color_t color){
+    uint16_t r_sq = radius * radius;
     if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
-    for (int w = 0; w <= radius * 2; w++)
-    {
+    for (int w = 0; w <= radius * 2; w++) {
         int dx = radius - w; // horizontal offset
+        uint16_t dx_sq = dx * dx;
         if((x + dx) < 0) continue;
         if((x + dx) >= SCREEN_WIDTH) break;
-        for (int h = 0; h <= radius * 2; h++)
-        {
+        for (int h = 0; h <= radius * 2; h++) {
             int dy = radius - h; // vertical offset
             if((y + dy) >= SCREEN_HEIGHT) break;
             if((y + dy) < 0) continue;
-            if ((dx*dx + dy*dy) <= (radius * radius))
-            {
+            if ((dx_sq + dy*dy) <= r_sq) {
                 put_pixel(x + dx, y + dy, color);
             }
         }

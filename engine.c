@@ -614,6 +614,8 @@ void registerLuaFunctions() {
     lua_pushcfunction(L, _lua_sget);
     lua_setglobal(L, "sget");
     lua_pushcfunction(L, _lua_time);
+    lua_setglobal(L, "t");
+    lua_pushcfunction(L, _lua_time);
     lua_setglobal(L, "time");
     lua_pushcfunction(L, _lua_sfx);
     lua_setglobal(L, "sfx");

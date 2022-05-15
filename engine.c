@@ -24,9 +24,7 @@ static SFX sfx[64];
 static Channel channels[4];
 const uint8_t SAMPLES_PER_BUFFER = 6;
 
-// FIXME: +8 -> there's a buffer overflow
-uint16_t audiobuf[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER+8]; // 183*4 = 732 = 1464 bytes
-//uint16_t audiobuf[SAMPLES_PER_BUFFER][SAMPLES_PER_DURATION]; // 183*4 = 732 = 1464 bytes
+uint16_t audiobuf[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER];
 //
 // this is can fit an SFX of duration 1;
 // so filling this buffer $duration times will play an entire SFX
@@ -967,10 +965,11 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
         const z8::fix32 freq = key_to_freq[n.key];
         const z8::fix32 delta = freq / SAMPLE_RATE;
 
+        c->offset += SAMPLES_PER_DURATION;
         if (n.volume == 0) {
-            c->offset++;
+            // c->offset++;
             c->phi += SAMPLES_PER_DURATION * delta;
-            s += SAMPLES_PER_DURATION;
+            s += SAMPLES_PER_DURATION-1;
             continue;
         }
 
@@ -987,8 +986,7 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
             c->phi += delta;
         }
 
-        c->offset += SAMPLES_PER_DURATION;
-        s += SAMPLES_PER_DURATION;
+        s += SAMPLES_PER_DURATION-1;
     }
 
     if(c->offset >= (SAMPLES_PER_DURATION*NOTES_PER_SFX*sfx->duration)) {

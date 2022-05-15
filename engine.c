@@ -460,7 +460,7 @@ int _lua_fget(lua_State* L) {
     if (bitfield == 0xFF) {
         lua_pushinteger(L, p);
     } else {
-        bool result = ((1 << bitfield) & p) == 1;
+        bool result = ((1 << bitfield) & p) > 0;
         lua_pushboolean(L, result);
     }
     return 1;

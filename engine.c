@@ -354,6 +354,21 @@ int _lua_rectfill(lua_State* L) {
     return 0;
 }
 
+int _lua_circ(lua_State* L) {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    int r = luaL_optinteger(L, 3, 4);
+    int col = luaL_optinteger(L, 4, -1);
+
+    if (col == -1) {
+        printf("lua_circ: unknown color not implemented\n");
+        return 0;
+    }
+
+    gfx_circle(x-drawstate.camera_x, y-drawstate.camera_y, r, palette[col]);
+    return 0;
+}
+
 int _lua_circfill(lua_State* L) {
     int x = luaL_checkinteger(L, 1);
     int y = luaL_checkinteger(L, 2);
@@ -502,6 +517,36 @@ int _lua_printh(lua_State* L) {
 }
 
 
+int _lua_stat(lua_State* L) {
+    uint8_t n = luaL_checkinteger(L, 1);
+    if (n >=16 && n<=26) // 16..26 == 46..56
+        n += 30;
+    switch(n) {
+        case 49: // 19 also -- sfx id
+            if (channels[3].sfx == NULL) {
+                lua_pushinteger(L, -1);
+            } else {
+                lua_pushinteger(L, channels[3].sfx_id);
+            }
+            break;
+        case 53: // 23 also -- note number
+            if (channels[3].sfx == NULL) {
+                lua_pushinteger(L, -1);
+            } else {
+                uint16_t note_id = channels[3].offset / (SAMPLES_PER_DURATION * channels[3].sfx->duration);
+                lua_pushinteger(L, note_id);
+            }
+            break;
+        case 102: // bbs information: domain if web; 0 for local
+            lua_pushinteger(L, 0);
+            break;
+        default:
+            printf("Warn: got stat(%d) which is not implemented\n", n);
+            lua_pushinteger(L, 0);
+    }
+    return 1;
+}
+
 int _lua_sfx(lua_State* L) {
     int16_t n       = luaL_checkinteger(L, 1);
     int16_t channel = luaL_optinteger(L, 2, -1);
@@ -559,6 +604,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "rect");
     lua_pushcfunction(L, _lua_line);
     lua_setglobal(L, "line");
+    lua_pushcfunction(L, _lua_circ);
+    lua_setglobal(L, "circ");
     lua_pushcfunction(L, _lua_circfill);
     lua_setglobal(L, "circfill");
     lua_pushcfunction(L, _lua_btn);
@@ -601,6 +648,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "camera");
     lua_pushcfunction(L, _lua_noop);
     lua_setglobal(L, "noop");
+    lua_pushcfunction(L, _lua_stat);
+    lua_setglobal(L, "stat");
 }
 bool _lua_fn_exists(const char* fn) {
     lua_getglobal(L, fn);

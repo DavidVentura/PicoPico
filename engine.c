@@ -434,6 +434,14 @@ int _lua_fget(lua_State* L) {
     return 1;
 }
 
+int _lua_mset(lua_State* L) {
+    uint8_t x = luaL_checkinteger(L, 1);
+    uint8_t y = luaL_checkinteger(L, 2);
+    uint8_t n = luaL_checkinteger(L, 3);
+    map_data[y*128+x] = n;
+    return 0;
+}
+
 int _lua_mget(lua_State* L) {
     uint8_t x = luaL_checkinteger(L, 1);
     uint8_t y = luaL_checkinteger(L, 2);
@@ -572,6 +580,44 @@ int _lua_camera(lua_State* L) {
     return 2;
 }
 
+int _lua_clip(lua_State* L) {
+    uint8_t old_x = drawstate.clip_x;
+    uint8_t old_y = drawstate.clip_y;
+    uint8_t old_w = drawstate.clip_w;
+    uint8_t old_h = drawstate.clip_h;
+
+    uint8_t argcount = lua_gettop(L);
+    if(argcount == 0) {
+        drawstate.clip_x = 0;
+        drawstate.clip_y = 0;
+        drawstate.clip_w = SCREEN_WIDTH;
+        drawstate.clip_h = SCREEN_HEIGHT;
+    } else {
+        uint8_t x = luaL_checkinteger(L, 1);
+        uint8_t y = luaL_checkinteger(L, 2);
+        uint8_t w = luaL_checkinteger(L, 3);
+        uint8_t h = luaL_checkinteger(L, 4);
+        bool previous = lua_toboolean(L, 5);
+
+        if (previous == true) {
+            drawstate.clip_x += x;
+            drawstate.clip_y += y;
+        } else {
+            drawstate.clip_x = x;
+            drawstate.clip_y = y;
+        }
+
+        drawstate.clip_w = w;
+        drawstate.clip_h = h;
+    }
+
+    lua_pushinteger(L, old_x);
+    lua_pushinteger(L, old_y);
+    lua_pushinteger(L, old_w);
+    lua_pushinteger(L, old_h);
+    return 4;
+}
+
 
 void registerLuaFunctions() {
     lua_pushcfunction(L, _lua_spr);
@@ -612,6 +658,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "pget");
     lua_pushcfunction(L, _lua_fget);
     lua_setglobal(L, "fget");
+    lua_pushcfunction(L, _lua_mset);
+    lua_setglobal(L, "mset");
     lua_pushcfunction(L, _lua_mget);
     lua_setglobal(L, "mget");
     lua_pushcfunction(L, _lua_sget);
@@ -640,6 +688,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "noop");
     lua_pushcfunction(L, _lua_stat);
     lua_setglobal(L, "stat");
+    lua_pushcfunction(L, _lua_clip);
+    lua_setglobal(L, "clip");
 }
 bool _lua_fn_exists(const char* fn) {
     lua_getglobal(L, fn);

@@ -142,7 +142,7 @@ from ~25ms to ~2ms on the ESP32. It works fine in SDL, and sounds like a banshee
 |circfill       |✅         |                           |
 |oval           |❌         |                           |
 |ovalfill       |❌         |                           |
-|clip           |❌         |                           |
+|clip           |✅         |                           |
 |cls            |✅         |                           |
 |color          |❌         |                           |
 |cursor         |❌         |                           |

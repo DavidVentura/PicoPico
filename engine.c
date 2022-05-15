@@ -185,7 +185,7 @@ static void gfx_map(uint8_t mapX, uint8_t mapY,
             int16_t tx = screenX+(x-mapX)*8;
             uint8_t sprite = map_data[x+y*128];
             uint8_t flags = spritesheet.flags[sprite];
-            if ((flags & layerFlags) == layerFlags) {
+            if ((flags & layerFlags) == layerFlags && sprite != 0) {
                 render(&spritesheet, sprite, tx, ty, -1, false, false);
             }
         }

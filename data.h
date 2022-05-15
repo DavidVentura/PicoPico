@@ -16,11 +16,15 @@ typedef struct Spritesheet Spritesheet;
 
 
 struct DrawState {
-	uint8_t     pen_color = 7;
-	int16_t     camera_x;
-	int16_t     camera_y;
-	uint16_t    line_x;
-	uint16_t    line_y;
+	uint8_t     pen_color   = 7;
+	uint8_t     clip_x      = 0;
+	uint8_t     clip_y      = 0;
+	uint8_t     clip_w      = SCREEN_WIDTH;
+	uint8_t     clip_h      = SCREEN_HEIGHT;
+	int16_t     camera_x    = 0;
+	int16_t     camera_y    = 0;
+	uint16_t    line_x      = 0;
+	uint16_t    line_y      = 0;
 	uint8_t     transparent[15];
 };
 

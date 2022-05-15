@@ -154,6 +154,7 @@ static color_t palette[] = {
 
 void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y);
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy, uint16_t dw, uint16_t dh);
+void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, float width, float height);
 static inline void put_pixel(uint8_t x, uint8_t y, const color_t p);
 uint16_t get_pixel(uint8_t x, uint8_t y);
 static void gfx_map(uint8_t mapX, uint8_t mapY,
@@ -314,7 +315,6 @@ int _lua_sspr(lua_State* L) {
 }
 
 int _lua_spr(lua_State* L) {
-    // TODO: optional w/h
     uint8_t argcount = lua_gettop(L);
     if (argcount < 3)
         return 0;
@@ -335,7 +335,8 @@ int _lua_spr(lua_State* L) {
     if (argcount >= 7)
         flip_y = lua_toboolean(L, 7);
 
-    render(&spritesheet, n, x, y, -1, flip_x==1, flip_y==1);
+
+    render_many(&spritesheet, n, x, y, -1, flip_x==1, flip_y==1, w, h);
     return 0;
 }
 
@@ -923,17 +924,17 @@ void cartParser(const uint8_t* text) {
     free(rawbuf);
 }
 
-void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y) {
+void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, float width, float height) {
     uint16_t idx, val;
     if((x0 < -drawstate.camera_x) && (x0-drawstate.camera_x >= SCREEN_WIDTH)) return;
     if(y0-drawstate.camera_y >= SCREEN_HEIGHT) return;
 
-    for (uint16_t y=0; y<8; y++) {
+    for (uint16_t y=0; y<8*height; y++) {
         int16_t screen_y = y0+y-drawstate.camera_y;
         if (screen_y < 0) continue;
         if (screen_y >= SCREEN_HEIGHT) return;
 
-        for (uint16_t x=0; x<8; x++) {
+        for (uint16_t x=0; x<8*width; x++) {
             uint16_t screen_x = x0+x-drawstate.camera_x;
             if (screen_x >= SCREEN_WIDTH) continue;
             val = s->sprite_data[(sy+y)*128 + x + sx];
@@ -954,16 +955,24 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0,
         }
     }
 }
+
+void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, float width, float height) {
+    const uint8_t sprite_count = 16;
+    const uint8_t xIndex = n % sprite_count;
+    const uint8_t yIndex = n / sprite_count;
+    _render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y, width, height);
+}
+
 void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y) {
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;
-    _render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y);
+    _render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y, 1, 1);
 }
 
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy,
 		      uint16_t dw, uint16_t dh) {
-    if(dw == sw && dh == sh) return _render(s, sx, sy, dx, dy, -1, false, false);
+    if(dw == sw && dh == sh) return _render(s, sx, sy, dx, dy, -1, false, false, 1, 1);
     if(dx >= SCREEN_WIDTH) return;
     if(dy >= SCREEN_HEIGHT) return;
 

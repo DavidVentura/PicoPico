@@ -38,7 +38,8 @@ int main( int argc, char* args[] )
     // cartParser(examples_dice_p8);
     // cartParser(examples_tennis_p8);
     // cartParser(examples_rockets_p8);
-    cartParser(examples_celeste_p8);
+    // cartParser(examples_celeste_p8);
+    cartParser(examples_shelled_p8);
     // cartParser(examples_benchmark_p8);
 
     printf("Parsing font \n");
@@ -59,6 +60,9 @@ int main( int argc, char* args[] )
     uint32_t init_done = now();
     printf("Parsing and initializing took %dms\n", init_done-bootup_time);
 
+    // call _init first, in case _update / _draw are defined then
+    if (_lua_fn_exists("_init")) _to_lua_call("_init");
+
     bool call_update = _lua_fn_exists("_update");
     bool call_draw = _lua_fn_exists("_draw");
 
@@ -76,7 +80,6 @@ int main( int argc, char* args[] )
     bool skip_next_render = false;
 
     uint16_t frame_count = 0;
-    if (_lua_fn_exists("_init")) _to_lua_call("_init");
     while (!quit) {
         frame_start_time = now();
         gfx_flip();

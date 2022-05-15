@@ -1046,6 +1046,11 @@ void gfx_cls(color_t c) {
 }
 
 void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const color_t color) {
+    x0 = MIN(x0, SCREEN_WIDTH-1);
+    x2 = MIN(x2, SCREEN_WIDTH-1);
+    y0 = MIN(y0, SCREEN_HEIGHT-1);
+    y2 = MIN(y2, SCREEN_HEIGHT-1);
+
     for(uint16_t y=y0; y<=y2; y++)
         for(uint8_t x=x0; x<=x2; x++)
             if ((y==y0) || (y==y2) || (x==x0) || (x==x2))
@@ -1054,8 +1059,10 @@ void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const color_t 
 
 void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const color_t color) {
     // this is _inclusive_
-    y2 = MIN(SCREEN_HEIGHT-1, y2);
-    x2 = MIN(SCREEN_WIDTH-1, x2);
+    x0 = MIN(x0, SCREEN_WIDTH-1);
+    x2 = MIN(x2, SCREEN_WIDTH-1);
+    y0 = MIN(y0, SCREEN_HEIGHT-1);
+    y2 = MIN(y2, SCREEN_HEIGHT-1);
 
     for(uint16_t y=y0; y<=y2; y++) {
         uint16_t yoff = y*SCREEN_WIDTH;

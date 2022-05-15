@@ -212,3 +212,8 @@ Still, the [Performance guide](https://docs.espressif.com/projects/esp-idf/en/la
 >  Even though ESP32 has a single precision hardware floating point unit, floating point calculations are always slower than integer calculations. If possible then use fixed point representations [...]
 
 and I already am linking `fix32` for Lua.. so converted the synth to use fixed point and that made it at least twice as fast (down to ~2ms).
+
+# 14 May
+
+Rewrote the sounds pipeline -- it used to generate ALL the samples for an SFX on demand, and fill HUGE buffers with it.  
+Now, based on a lot of reading (which is greatly summarized [here](https://atomic14.com/2021/04/20/esp32-i2s-dma-buf-len-buf-count.html)) I've changed the pipeline to only generate samples on demand (when the DMA buffers are empty) -- currently that is ~20ms worth of audio. This simplified the code a lot, and now it actually works without pops

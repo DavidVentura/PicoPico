@@ -86,7 +86,7 @@ bool init_audio() {
     i2s_zero_dma_buffer(I2S_NUM_0);
     i2s_set_pin(I2S_NUM_0, NULL); //for internal DAC, this will enable both of the internal channels
     i2s_set_dac_mode(I2S_DAC_CHANNEL_RIGHT_EN); // gpio 25
-    xTaskCreate(i2sTask, "I2Sout", 4096, NULL, 1, NULL);
+    xTaskCreatePinnedToCore(i2sTask, "I2Sout", 4096, NULL, 1 /* prio */, NULL, 1 /* core id */);
 
 
     return true;

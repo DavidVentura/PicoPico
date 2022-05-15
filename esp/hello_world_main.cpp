@@ -62,5 +62,6 @@ void app_main(void)
     printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
     q = xQueueCreate(1, sizeof(uint8_t));
 	xTaskCreate(_main, "main", 1024*6, NULL, 2, NULL);
-	xTaskCreate(put_buffer, "put_buffer", 1024*6, NULL, 2, NULL);
+	xTaskCreatePinnedToCore(put_buffer, "put_buffer", 1024*6, NULL, 2, NULL, 1);
+
 }

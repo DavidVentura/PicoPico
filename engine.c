@@ -39,73 +39,6 @@ uint16_t audiobuf[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER];
 // which means choices are between 4 and 8
 
 // return 440.f * exp2f((key - 33.f) / 12.f);
-static z8::fix32 key_to_freq[64] = {
-    65.40639132514966,
-    69.29565774421802,
-    73.41619197935188,
-    77.78174593052023,
-    82.4068892282175,
-    87.30705785825097,
-    92.4986056779086,
-    97.99885899543733,
-    103.82617439498628,
-    110.0,
-    116.54094037952248,
-    123.47082531403103,
-    130.8127826502993,
-    138.59131548843604,
-    146.8323839587038,
-    155.56349186104046,
-    164.81377845643496,
-    174.61411571650194,
-    184.9972113558172,
-    195.99771799087463,
-    207.65234878997256,
-    220.0,
-    233.08188075904496,
-    246.94165062806206,
-    261.6255653005986,
-    277.1826309768721,
-    293.6647679174076,
-    311.1269837220809,
-    329.6275569128699,
-    349.2282314330039,
-    369.9944227116344,
-    391.99543598174927,
-    415.3046975799451,
-    440.0,
-    466.1637615180899,
-    493.8833012561241,
-    523.2511306011972,
-    554.3652619537442,
-    587.3295358348151,
-    622.2539674441618,
-    659.2551138257398,
-    698.4564628660078,
-    739.9888454232688,
-    783.9908719634985,
-    830.6093951598903,
-    880.0,
-    932.3275230361799,
-    987.7666025122483,
-    1046.5022612023945,
-    1108.7305239074883,
-    1174.6590716696303,
-    1244.5079348883237,
-    1318.5102276514797,
-    1396.9129257320155,
-    1479.9776908465376,
-    1567.981743926997,
-    1661.2187903197805,
-    1760.0,
-    1864.6550460723597,
-    1975.533205024496,
-    2093.004522404789,
-    2217.4610478149766,
-    2349.31814333926,
-    2489.0158697766474,
-};
-
 #define SECT_LUA   1
 #define SECT_GFX   2
 #define SECT_GFF   3
@@ -1114,22 +1047,26 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
         uint16_t note_id = c->offset / (SAMPLES_PER_DURATION * sfx->duration);
 
         Note n = sfx->notes[note_id];
-        const z8::fix32 freq = key_to_freq[n.key];
+        z8::fix32 freq = key_to_freq[n.key];
         const z8::fix32 delta = freq / SAMPLE_RATE;
 
         c->offset += SAMPLES_PER_DURATION;
         if (n.volume == 0) {
-            // c->offset++;
             c->phi += SAMPLES_PER_DURATION * delta;
             s += SAMPLES_PER_DURATION-1;
             continue;
         }
+        // printf("Note id %d has fx %d\n", note_id, n.effect);
+        z8::fix32 volume = n.volume; // can be modified by `n.effect`
 
-        const z8::fix32 norm_vol = VOL_NORMALIZER*n.volume;
-        const uint16_t n_effect = n.effect; // alias for memory access?
+        const z8::fix32 norm_vol = VOL_NORMALIZER*volume;
+        // const uint16_t n_effect = n.effect; // alias for memory access?
+        const uint16_t n_waveform = n.waveform; // alias for memory access?
+
 
         for(uint16_t _s=0; _s<SAMPLES_PER_DURATION; _s++) {
-            const z8::fix32 w = waveform(n_effect, c->phi);
+            // TODO: apply FX per _sample_ ?? gonna suck
+            const z8::fix32 w = waveform(n_waveform, c->phi);
             const int16_t sample = (int16_t)(norm_vol*w);
 
             // NOTE: this is += so that all sfx can be played in parallel

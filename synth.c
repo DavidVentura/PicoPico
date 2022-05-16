@@ -1,15 +1,15 @@
 #include "synth.h"
 
-const z8::fix32 QUARTER = z8::fix32(0.25);
-const z8::fix32 THIRD   = z8::fix32(0.3333);
-const z8::fix32 HALF    = z8::fix32(0.5);
+const z8::fix32 QUARTER = z8::fix32(0.25f);
+const z8::fix32 THIRD   = z8::fix32(0.3333f);
+const z8::fix32 HALF    = z8::fix32(0.5f);
 const z8::fix32 ONE     = z8::fix32(1);
 const z8::fix32 TWO     = z8::fix32(2);
 const z8::fix32 THREE   = z8::fix32(3);
 const z8::fix32 FOUR    = z8::fix32(4);
 const z8::fix32 SIX     = z8::fix32(6);
 
-const z8::fix32 SAW_FACTOR  = z8::fix32(0.653);
+const z8::fix32 SAW_FACTOR  = z8::fix32(0.653f);
 
 z8::fix32 waveform(int instrument, z8::fix32 advance)
 {
@@ -49,14 +49,16 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
             //
             // This may help us create a correct filter:
             // http://www.firstpr.com.au/dsp/pink-noise/
+
             /*
-             TODO
             static lol::perlin_noise<1> noise;
             for (float m = 1.75f, d = 1.f; m <= 128; m *= 2.25f, d *= 0.75f)
                 ret += d * noise.eval(lol::vec_t<float, 1>(m * advance));
             return ret * 0.4f;
             */
-            return 0;
+            // FIXME: this is now more broken )) it gives _some_ noise
+            // but obviously the noise profile is terrible
+            return (z8::fix32(rand() >> 16)/z8::fix32(RAND_MAX >> 17)) * THIRD;
         }
         case INST_PHASER:
         {   // This one has a subfrequency of freq/128 that appears

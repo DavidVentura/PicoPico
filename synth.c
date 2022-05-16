@@ -73,3 +73,51 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
 
     return 0;
 }
+
+void apply_fx(SFX* s, Note* n, z8::fix32* volume, uint16_t* freq, uint16_t offset, uint16_t speed, uint16_t note_id) {
+    switch(n->effect) {
+        case FX_NO_EFFECT:
+            return;
+        case FX_SLIDE:
+            {
+                float t = fmod(offset, 1.f);
+                // From the documentation: “Slide to the next note and volume”,
+                // but it’s actually _from_ the _prev_ note and volume.
+                /*
+                   freq = lol::mix(key_to_freq(m_state.channels[chan].prev_key), freq, t);
+                   if (m_state.channels[chan].prev_vol > 0.f)
+                   volume = lol::mix(m_state.channels[chan].prev_vol, volume, t);
+                   */
+                break;
+            }
+        case FX_VIBRATO:
+            {
+                // 7.5f and 0.25f were found empirically by matching
+                // frequency graphs of PICO-8 instruments.
+                // float t = fabs(fmod(7.5f * offset / offset_per_second, 1.0f) - 0.5f) - 0.25f;
+                // Vibrato half a semi-tone, so multiply by pow(2,1/12)
+                // freq = lol::mix(freq, freq * 1.059463094359f, t);
+                break;
+            }
+        case FX_DROP:
+            *freq *= 1.f - fmod(offset, 1.f);
+            break;
+        case FX_FADE_IN:
+            *volume *= fmodf(offset, 1.f);
+            break;
+        case FX_FADE_OUT:
+            *volume *= 1.f - fmodf(offset, 1.f);
+            break;
+        case FX_ARP_FAST:
+        case FX_ARP_SLOW:
+            // From the documentation:
+            // “6 arpeggio fast  //  Iterate over groups of 4 notes at speed of 4
+            //  7 arpeggio slow  //  Iterate over groups of 4 notes at speed of 8”
+            // “If the SFX speed is <= 8, arpeggio speeds are halved to 2, 4”
+            int const m = (speed <= 8 ? 32 : 16) / (n->effect == FX_ARP_FAST ? 4 : 8);
+            //int const n = (int)(m * 7.5f * offset / offset_per_second);
+            //int const arp_note = (note_id & ~3) | (n & 3);
+            //*freq = key_to_freq[s->notes[arp_note].key];
+            break;
+    }
+}

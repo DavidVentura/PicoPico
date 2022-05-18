@@ -217,3 +217,70 @@ and I already am linking `fix32` for Lua.. so converted the synth to use fixed p
 
 Rewrote the sounds pipeline -- it used to generate ALL the samples for an SFX on demand, and fill HUGE buffers with it.  
 Now, based on a lot of reading (which is greatly summarized [here](https://atomic14.com/2021/04/20/esp32-i2s-dma-buf-len-buf-count.html)) I've changed the pipeline to only generate samples on demand (when the DMA buffers are empty) -- currently that is ~20ms worth of audio. This simplified the code a lot, and now it actually works without pops
+
+# 17 May
+
+Start looking at Lua performance overhead:
+
+Benchmark code:
+```
+start = t()
+for i=1,32000 do
+      noop(i)
+end
+endt = t()
+printh("32k x noop took ".. endt-start)
+```
+- 32.000 noop calls (takes 1 number and returns it) = 122ms
+
+meaning, 1.000 calls = 3.8ms. **This caps the calls per frame at 8684 without doing any work**.
+
+Per iteration; the bytecode looks like
+
+```
+5	[2]	GETTABUP 	4 0 -3	; _ENV "noop"
+6	[2]	MOVE     	5 3
+7	[2]	CALL     	4 2 1
+```
+
+Same code in C (with -O0) takes ~6ms:
+
+```
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+int _noop(int arg) {
+    return arg;
+}
+void bench_me() {
+    uint32_t bstart = now();
+    int res = 0;
+    for (uint16_t i=0; i<32000; i++) {
+        res = _noop(5);
+    }
+    printf("Benchmark took %d; result is %d\n", now()-bstart, res);
+}
+#pragma GCC pop_options
+```
+
+Approximately, 20x faster is the maximum we can get to.
+
+
+# 18 May
+
+On first pass of "Fast C Calls":
+
+> 32k x noop took 94ms
+
+1000 calls = 2.9ms; new code takes 77% of the overhead as the previous one;
+
+the bytecode hasn't changed; so 
+
+```
+5	[2]	GETTABUP 	4 0 -3	; _ENV "noop"
+6	[2]	MOVE     	5 3
+7	[2]	CALL     	4 2 1
+```
+
+this way, `noop` is looked up for _each call_; as the function tag is embedded in the function itself (which is stored in `_ENV`)
+
+this is faster, yes, but not even close to worth it

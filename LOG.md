@@ -223,7 +223,7 @@ Now, based on a lot of reading (which is greatly summarized [here](https://atomi
 Start looking at Lua performance overhead:
 
 Benchmark code:
-```
+```lua
 start = t()
 for i=1,32000 do
       noop(i)
@@ -245,7 +245,7 @@ Per iteration; the bytecode looks like
 
 Same code in C (with -O0) takes ~6ms:
 
-```
+```c
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
 int _noop(int arg) {
@@ -267,11 +267,11 @@ Approximately, 20x faster is the maximum we can get to.
 
 # 18 May
 
-On first pass of "Fast C Calls":
+On first pass of ["Fast C Calls"](https://github.com/DavidVentura/z8lua/commit/201aa808ca1e0b0529a6d9af0c80307fec263d92):
 
 > 32k x noop took 94ms
 
-1000 calls = 2.9ms; new code takes 77% of the overhead as the previous one;
+1000 calls = 2.9ms; new code takes 77% of the time as the previous one;
 
 the bytecode hasn't changed; so 
 
@@ -281,6 +281,169 @@ the bytecode hasn't changed; so
 7	[2]	CALL     	4 2 1
 ```
 
-this way, `noop` is looked up for _each call_; as the function tag is embedded in the function itself (which is stored in `_ENV`)
+this way, `noop` is _still looked up for each call_; as the function tag is embedded in the function itself (which is stored in `_ENV`)
 
-this is faster, yes, but not even close to worth it
+this is faster, yes, but not _really_ fast
+
+Calling a function that does a _small_ amount of work:
+
+```lua
+start = t()
+for i=1,32000 do
+      fast_floor(i+0.5)
+end
+endt = t()
+printh("32k x fast_floor took ".. endt-start)
+
+start = t()
+for i=1,32000 do
+      flr(i+0.5)
+end
+endt = t()
+printh("32k x flr took ".. endt-start)
+
+```
+
+> 32k x fast_floor took 99ms
+> 32k x flr took 145ms
+
+Not really sure about these results.. the fast call went up by 5ms (I assume, calculating how to floor the number), but the regular call doesn't take 5 ms more than the slow noop.. takes 23ms more.
+
+
+I think the real improvement for this would be to add a new opcode (ie: FASTCALL) that'd embed the function ID in a byte or something. I only want to "accelerate" a handful of calls (<30) so capping at 255 is not a problem.
+
+This all kinda started by looking again at `Rockets!` which used to take ~30ms to draw each sprite (it calculates rotation _every frame_)
+
+With the "regular" `flr` calls, drawing 5 sprites consistently takes 71ms, and with the fast calls it consistently takes 65ms. It's a nice 9% win, but still _really_ far from hitting the <30ms mark to make the game playable.
+
+This is the function that's so slow:
+
+```lua
+function spr_r(s,x,y,a,w,h)
+	sw=(w or 1)*8
+	sh=(h or 1)*8
+	sx=(s%8)*8
+	sy=flr(s/8)*8
+	x0=flr(0.5*sw)
+	y0=flr(0.5*sh)
+	a=a/360
+	sa=sin(a)
+	ca=cos(a)
+	for ix=sw*-1,sw+4 do
+		for iy=sh*-1,sh+4 do
+			dx=ix-x0
+			dy=iy-y0
+			xx=flr(dx*ca-dy*sa+x0)
+			yy=flr(dx*sa+dy*ca+y0)
+			if (xx>=0 and xx<sw and yy>=0 and yy<=sh-1) then
+				pset(x+ix,y+iy,sget(sx+xx,sy+yy))
+			end
+		end
+	end
+end
+```
+
+`sw` and `sh` are always 8; so both loops go from -12 to 12 (=576 iterations for the inner loop). This is _per sprite_ and up to 5 sprites can be live at any point in time.
+
+If you know about lua performance, you already know what the _biggest_ problem is here, but it is very obvious when looking at bytecode; this is the inner loop:
+
+```
+	50	[569]	GETTABUP 	14 0 -8	; _ENV "x0"
+	51	[569]	SUB      	14 9 14
+	52	[569]	SETTABUP 	0 -18 14	; _ENV "dx"
+	53	[570]	GETTABUP 	14 0 -10	; _ENV "y0"
+	54	[570]	SUB      	14 13 14
+	55	[570]	SETTABUP 	0 -19 14	; _ENV "dy"
+	56	[571]	GETTABUP 	14 0 -7	; _ENV "flr"
+	57	[571]	GETTABUP 	15 0 -18	; _ENV "dx"
+	58	[571]	GETTABUP 	16 0 -14	; _ENV "ca"
+	59	[571]	MUL      	15 15 16
+	60	[571]	GETTABUP 	16 0 -19	; _ENV "dy"
+	61	[571]	GETTABUP 	17 0 -12	; _ENV "sa"
+	62	[571]	MUL      	16 16 17
+	63	[571]	SUB      	15 15 16
+	64	[571]	GETTABUP 	16 0 -8	; _ENV "x0"
+	65	[571]	ADD      	15 15 16
+	66	[571]	CALL     	14 2 2
+	67	[571]	SETTABUP 	0 -20 14	; _ENV "xx"
+	68	[572]	GETTABUP 	14 0 -7	; _ENV "flr"
+	69	[572]	GETTABUP 	15 0 -18	; _ENV "dx"
+	70	[572]	GETTABUP 	16 0 -12	; _ENV "sa"
+	71	[572]	MUL      	15 15 16
+	72	[572]	GETTABUP 	16 0 -19	; _ENV "dy"
+	73	[572]	GETTABUP 	17 0 -14	; _ENV "ca"
+	74	[572]	MUL      	16 16 17
+	75	[572]	ADD      	15 15 16
+	76	[572]	GETTABUP 	16 0 -10	; _ENV "y0"
+	77	[572]	ADD      	15 15 16
+	78	[572]	CALL     	14 2 2
+	79	[572]	SETTABUP 	0 -21 14	; _ENV "yy"
+	80	[573]	GETTABUP 	14 0 -20	; _ENV "xx"
+	81	[573]	LE       	0 -22 14	; 0.0 -
+	82	[573]	JMP      	0 24	; to 107
+	83	[573]	GETTABUP 	14 0 -20	; _ENV "xx"
+	84	[573]	GETTABUP 	15 0 -1	; _ENV "sw"
+	85	[573]	LT       	0 14 15
+	86	[573]	JMP      	0 20	; to 107
+	87	[573]	GETTABUP 	14 0 -21	; _ENV "yy"
+	88	[573]	LE       	0 -22 14	; 0.0 -
+	89	[573]	JMP      	0 17	; to 107
+	90	[573]	GETTABUP 	14 0 -21	; _ENV "yy"
+	91	[573]	GETTABUP 	15 0 -4	; _ENV "sh"
+	92	[573]	SUB      	15 15 -2	; - 1.0
+	93	[573]	LE       	0 14 15
+	94	[573]	JMP      	0 12	; to 107
+	95	[574]	GETTABUP 	14 0 -23	; _ENV "pset"
+	96	[574]	ADD      	15 1 9
+	97	[574]	ADD      	16 2 13
+	98	[574]	GETTABUP 	17 0 -24	; _ENV "sget"
+	99	[574]	GETTABUP 	18 0 -5	; _ENV "sx"
+	100	[574]	GETTABUP 	19 0 -20	; _ENV "xx"
+	101	[574]	ADD      	18 18 19
+	102	[574]	GETTABUP 	19 0 -6	; _ENV "sy"
+	103	[574]	GETTABUP 	20 0 -21	; _ENV "yy"
+	104	[574]	ADD      	19 19 20
+	105	[574]	CALL     	17 3 0
+	106	[574]	CALL     	14 0 1
+```
+
+The issue here are all those `GETTABUP` (`get table upvalue`) which are looking up the _global variables_ in every call. Usually, the way to have this work faster is by declaring each variable `local` so they'll be in the function's registers. By changing all the variables to `local`, this is the generated bytecode
+
+```
+	36	[569]	SUB      	23 18 10
+	37	[570]	SUB      	24 22 11
+	38	[571]	GETTABUP 	25 0 -3	; _ENV "flr"
+	39	[571]	MUL      	26 23 14
+	40	[571]	MUL      	27 24 13
+	41	[571]	SUB      	26 26 27
+	42	[571]	ADD      	26 26 10
+	43	[571]	CALL     	25 2 2
+	44	[572]	GETTABUP 	26 0 -3	; _ENV "flr"
+	45	[572]	MUL      	27 23 13
+	46	[572]	MUL      	28 24 14
+	47	[572]	ADD      	27 27 28
+	48	[572]	ADD      	27 27 11
+	49	[572]	CALL     	26 2 2
+	50	[573]	LE       	0 -10 25	; 0.0 -
+	51	[573]	JMP      	0 15	; to 67
+	52	[573]	LT       	0 25 6
+	53	[573]	JMP      	0 13	; to 67
+	54	[573]	LE       	0 -10 26	; 0.0 -
+	55	[573]	JMP      	0 11	; to 67
+	56	[573]	SUB      	27 7 -1	; - 1.0
+	57	[573]	LE       	0 26 27
+	58	[573]	JMP      	0 8	; to 67
+	59	[574]	GETTABUP 	27 0 -11	; _ENV "pset"
+	60	[574]	ADD      	28 1 18
+	61	[574]	ADD      	29 2 22
+	62	[574]	GETTABUP 	30 0 -12	; _ENV "sget"
+	63	[574]	ADD      	31 8 25
+	64	[574]	ADD      	32 9 26
+	65	[574]	CALL     	30 3 0
+	66	[574]	CALL     	27 0 1
+```
+
+
+With this change, rendering 5 sprites goes from the ("optimized") 65ms/frame to **29ms/frame**. 21 extra lookups * 576 inner loops = 12096 calls.. which acording to my original benchmarking (if these were function calls) is ~45ms.
+
+So, maybe optimizing opcodes for fastcalls is not the thing that will bring the biggest gains; maybe a bytecode optimizer would be better.

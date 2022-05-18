@@ -447,3 +447,5 @@ The issue here are all those `GETTABUP` (`get table upvalue`) which are looking 
 With this change, rendering 5 sprites goes from the ("optimized") 65ms/frame to **29ms/frame**. 21 extra lookups * 576 inner loops = 12096 calls.. which acording to my original benchmarking (if these were function calls) is ~45ms.
 
 So, maybe optimizing opcodes for fastcalls is not the thing that will bring the biggest gains; maybe a bytecode optimizer would be better.
+
+Performing some manual optimizations in the lua code (declaring a local copy of `pset` `sget` `flr` and lifting calculations outside the inner loop) brought the frame time to **23ms**; a 26% improvement; and _almost_ perfectly playable.

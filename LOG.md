@@ -449,3 +449,12 @@ With this change, rendering 5 sprites goes from the ("optimized") 65ms/frame to 
 So, maybe optimizing opcodes for fastcalls is not the thing that will bring the biggest gains; maybe a bytecode optimizer would be better.
 
 Performing some manual optimizations in the lua code (declaring a local copy of `pset` `sget` `flr` and lifting calculations outside the inner loop) brought the frame time to **23ms**; a 26% improvement; and _almost_ perfectly playable.
+
+TODO: fastcall `sget` and `pset` to test the impact (12k calls each ?)
+
+
+Interesting optimizations:
+
+* Localizing global accesses (`sin` shouldn't be loaded from `_ENV`)
+* Fast builting calls (`sin` should be called cheaply)
+* [Loop hoisting](https://en.wikipedia.org/wiki/Loop-invariant_code_motion)

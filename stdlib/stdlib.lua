@@ -40,13 +40,6 @@ function count(a)
     return #a
 end
 
-function foreach(a, f)
-    for v in all(a) do
-	f(v)
-    end
-end
-
-
 __assert = assert
 function assert(cond, msg) 
     if not cond then

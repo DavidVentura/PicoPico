@@ -458,3 +458,34 @@ Interesting optimizations:
 * Localizing global accesses (`sin` shouldn't be loaded from `_ENV`)
 * Fast builting calls (`sin` should be called cheaply)
 * [Loop hoisting](https://en.wikipedia.org/wiki/Loop-invariant_code_motion)
+
+
+# 20 May
+
+Still going on about performance; now on trig functions:
+
+
+Baseline
+
+> 32k x c sin floating took 548ms
+
+Optimizing calls into the "regular fastcalls" (ie: still looking up via _ENV on every call)
+
+> 32k x fast sin floating took 718ms
+> 32k x slow sin floating took 735ms
+
+This makes 32k calls, 20ms faster.. in practice this is not going to make a difference
+
+Still struggling to figure out how to emit bytecode that's aware of the builtins
+
+
+Optimizing `sin`:
+
+Using [fixed point calculations](https://www.nullhardware.com/blog/fixed-point-sine-and-cosine-for-embedded-systems/) for `sin`:
+
+> 32k x c sin fixed 	  took  50ms
+> 32k x fast sin fixed 	  took 107ms
+> 32k x slow sin fixed 	  took 135ms
+> 32k x slow sin floating took 735ms
+
+Now this is _a lot_ faster! ~7x faster `sin` / `cos` calls

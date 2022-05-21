@@ -436,18 +436,6 @@ int _lua_pset(lua_State* L) {
     return 0;
 }
 
-int _lua_noop(lua_State* L) {
-    float val = luaL_checknumber(L, 1);
-    lua_pushinteger(L, 0);
-    return 0;
-}
-
-int _lua_flr(lua_State* L) {
-    z8::fix32 val = luaL_checknumber(L, 1);
-    lua_pushinteger(L, z8::fix32::floor(val));
-    return 1;
-}
-
 int _lua_time(lua_State* L) {
     float delta = ((float)(now() - bootup_time))/1000;
     lua_pushnumber(L, delta);
@@ -629,8 +617,6 @@ void registerLuaFunctions() {
     lua_setglobal(L, "map");
     lua_pushcfunction(L, _lua_rnd);
     lua_setglobal(L, "rnd");
-    lua_pushcfunction(L, _lua_flr);
-    lua_setglobal(L, "flr");
     lua_pushcfunction(L, _lua_pset);
     lua_setglobal(L, "pset");
     lua_pushcfunction(L, _lua_pget);
@@ -663,8 +649,6 @@ void registerLuaFunctions() {
     lua_setglobal(L, "music");
     lua_pushcfunction(L, _lua_camera);
     lua_setglobal(L, "camera");
-    lua_pushcfunction(L, _lua_noop);
-    lua_setglobal(L, "noop");
     lua_pushcfunction(L, _lua_stat);
     lua_setglobal(L, "stat");
     lua_pushcfunction(L, _lua_clip);

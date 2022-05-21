@@ -87,7 +87,7 @@ static color_t palette[] = {
 
 void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y);
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy, uint16_t dw, uint16_t dh);
-void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, float width, float height);
+void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height);
 static inline void put_pixel(uint8_t x, uint8_t y, const color_t p);
 uint16_t get_pixel(uint8_t x, uint8_t y);
 static void gfx_map(uint8_t mapX, uint8_t mapY,
@@ -175,6 +175,7 @@ int _lua_palt(lua_State* L) {
 
     return 0;
 }
+
 
 void _replace_palette(uint8_t palIdx, lua_State* L) {
     // Push another reference to the table on top of the stack (so we know
@@ -847,17 +848,20 @@ void cartParser(const uint8_t* text) {
     free(rawbuf);
 }
 
-void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, float width, float height) {
+void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
     uint16_t idx, val;
     if((x0 < -drawstate.camera_x) && (x0-drawstate.camera_x >= SCREEN_WIDTH)) return;
     if(y0-drawstate.camera_y >= SCREEN_HEIGHT) return;
 
-    for (uint16_t y=0; y<8*height; y++) {
+    uint16_t ymax = z8::fix32::ceil(8*height);
+    uint16_t xmax = z8::fix32::ceil(8*width);
+
+    for (uint16_t y=0; y<ymax; y++) {
         int16_t screen_y = y0+y-drawstate.camera_y;
         if (screen_y < 0) continue;
         if (screen_y >= SCREEN_HEIGHT) return;
 
-        for (uint16_t x=0; x<8*width; x++) {
+        for (uint16_t x=0; x<xmax; x++) {
             uint16_t screen_x = x0+x-drawstate.camera_x;
             if (screen_x >= SCREEN_WIDTH) continue;
             val = s->sprite_data[(sy+y)*128 + x + sx];
@@ -879,7 +883,7 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0,
     }
 }
 
-void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, float width, float height) {
+void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;

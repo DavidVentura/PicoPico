@@ -88,6 +88,7 @@ static color_t palette[] = {
 void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y);
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy, uint16_t dw, uint16_t dh);
 void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height);
+inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0);
 static inline void put_pixel(uint8_t x, uint8_t y, const color_t p);
 uint16_t get_pixel(uint8_t x, uint8_t y);
 static void gfx_map(uint8_t mapX, uint8_t mapY,
@@ -111,26 +112,33 @@ static void gfx_map(uint8_t mapX, uint8_t mapY,
 		    int16_t screenX, int16_t screenY,
             uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
 
+    const uint8_t sprite_count = 16;
+
     for(uint8_t y = mapY; y < mapY+cellH; y++) {
         int16_t ty = screenY+(y-mapY)*8;
 
         for(uint8_t x = mapX; x < mapX+cellW; x++) {
-            int16_t tx = screenX+(x-mapX)*8;
             uint8_t sprite = map_data[x+y*128];
+            if(sprite==0) continue;
+
+            int16_t tx = screenX+(x-mapX)*8;
             uint8_t flags = spritesheet.flags[sprite];
+            const uint8_t xIndex = sprite % sprite_count;
+            const uint8_t yIndex = sprite / sprite_count;
+
             if ((flags & layerFlags) == layerFlags && sprite != 0) {
-                render(&spritesheet, sprite, tx, ty, -1, false, false);
+                _fast_render(&spritesheet, xIndex*8, yIndex*8, tx, ty);
             }
         }
     }
 }
 
 int _lua_print(lua_State* L) {
-    size_t textLen = 0;
-    const char* text = luaL_checklstring(L, 1, &textLen);
-    const int x = luaL_checkinteger(L, 2);
-    const int y = luaL_checkinteger(L, 3);
-    const int paletteIdx = luaL_optinteger(L, 4, drawstate.pen_color);
+    int16_t textLen = 0;
+    const char* text = luaL_checklstring(L, 1, (size_t*)&textLen);
+    const int16_t x = luaL_checkinteger(L, 2);
+    const int16_t y = luaL_checkinteger(L, 3);
+    const int16_t paletteIdx = luaL_optinteger(L, 4, drawstate.pen_color);
     drawstate.pen_color = paletteIdx;
 
     // printf("Requested to print [%d] '%s' at x: %d, y %d\n", textLen, text, x, y);
@@ -150,7 +158,9 @@ int _lua_print(lua_State* L) {
         }
     }
     // FIXME: this only works for ascii
-    return 0;
+    // FIXME: this should crop, and return the "cropped" number
+    lua_pushnumber(L, x + textLen * 4);
+    return 1;
 }
 
 int _lua_palt(lua_State* L) {
@@ -848,22 +858,63 @@ void cartParser(const uint8_t* text) {
     free(rawbuf);
 }
 
-void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
-    uint16_t idx, val;
-    if((x0 < -drawstate.camera_x) && (x0-drawstate.camera_x >= SCREEN_WIDTH)) return;
-    if(y0-drawstate.camera_y >= SCREEN_HEIGHT) return;
+inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
+    uint16_t val;
 
-    uint16_t ymax = z8::fix32::ceil(8*height);
-    uint16_t xmax = z8::fix32::ceil(8*width);
+    int16_t ymin = MAX(0, -(y0-drawstate.camera_y));
+    int16_t xmin = MAX(0, -(x0-drawstate.camera_x));
 
-    for (uint16_t y=0; y<ymax; y++) {
+    int16_t ymax = 8;
+    int16_t xmax = 8;
+
+    ymax = MAX(0, MIN((SCREEN_HEIGHT-1)-(int16_t)(y0-drawstate.camera_y+ymax), ymax));
+    xmax = MAX(0, MIN((SCREEN_WIDTH -1)-(int16_t)(x0-drawstate.camera_x+xmax), xmax));
+
+    xmin = MIN(xmin, xmax);
+    ymin = MIN(ymin, ymax);
+
+    if(xmin>=xmax) return;
+
+    for (uint16_t y=ymin; y<ymax; y++) {
         int16_t screen_y = y0+y-drawstate.camera_y;
-        if (screen_y < 0) continue;
-        if (screen_y >= SCREEN_HEIGHT) return;
 
-        for (uint16_t x=0; x<xmax; x++) {
+        for (uint16_t x=xmin; x<xmax; x++) {
             uint16_t screen_x = x0+x-drawstate.camera_x;
-            if (screen_x >= SCREEN_WIDTH) continue;
+            // if (screen_x >= SCREEN_WIDTH) break;
+            val = s->sprite_data[(sy+y)*128 + x + sx];
+            if (drawstate.transparent[val] == 0) {
+                const color_t p = palette[val];
+                put_pixel(screen_x, screen_y, p);
+            }
+        }
+    }
+}
+
+void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
+    uint16_t idx, val;
+
+    int16_t ymin = MAX(0, -(y0-drawstate.camera_y));
+    int16_t xmin = MAX(0, -(x0-drawstate.camera_x));
+
+    int16_t ymax = z8::fix32::ceil(8*height);
+    int16_t xmax = z8::fix32::ceil(8*width);
+
+    ymax = MAX(0, MIN((SCREEN_HEIGHT-1)-(int16_t)(y0-drawstate.camera_y+ymax), ymax));
+    xmax = MAX(0, MIN((SCREEN_WIDTH -1)-(int16_t)(x0-drawstate.camera_x+xmax), xmax));
+
+    xmin = MIN(xmin, xmax);
+    ymin = MIN(ymin, ymax);
+
+    if(xmin>=xmax) return;
+
+    for (uint16_t y=ymin; y<ymax; y++) {
+        int16_t screen_y = y0+y-drawstate.camera_y;
+        //if (screen_y < 0) continue;
+        //if (screen_y >= SCREEN_HEIGHT) return;
+
+        for (uint16_t x=xmin; x<xmax; x++) {
+            uint16_t screen_x = x0+x-drawstate.camera_x;
+            // if (screen_x >= SCREEN_WIDTH) break;
             val = s->sprite_data[(sy+y)*128 + x + sx];
             if (paletteIdx != -1) {
                 idx = paletteIdx;
@@ -883,14 +934,14 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t x0, uint16_t y0,
     }
 }
 
-void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
+inline void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;
     _render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y, width, height);
 }
 
-void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y) {
+inline void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y) {
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;
@@ -899,7 +950,7 @@ void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx
 
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy,
 		      uint16_t dw, uint16_t dh) {
-    if(dw == sw && dh == sh) return _render(s, sx, sy, dx, dy, -1, false, false, 1, 1);
+    if(dw == sw && dh == sh) return _fast_render(s, sx, sy, dx, dy);
     if(dx >= SCREEN_WIDTH) return;
     if(dy >= SCREEN_HEIGHT) return;
 

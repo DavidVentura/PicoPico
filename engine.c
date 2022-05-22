@@ -439,7 +439,8 @@ int _lua_pset(lua_State* L) {
     int16_t y = luaL_checkinteger(L, 2);
     uint8_t idx = luaL_optinteger(L, 3, drawstate.pen_color);
     drawstate.pen_color = idx;
-
+    if(drawstate.transparent[idx] == 1)
+        return 0;
     int16_t tx = x-drawstate.camera_x;
     int16_t ty = y-drawstate.camera_y;
     if (tx < 0 || tx >= SCREEN_WIDTH || ty < 0 || ty  >= SCREEN_HEIGHT) return 0;

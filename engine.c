@@ -868,8 +868,8 @@ inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, i
     int16_t ymax = 8;
     int16_t xmax = 8;
 
-    ymax = MAX(0, MIN((SCREEN_HEIGHT-1)-(int16_t)(y0-drawstate.camera_y+ymax), ymax));
-    xmax = MAX(0, MIN((SCREEN_WIDTH -1)-(int16_t)(x0-drawstate.camera_x+xmax), xmax));
+    ymax = MAX(0, MIN(SCREEN_HEIGHT-(int16_t)(y0-drawstate.camera_y), ymax));
+    xmax = MAX(0, MIN(SCREEN_WIDTH -(int16_t)(x0-drawstate.camera_x), xmax));
 
     xmin = MIN(xmin, xmax);
     ymin = MIN(ymin, ymax);

@@ -4,21 +4,26 @@
 #include "esp_attr.h"
 #include "driver/i2s.h"
 #include "driver/adc.h"
-#include "driver/dac.h"
 #include "data.h"
 #include "engine.c"
 
 static const i2s_config_t i2s_config = {
-    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN),
+    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
     .sample_rate = SAMPLE_RATE,
     .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT, /* the DAC module will only take the 8bits from MSB */
-    //.bits_per_sample = I2S_BITS_PER_SAMPLE_8BIT, /* the DAC module will only take the 8bits from MSB */
-    .channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT,
-    .communication_format = I2S_COMM_FORMAT_STAND_MSB,
+    .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
+    .communication_format = I2S_COMM_FORMAT_STAND_I2S,//(i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
     .intr_alloc_flags = 0, // default interrupt priority
     .dma_desc_num = SAMPLES_PER_BUFFER, // always want >1; having only one means interruptions in audio
     .dma_frame_num = SAMPLES_PER_DURATION, // length at most = 1024
-    .use_apll = false // > 16MHz
+    .use_apll = false, // > 16MHz
+    .tx_desc_auto_clear = false,
+};
+static const i2s_pin_config_t i2s_pin_config = {
+    .bck_io_num = 27, // BCLK "Bit clock line"
+    .ws_io_num = 26, // LRC also "LRCLK" or WS
+    .data_out_num = 25, // DIN !! not SD (which is SHUTDOWN)
+    .data_in_num = I2S_PIN_NO_CHANGE
 };
 
 static uint8_t backbuffer[CONFIG_WIDTH*CONFIG_HEIGHT*2];
@@ -31,7 +36,7 @@ uint32_t bytesTX = 0;
 //GPIO34-39 can only be set as input mode and do not have software-enabled pullup or pulldown functions.
 const gpio_num_t GPIO_LEFT  = (gpio_num_t)13;
 const gpio_num_t GPIO_RIGHT = (gpio_num_t)12;
-const gpio_num_t GPIO_UP    = (gpio_num_t)27;
+const gpio_num_t GPIO_UP    = (gpio_num_t)34;
 const gpio_num_t GPIO_A     = (gpio_num_t)32;
 const gpio_num_t GPIO_B     = (gpio_num_t)33;
 
@@ -56,7 +61,8 @@ void gfx_flip() {
 }
 
 void delay(uint16_t ms) {
-    vTaskDelay(ms / portTICK_PERIOD_MS);
+    TickType_t ticks = ms / portTICK_PERIOD_MS;
+    vTaskDelay(ticks ? ticks : 1);
 }
 void i2sTask(void*) {
     uint16_t samples = SAMPLES_PER_DURATION * SAMPLES_PER_BUFFER;
@@ -79,15 +85,13 @@ void i2sTask(void*) {
 
 
 bool init_audio() {
-    dac_output_enable(DAC_CHANNEL_1);
-    dac_output_voltage(DAC_CHANNEL_1, 50);
-
     i2s_driver_install(I2S_NUM_0, &i2s_config, 4, &i2s_event_queue);   //install and start i2s driver
     i2s_zero_dma_buffer(I2S_NUM_0);
-    i2s_set_pin(I2S_NUM_0, NULL); //for internal DAC, this will enable both of the internal channels
-    i2s_set_dac_mode(I2S_DAC_CHANNEL_RIGHT_EN); // gpio 25
-    xTaskCreatePinnedToCore(i2sTask, "I2Sout", 4096, NULL, 1 /* prio */, NULL, 1 /* core id */);
+    i2s_set_pin(I2S_NUM_0, &i2s_pin_config); //for internal DAC, this will enable both of the internal channels
 
+    uint32_t bits_cfg = (I2S_BITS_PER_CHAN_32BIT << 16) | I2S_BITS_PER_SAMPLE_16BIT;
+    i2s_set_clk(I2S_NUM_0, SAMPLE_RATE>>1, bits_cfg, I2S_CHANNEL_STEREO);
+    xTaskCreatePinnedToCore(i2sTask, "I2Sout", 4096, NULL, 1 /* prio */, NULL, 1 /* core id */);
 
     return true;
 }

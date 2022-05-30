@@ -93,7 +93,7 @@ void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int palet
 inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0);
 static inline void put_pixel(uint8_t x, uint8_t y, const color_t p);
 uint16_t get_pixel(uint8_t x, uint8_t y);
-static void gfx_map(uint8_t mapX, uint8_t mapY,
+static void map(uint8_t mapX, uint8_t mapY,
 		    int16_t screenX, int16_t screenY,
 		    uint8_t cellW, uint8_t cellH, uint8_t layerFlags);
 void gfx_cls(color_t);
@@ -110,9 +110,9 @@ void video_close();
 uint32_t now();
 void reset_transparency();
 
-static void gfx_map(uint8_t mapX, uint8_t mapY,
+static void map(uint8_t mapX, uint8_t mapY,
 		    int16_t screenX, int16_t screenY,
-            uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
+            uint8_t cellW, uint8_t cellH, uint8_t layerFlags=0) {
 
     const uint8_t sprite_count = 16;
 
@@ -129,7 +129,7 @@ static void gfx_map(uint8_t mapX, uint8_t mapY,
             const uint8_t yIndex = sprite / sprite_count;
 
             if ((flags & layerFlags) == layerFlags && sprite != 0) {
-                _fast_render(&spritesheet, xIndex*8, yIndex*8, tx, ty);
+                render(&spritesheet, sprite, tx, ty, -1, false, false);
             }
         }
     }
@@ -238,10 +238,13 @@ int _lua_pal(lua_State* L) {
     return 0;
 }
 
-int _lua_cls(lua_State* L) {
-    uint8_t palIdx = luaL_optinteger(L, 1, 0);
+inline void cls(uint8_t palIdx = 0) {
     color_t color = palette[palIdx];
     gfx_cls(color);
+}
+int _lua_cls(lua_State* L) {
+    uint8_t palIdx = luaL_optinteger(L, 1, 0);
+    cls(palIdx);
     return 0;
 }
 
@@ -258,6 +261,10 @@ int _lua_sspr(lua_State* L) {
     int dh = luaL_optinteger(L, 8, sh);
     render_stretched(&spritesheet, sx, sy, sw, sh, dx, dy, dw, dh);
     return 0;
+}
+
+inline void spr(int8_t n, int8_t x, int8_t y, z8::fix32 w = 1.0, z8::fix32 h = 1.0, bool flip_x = false, bool flip_y = false) {
+    render_many(&spritesheet, n, x, y, -1, flip_x==1, flip_y==1, w, h);
 }
 
 int _lua_spr(lua_State* L) {
@@ -281,8 +288,8 @@ int _lua_spr(lua_State* L) {
     if (argcount >= 7)
         flip_y = lua_toboolean(L, 7);
 
+    spr(n, x, y, w, h, flip_x, flip_y);
 
-    render_many(&spritesheet, n, x, y, -1, flip_x==1, flip_y==1, w, h);
     return 0;
 }
 
@@ -355,10 +362,13 @@ int _lua_map(lua_State* L) {
     int cellH = luaL_checkinteger(L, 6);
     uint32_t layerFlags = luaL_optinteger(L, 7, 0x0);
 
-    gfx_map(mapX, mapY, screenX, screenY, cellW, cellH, layerFlags);
+    map(mapX, mapY, screenX, screenY, cellW, cellH, layerFlags);
     return 0;
 }
 
+inline uint8_t btn(uint8_t idx) {
+    return buttons[idx];
+}
 int _lua_btnp(lua_State* L) {
 	// FIXME this is just _btn
     int idx = luaL_checkinteger(L, 1);
@@ -368,7 +378,7 @@ int _lua_btnp(lua_State* L) {
 }
 int _lua_btn(lua_State* L) {
     int idx = luaL_checkinteger(L, 1);
-    lua_pushboolean(L, buttons[idx]);
+    lua_pushboolean(L, btn(idx));
     // printf("Button state for %d is %d\n", idx, buttons[idx]);
     return 1;
 }
@@ -386,15 +396,17 @@ int _lua_rnd(lua_State* L) {
     lua_pushnumber(L, x);
     return 1;
 }
+
+inline uint8_t _sget(int16_t x, int16_t y) {
+    if (x < 0 || x > 127 || y < 0 || y > 127)
+        return 0;
+    return spritesheet.sprite_data[y*128+x];
+}
 int _lua_sget(lua_State* L) {
     int16_t x = luaL_checkinteger(L, 1);
     int16_t y = luaL_checkinteger(L, 2);
 
-    if (x < 0 || x > 127 || y < 0 || y > 127) {
-        lua_pushinteger(L, 0);
-    } else {
-        lua_pushinteger(L, spritesheet.sprite_data[y*128+x]);
-    }
+    lua_pushinteger(L, _sget(x, y));
     return 1;
 }
 
@@ -436,17 +448,21 @@ int _lua_pget(lua_State* L) {
     return 1;
 }
 
+inline void _pset(int16_t x, int16_t y, int16_t idx) {
+    drawstate.pen_color = idx;
+    if(drawstate.transparent[idx] == 1)
+        return;
+    int16_t tx = x-drawstate.camera_x;
+    int16_t ty = y-drawstate.camera_y;
+    if (tx < 0 || tx >= SCREEN_WIDTH || ty < 0 || ty  >= SCREEN_HEIGHT) return;
+    put_pixel(tx, ty, palette[idx]);
+}
+
 int _lua_pset(lua_State* L) {
     int16_t x = luaL_checkinteger(L, 1);
     int16_t y = luaL_checkinteger(L, 2);
     uint8_t idx = luaL_optinteger(L, 3, drawstate.pen_color);
-    drawstate.pen_color = idx;
-    if(drawstate.transparent[idx] == 1)
-        return 0;
-    int16_t tx = x-drawstate.camera_x;
-    int16_t ty = y-drawstate.camera_y;
-    if (tx < 0 || tx >= SCREEN_WIDTH || ty < 0 || ty  >= SCREEN_HEIGHT) return 0;
-    put_pixel(tx, ty, palette[idx]);
+    _pset(x, y, idx);
     return 0;
 }
 
@@ -960,7 +976,7 @@ inline void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int pal
 
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy,
 		      uint16_t dw, uint16_t dh) {
-    if(dw == sw && dh == sh) return _fast_render(s, sx, sy, dx, dy);
+    if(dw == sw && dh == sh) return _render(s, sx, sy, dx, dy, -1, false, false, 1, 1);
     if(dx >= SCREEN_WIDTH) return;
     if(dy >= SCREEN_HEIGHT) return;
 

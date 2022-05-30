@@ -19,7 +19,9 @@ static uint8_t map_data[32 * 128];
 static uint32_t bootup_time;
 static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 
+// TODO: consider shifting << 2**12 (slightly above max range) or 2**11
 const z8::fix32 VOL_NORMALIZER = 32767.99f/7.f;
+
 static SFX sfx[64];
 static Channel channels[4];
 const uint8_t SAMPLES_PER_BUFFER = 6;
@@ -511,8 +513,17 @@ int _lua_sfx(lua_State* L) {
     int16_t offset  = luaL_optinteger(L, 3, 0);
     int16_t length  = luaL_optinteger(L, 4, 31);
     if(channel == -1) {
-        channel = 0;
-        // TODO: pick an empty channel
+        for(uint8_t i=0; i<4; i++) {
+            if (channels[i].sfx == NULL) {
+                // FIXME: still have to ignore music
+                channel = i;
+                break;
+            }
+        }
+        if (channel == -1) {
+            printf("no empty channels! kicking sfx from #0\n");
+            channel = 0;
+        }
     }
 
     if(n==-1) { // NULL SFX
@@ -739,6 +750,11 @@ void engine_init() {
 
     memset(audiobuf, 0, sizeof(audiobuf));
 
+    channels[0].id = 0;
+    channels[1].id = 1;
+    channels[2].id = 2;
+    channels[3].id = 3;
+
     channels[0].sfx = NULL;
     channels[1].sfx = NULL;
     channels[2].sfx = NULL;
@@ -768,6 +784,7 @@ void fontParser(const uint8_t* text) {
 void cartParser(const uint8_t* text) {
     uint8_t section = 0;
     uint32_t spriteCount = 0;
+    uint8_t sfCount = 0;
     char* rawbuf = (char*)malloc(257);
     char* decbuf = (char*)malloc(257);
     // up to 256 bytes per line
@@ -838,6 +855,7 @@ void cartParser(const uint8_t* text) {
             case SECT_SFX:
                 decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
                 SFXParser(decbuf, spriteCount, sfx);
+                sfCount++;
                 spriteCount++;
                 break;
             case SECT_MAP:
@@ -1103,15 +1121,17 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
         // const uint16_t n_effect = n.effect; // alias for memory access?
         const uint16_t n_waveform = n.waveform; // alias for memory access?
 
-
         for(uint16_t _s=0; _s<SAMPLES_PER_DURATION; _s++) {
             // TODO: apply FX per _sample_ ?? gonna suck
             const z8::fix32 w = waveform(n_waveform, c->phi);
             const int16_t sample = (int16_t)(norm_vol*w);
+            uint16_t _offset = (_s+s);
 
             // NOTE: this is += so that all sfx can be played in parallel
-            // this probably should check for wrap-around and clip instead
-            buf[_s+s] += sample;
+            buf[_offset] += sample;
+            if(buf[_offset] < sample) // wrap around
+                buf[_offset] = USHRT_MAX;
+
             c->phi += delta;
         }
 

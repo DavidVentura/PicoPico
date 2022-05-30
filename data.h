@@ -51,6 +51,7 @@ typedef struct Note Note;
 // need to check performance first to see if it's not a problem
 
 struct SFX {
+    uint8_t id;
     uint8_t duration;
     uint8_t loop_start;
     uint8_t loop_end;
@@ -59,6 +60,7 @@ struct SFX {
 typedef struct SFX SFX;
 
 struct Channel {
+    uint8_t id = 0;
     SFX* sfx;
     uint8_t sfx_id = 0;
     uint16_t offset = 0; // in samples

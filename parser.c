@@ -55,7 +55,7 @@ void gfxParser(uint8_t* line, int spriteLineCount, Spritesheet* s) {
     }
 }
 
-void noteParser(char* line, Note* notes) {
+void noteParser(char* line, uint8_t sfx_id, Note* notes) {
     for(uint8_t note=0; note<NOTES_PER_SFX; note++) {
         notes[note].key         = (parseChar(line[note*5+0]) << 4) | parseChar(line[note*5+1]);
         notes[note].waveform    = parseChar(line[note*5+2]);
@@ -65,10 +65,11 @@ void noteParser(char* line, Note* notes) {
 }
 void SFXParser(char* line, int n, SFX* s) {
     // byte 0 is for the editor
+    s[n].id         = n;
     s[n].duration   = (parseChar(line[2]) << 4) | parseChar(line[3]);
     s[n].loop_start = (parseChar(line[4]) << 4) | parseChar(line[5]);
     s[n].loop_end   = (parseChar(line[6]) << 4) | parseChar(line[7]);
-    noteParser(line+8, s[n].notes);
+    noteParser(line+8, n, s[n].notes);
 }
 void mapParser(char* line, int spriteLineCount, uint8_t* map_data) {
     const int offset = spriteLineCount * 128;

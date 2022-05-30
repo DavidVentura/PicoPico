@@ -533,7 +533,6 @@ int _lua_sfx(lua_State* L) {
         channels[channel].phi      = 0;
         return 0;
     }
-    printf("Play sfx %d on channel %d with offset %d and len %d\n", n, channel, offset, length);
 
     // channels[channel].length = 0; // TODO
     channels[channel].offset    = 0; // TODO
@@ -607,7 +606,6 @@ int _lua_color(lua_State* L) {
     lua_pushinteger(L, old_color);
     return 1;
 }
-
 
 void registerLuaFunctions() {
     lua_pushcfunction(L, _lua_spr);
@@ -866,13 +864,6 @@ void cartParser(const uint8_t* text) {
         }
         bytesRead += lineLen;
     } while (*text != 0);
-    // hexDump("Sprites", spritesheet.flags, 256, 64);
-    // hexDump("SFX 2", &sfx[1], 256, 64);
-    printf("duration %d\n", sfx[1].duration);
-    for(uint8_t i=0; i<32; i++) {
-        Note n = sfx[1].notes[i];
-        printf("key %d w %d vol %d fx %d\n", n.key, n.waveform, n.volume, n.effect);
-    }
     free(decbuf);
     free(rawbuf);
 }

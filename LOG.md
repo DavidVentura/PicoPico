@@ -489,3 +489,49 @@ Using [fixed point calculations](https://www.nullhardware.com/blog/fixed-point-s
 > 32k x slow sin floating took 735ms
 
 Now this is _a lot_ faster! ~7x faster `sin` / `cos` calls
+
+# 22-23 May
+
+Wrote/Adapted a bytecode parser in python
+
+# 25 May
+
+Thinking about bytecode optimization, tried to write a "too-hard" optimization from the start and failing.
+
+Easy optimizations to start with:
+
+* Make all globals, "local scoped globals"
+    * Declare them `local` at the root chunk
+    * Adjust upvals on all functions
+    * Replace {GET,SET}TABUP with {GET,SET}UPVAL
+* Remove unused constants (that will happen when removing {GET,SET}TABUP)
+* Remove unnecessary loads when there's no change in the registers
+    * ```
+	[018] [32]   GETTABUP : 6 0 -7; _ENV "flr"
+	[019] [32]   GETTABUP : 7 0 -1; _ENV "sw"
+	[020] [32]        MUL : 7 -9 7; (L)R(7) := K(9) * R(7)
+	[021] [32]       CALL : 6 2 2
+	[022] [32]   SETTABUP : 0 -8 6; _ENV "x0"
+	[023] [33]   GETTABUP : 6 0 -7; _ENV "flr"
+     ```
+     in this case,  `GETTABUP : 6 0 -7; _ENV "flr"` is executed twice, and nothing writes to `R(6)` between them
+
+# 28 May
+
+Spent a long while getting a MAX98357 chip (I2S audio) to work. I kept getting "buzzing" sound instead of anything, even when memory dump of the waveforms gave me the same numbers as what I'd get on my SDL backend.
+
+Mucked around with endianness; channel format; sample depth; timing. No dice. In the end, It's because I was using a 0.5W speaker with a 3W (max) amplifier. A 160Ohm resistor in series with the speaker made it work perfectly.
+
+# 30 May
+
+I am starting to think optimizing the bytecode will be fruitless; the "problematic" calculation-heavy routine from Rockets! still takes up to 30ms/frame after optimization. I manually converted that function to be a regular C function
+and the time per frame dropped to 5ms; where 3.5-4 of those are spent drawing the map.
+
+Got a _very bad, very simplistic_ code emitter for a Lua parser. Will see how it goes; main concerns are:
+
+* Variable scoping
+* Closures
+* Co-routines
+* Dynamic types
+
+but it seems more "tractable" to let GCC optimize code, and a lot easier to get started. Although it's a lot more work to get a game into a playable state.

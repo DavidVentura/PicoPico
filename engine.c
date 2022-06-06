@@ -268,8 +268,8 @@ int _lua_sspr(lua_State* L) {
     return 0;
 }
 
-inline void spr(int8_t n, int8_t x, int8_t y, z8::fix32 w = 1.0, z8::fix32 h = 1.0, bool flip_x = false, bool flip_y = false) {
-    render_many(&spritesheet, n, x, y, -1, flip_x==1, flip_y==1, w, h);
+inline void spr(int8_t n, z8::fix32 x, z8::fix32 y, z8::fix32 w = 1.0, z8::fix32 h = 1.0, bool flip_x = false, bool flip_y = false) {
+    render_many(&spritesheet, n, (int8_t)x, (int8_t)y, -1, flip_x==1, flip_y==1, w, h);
 }
 
 int _lua_spr(lua_State* L) {
@@ -371,7 +371,7 @@ int _lua_map(lua_State* L) {
     return 0;
 }
 
-inline uint8_t btn(uint8_t idx) {
+uint8_t btn(uint8_t idx) {
     return buttons[idx];
 }
 int _lua_btnp(lua_State* L) {
@@ -387,6 +387,7 @@ int _lua_btn(lua_State* L) {
     // printf("Button state for %d is %d\n", idx, buttons[idx]);
     return 1;
 }
+
 int _lua_rnd(lua_State* L) {
     if(lua_istable(L, 1)) {
         lua_len(L, 1);  // table len in top of stack

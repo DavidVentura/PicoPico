@@ -10,7 +10,6 @@
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Event e;
-uint8_t smallbitbuf[SAMPLE_RATE*2];
 
 bool init_video()
 {
@@ -95,8 +94,6 @@ bool handle_input() {
 		    break;
 
 		case SDLK_z:
-            printf("sound\n");
-            // channel, sound, repeat#
 		    buttons[4] = 1;
 		    break;
 

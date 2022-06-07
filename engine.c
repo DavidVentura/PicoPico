@@ -110,9 +110,7 @@ void video_close();
 uint32_t now();
 void reset_transparency();
 
-static void map(uint8_t mapX, uint8_t mapY,
-		    int16_t screenX, int16_t screenY,
-            uint8_t cellW, uint8_t cellH, uint8_t layerFlags=0) {
+static void map(uint8_t mapX, uint8_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags=0) {
 
     const uint8_t sprite_count = 16;
 
@@ -923,7 +921,8 @@ inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, i
 }
 
 void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
-    uint16_t idx, val;
+    color_t p;
+    uint16_t val;
 
     int16_t ymin = MAX(0, -(y0-drawstate.camera_y));
     int16_t xmin = MAX(0, -(x0-drawstate.camera_x));
@@ -931,8 +930,8 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
     int16_t ymax = z8::fix32::ceil(8*height);
     int16_t xmax = z8::fix32::ceil(8*width);
 
-    ymax = MAX(0, MIN((SCREEN_HEIGHT-1)-(int16_t)(y0-drawstate.camera_y+ymax), ymax));
-    xmax = MAX(0, MIN((SCREEN_WIDTH -1)-(int16_t)(x0-drawstate.camera_x+xmax), xmax));
+//    ymax = MAX(0, MIN((SCREEN_HEIGHT-1)-(int16_t)(y0-drawstate.camera_y+ymax), ymax));
+//    xmax = MAX(0, MIN((SCREEN_WIDTH -1)-(int16_t)(x0-drawstate.camera_x+xmax), xmax));
 
     xmin = MIN(xmin, xmax);
     ymin = MIN(ymin, ymax);
@@ -942,26 +941,28 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
     for (uint16_t y=ymin; y<ymax; y++) {
         int16_t screen_y = y0+y-drawstate.camera_y;
         //if (screen_y < 0) continue;
-        //if (screen_y >= SCREEN_HEIGHT) return;
+        if (screen_y >= SCREEN_HEIGHT) return;
 
         for (uint16_t x=xmin; x<xmax; x++) {
             uint16_t screen_x = x0+x-drawstate.camera_x;
-            // if (screen_x >= SCREEN_WIDTH) break;
+            if (screen_x >= SCREEN_WIDTH) break;
             val = s->sprite_data[(sy+y)*128 + x + sx];
-            if (paletteIdx != -1) {
-                idx = paletteIdx;
-            } else {
-                idx = val;
+            if (drawstate.transparent[val] != 0) {
+                continue;
             }
-            if (drawstate.transparent[val] == 0) {
-                const color_t p = palette[idx];
-                if(flip_x) {
-                    put_pixel(screen_x+8-2*x, screen_y, p);
-                } else {
-                    put_pixel(screen_x, screen_y, p);
-                }
 
+            if (paletteIdx != -1) {
+                p = palette[paletteIdx];
+            } else {
+                p = palette[val];
             }
+
+            if(flip_x) {
+                put_pixel(screen_x+8-2*x, screen_y, p);
+            } else {
+                put_pixel(screen_x, screen_y, p);
+            }
+
         }
     }
 }

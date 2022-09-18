@@ -6,6 +6,7 @@
 #include "driver/adc.h"
 #include "data.h"
 #include "engine.c"
+#include "esp_timer.h"
 
 static const i2s_config_t i2s_config = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),

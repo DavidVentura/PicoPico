@@ -808,7 +808,7 @@ void cartParser(const uint8_t* text) {
     // up to 256 bytes per line
     // 1 byte for \0
 
-    memset(rawbuf, 0, 258);
+    memset(rawbuf, 0, 257);
     cart.code = (char*)malloc(0xFFFF);
     memset(cart.code, 0, 0xFFFF);
 
@@ -1102,7 +1102,7 @@ void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const colo
 }
 
 
-uint16_t get_pixel(uint8_t x, uint8_t y) {
+inline uint16_t get_pixel(uint8_t x, uint8_t y) {
 	// FIXME: this is incredibly broken
 	return frontbuffer[x+y*SCREEN_WIDTH];
 }

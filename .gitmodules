@@ -7,3 +7,6 @@
 [submodule "SDL_mixer"]
 	path = SDL_mixer
 	url = git@github.com:libsdl-org/SDL_mixer.git
+[submodule "board/modules/kicad-libraries"]
+	path = board/modules/esp32
+	url = git@github.com:espressif/kicad-libraries.git

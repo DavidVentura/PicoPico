@@ -35,6 +35,12 @@ https://user-images.githubusercontent.com/3650670/168416377-bf238d62-6be6-4b70-a
 
 https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
 
+## Hardware
+
+* ESP32 "Wrover" with 4MB PSRAM
+* MAX98357 I2S audio amplifier
+* 1.77" SPI ST7735 128x160 Display (128x128 used for game, 16px for UI, 16px padding)
+
 
 # Basic analysis / feasibility:
 

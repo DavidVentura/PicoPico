@@ -218,6 +218,15 @@ Implemented (z8lua)
 
 Build something like the [PicoSystem](https://shop.pimoroni.com/products/picosystem?variant=32369546985555) ?
 
+# Development setup
+
+```bash
+sudo apt install cmake g++ libsdl2-dev
+git submodule update --init
+mkdir pc_pico && cd pc_pico
+cmake -DBACKEND=PC ..
+```
+
 # Development (without a second Pico running OpenOCD)
 
 Add this block to a udev rule (adjust the paths to point to this repo)

@@ -44,7 +44,7 @@ const gpio_num_t GPIO_UP    = (gpio_num_t)34;
 const gpio_num_t GPIO_A     = (gpio_num_t)32;
 const gpio_num_t GPIO_B     = (gpio_num_t)33;
 
-static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
+//static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
 void put_buffer();
 
 void video_close(){

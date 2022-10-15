@@ -70,7 +70,7 @@ void delay(uint16_t ms) {
 }
 void i2sTask(void*) {
     uint16_t samples = SAMPLES_PER_DURATION * SAMPLES_PER_BUFFER;
-    size_t bytesOut;
+    uint32_t bytesOut;
     while (true) {
         i2s_event_t event;
         // Wait indefinitely for a new message in the queue

@@ -99,6 +99,14 @@ bool init_audio() {
 
     return true;
 }
+
+void draw_hud() {
+    draw_sprite(&dev, (uint8_t *)bat1, sizeof(bat1), 1);
+    draw_sprite(&dev, (uint8_t *)bat2, sizeof(bat2), 2);
+    draw_sprite(&dev, (uint8_t *)bat3, sizeof(bat3), 3);
+    draw_sprite(&dev, (uint8_t *)wifi, sizeof(wifi), 4);
+}
+
 bool init_video() {
     spi_master_init(&dev, (gpio_num_t)CONFIG_MOSI_GPIO, (gpio_num_t)CONFIG_SCLK_GPIO, (gpio_num_t)CONFIG_CS_GPIO, (gpio_num_t)CONFIG_DC_GPIO, (gpio_num_t)CONFIG_RESET_GPIO, (gpio_num_t)CONFIG_BL_GPIO);
     lcdInit(&dev, 0x7735, CONFIG_WIDTH, CONFIG_HEIGHT, 0, 0);
@@ -111,6 +119,8 @@ bool init_video() {
         .intr_type = GPIO_INTR_DISABLE,
     };
     gpio_config(&c);
+
+    draw_hud();
 
     return true;
 }

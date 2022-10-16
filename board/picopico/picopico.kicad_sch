@@ -1073,7 +1073,7 @@
     (property "Value" "display" (id 1) (at 189.23 71.1199 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical_SMD_Pin1Right" (id 2) (at 186.69 68.58 0)
+    (property "Footprint" "picopico:1.77 display" (id 2) (at 186.69 68.58 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 186.69 68.58 0)
@@ -1156,7 +1156,7 @@
   (symbol (lib_id "power:+3.3V") (at 160.02 102.87 0) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid 74173093-d502-4aef-8792-837fb442a2de)
-    (property "Reference" "#PWR?" (id 0) (at 160.02 106.68 0)
+    (property "Reference" "#PWR0101" (id 0) (at 160.02 106.68 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3.3V" (id 1) (at 160.02 97.79 0))
@@ -1433,13 +1433,13 @@
       (reference "#PWR07") (unit 1) (value "GND") (footprint "")
     )
     (path "/74173093-d502-4aef-8792-837fb442a2de"
-      (reference "#PWR?") (unit 1) (value "+3.3V") (footprint "")
+      (reference "#PWR0101") (unit 1) (value "+3.3V") (footprint "")
     )
     (path "/f6a4a9ed-8e48-4f7a-b558-9479f30895cb"
       (reference "J1") (unit 1) (value "audio_chip") (footprint "Connector_PinSocket_2.54mm:PinSocket_1x07_P2.54mm_Vertical_SMD_Pin1Right")
     )
     (path "/4c6fd3c0-a295-4d12-9380-2846e41da037"
-      (reference "J2") (unit 1) (value "display") (footprint "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical_SMD_Pin1Right")
+      (reference "J2") (unit 1) (value "display") (footprint "picopico:1.77 display")
     )
     (path "/b5e5f611-703a-45a2-a020-4515dd49eda4"
       (reference "R5") (unit 1) (value "R") (footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")

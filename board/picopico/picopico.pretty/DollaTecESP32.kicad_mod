@@ -1,6 +1,6 @@
 (footprint "DollaTecESP32" (version 20211014) (generator pcbnew)
   (layer "F.Cu")
-  (tedit 634C3F25)
+  (tedit 63505A5E)
   (attr smd)
   (fp_text reference "REF**" (at 0 -0.5 unlocked) (layer "F.SilkS")
     (effects (font (size 1 1) (thickness 0.15)))
@@ -231,4 +231,14 @@
   (pad "32" smd rect (at 9.715 -14.48) (size 2.51 1) (layers "F.Cu" "F.Paste" "F.Mask") (tstamp 10e52e95-44f3-4059-a86d-dcda603e0623))
   (pad "33" smd rect (at 13.025 -17.02) (size 2.51 1) (layers "F.Cu" "F.Paste" "F.Mask") (tstamp bd793ae5-cde5-43f6-8def-1f95f35b1be6))
   (pad "34" smd rect (at 9.715 -19.56) (size 2.51 1) (layers "F.Cu" "F.Paste" "F.Mask") (tstamp 6b91a3ee-fdcd-4bfe-ad57-c8d5ea9903a8))
+  (model "${KICAD6_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x17_P2.54mm_Vertical_SMD_Pin1Left.wrl"
+    (offset (xyz -11 -0.7 0))
+    (scale (xyz 1 1 1))
+    (rotate (xyz 0 0 0))
+  )
+  (model "${KICAD6_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x17_P2.54mm_Vertical_SMD_Pin1Left.wrl"
+    (offset (xyz 11 -0.7 0))
+    (scale (xyz 1 1 1))
+    (rotate (xyz 0 0 0))
+  )
 )

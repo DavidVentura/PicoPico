@@ -1502,7 +1502,7 @@
     (property "Value" "audio_chip" (id 1) (at 58.42 80.0101 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x07_P2.54mm_Vertical_SMD_Pin1Right" (id 2) (at 60.96 81.28 0)
+    (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical_SMD_Pin1Left" (id 2) (at 60.96 81.28 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 60.96 81.28 0)
@@ -1559,7 +1559,7 @@
       (reference "#PWR0105") (unit 1) (value "GND") (footprint "")
     )
     (path "/f6a4a9ed-8e48-4f7a-b558-9479f30895cb"
-      (reference "J1") (unit 1) (value "audio_chip") (footprint "Connector_PinSocket_2.54mm:PinSocket_1x07_P2.54mm_Vertical_SMD_Pin1Right")
+      (reference "J1") (unit 1) (value "audio_chip") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical_SMD_Pin1Left")
     )
     (path "/4c6fd3c0-a295-4d12-9380-2846e41da037"
       (reference "J2") (unit 1) (value "display") (footprint "picopico:1.77 display")

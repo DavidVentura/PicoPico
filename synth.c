@@ -21,9 +21,16 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
     // could be.
     switch (instrument)
     {
-        case INST_TRIANGLE:
-            return (z8::fix32::abs(z8::fix32::fast_shl(t, 2) - TWO) - ONE) >> 1;
-            //return z8::fix32::fast_shr(z8::fix32::abs(z8::fix32::fast_shl(t, 2) - TWO) - ONE, 1);
+        case INST_TRIANGLE: {
+            // ORIGINAL
+            return z8::fix32(0.5f * (fabsf(4.f * t - 2.0f) - 1.0f));
+            // return ((z8::fix32::abs((t << TWO) - TWO)) - ONE) >> ONE;
+
+            // vvvv good on pc, bad on esp
+            // return (z8::fix32::abs(z8::fix32::fast_shl(t, 2) - TWO) - ONE) >> 1;
+            // vvvv horrible clipping
+            // return z8::fix32::fast_shr(z8::fix32::abs(z8::fix32::fast_shl(t, 2) - TWO) - ONE, 1);
+        }
         case INST_TILTED_SAW:
         {
             static z8::fix32 const a = 0.9f;
@@ -58,7 +65,8 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
             */
             // FIXME: this is now more broken )) it gives _some_ noise
             // but obviously the noise profile is terrible
-            return (z8::fix32(rand() >> 16)/z8::fix32(RAND_MAX >> 17)) * THIRD;
+            return 0;
+            //return (z8::fix32(rand() >> 16)/z8::fix32(RAND_MAX >> 17)) * THIRD;
         }
         case INST_PHASER:
         {   // This one has a subfrequency of freq/128 that appears
@@ -114,7 +122,7 @@ void apply_fx(SFX* s, Note* n, z8::fix32* volume, uint16_t* freq, uint16_t offse
             // “6 arpeggio fast  //  Iterate over groups of 4 notes at speed of 4
             //  7 arpeggio slow  //  Iterate over groups of 4 notes at speed of 8”
             // “If the SFX speed is <= 8, arpeggio speeds are halved to 2, 4”
-            int const m = (speed <= 8 ? 32 : 16) / (n->effect == FX_ARP_FAST ? 4 : 8);
+            uint16_t const m = (speed <= 8 ? 32 : 16) / (n->effect == FX_ARP_FAST ? 4 : 8);
             //int const n = (int)(m * 7.5f * offset / offset_per_second);
             //int const arp_note = (note_id & ~3) | (n & 3);
             //*freq = key_to_freq[s->notes[arp_note].key];

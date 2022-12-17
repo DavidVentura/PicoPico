@@ -8,18 +8,21 @@ version = "2.1"
 screen = "" -- main or game
 
 function _init()
-    palt(0, false)
-    palt(12, true)
-    cartdata("rockets_21")
-    switch_screen("main")
-    highscore = dget(0)
-    sfx(3, 0)
-    menuitem(1, "reset highscore", function()
-        highscore = 0
-        dset(0, 0)
-    end)
-    code = ""
-    cheat_code = "⬆️⬆️⬇️⬇️⬅️➡️⬅️➡️"
+    for i=1,80 do
+        spr_r(15, 64, 64, 0, nil, nil)
+    end
+    --palt(0, false)
+    --palt(12, true)
+    --cartdata("rockets_21")
+    --switch_screen("main")
+    --highscore = dget(0)
+    --sfx(3, 0)
+    --menuitem(1, "reset highscore", function()
+    --    highscore = 0
+    --    dset(0, 0)
+    --end)
+    --code = ""
+    --cheat_code = "⬆️⬆️⬇️⬇️⬅️➡️⬅️➡️"
 end
 
 function _update()
@@ -654,15 +657,15 @@ end
 -- rotated sprite
 -- this function has a bug related to sprite number
 function spr_r(s,x,y,a,w,h)
-    sw=(w or 1)*8
-    sh=(h or 1)*8
-    sx=(s%8)*8
-    sy=flr(s/8)*8
-    x0=flr(0.5*sw)
-    y0=flr(0.5*sh)
-    a=a/360
-    sa=sin(a)
-    ca=cos(a)
+    local sw=(w or 1)*8
+    local sh=(h or 1)*8
+    local sx=(s%8)*8
+    local sy=flr(s/8)*8
+    local x0=flr(0.5*sw)
+    local y0=flr(0.5*sh)
+    local a=a/360
+    local sa=sin(a)
+    local ca=cos(a)
     for ix=sw*-1,sw+4 do
         for iy=sh*-1,sh+4 do
             dx=ix-x0

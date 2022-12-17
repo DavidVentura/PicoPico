@@ -2,3 +2,6 @@ emulator
 build
 static_game_data.h
 board/picopico/picopico-backups/*
+sdkconfig.old
+esp/lua
+esp-build

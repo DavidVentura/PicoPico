@@ -24,7 +24,8 @@ set(CMAKE_CXX_STANDARD 17)
 #add_subdirectory(lua)
 add_compile_options(
 	#	-Werror
-	#-g3
+	-g3
+	#-O2
         -Wno-unused-variable
 )
 

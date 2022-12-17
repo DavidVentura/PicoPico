@@ -1068,8 +1068,8 @@ void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const color_t colo
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
 static inline void put_pixel(uint8_t x, uint8_t y, const color_t c){
     frontbuffer[(y*SCREEN_WIDTH+x)  ] = c;
-
 }
+
 void gfx_cls(color_t c) {
     memset(frontbuffer, c, sizeof(frontbuffer));
 }

@@ -37,6 +37,10 @@ function _update()
   game_over = false
   score = 0
  end
+ make_ball(flr(rnd(5))-2, 2)
+ make_ball(flr(rnd(5))-2, 2)
+ make_ball(flr(rnd(5))-2, 2)
+ make_ball(flr(rnd(5))-2, 2)
 end
 
 function _draw()
@@ -98,6 +102,7 @@ function make_ball(dx,dy)
  ball.dy=dy
  ball.spr=9
  add(balls,ball)
+ printh(#balls)
 end
 
 function update_ball(ball)

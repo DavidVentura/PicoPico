@@ -2,6 +2,7 @@
 #define DATA
 #include <stdint.h>
 #include "static_game_data.h"
+#include "hud.h"
 #define SAMPLE_RATE 22050
 int buttons[6] = {0};
 

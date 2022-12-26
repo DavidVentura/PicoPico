@@ -57,7 +57,7 @@ int main( int argc, char* args[] )
 {
     bool quit = false;
 
-    bootup_time = now();
+    uint32_t bootup_time = now();
     if( !init_video() )
     {
         printf( "Failed to initialize video!\n" );
@@ -74,13 +74,18 @@ int main( int argc, char* args[] )
     printf("Parsing font \n");
     fontParser(artifacts_font_lua);
 
+    uint32_t init_done = now();
+    printf("initializing took %dms\n", init_done-bootup_time);
+
     int16_t game = drawMenu();
     if (game < 0) {
         video_close();
         return 1;
     }
-    printf("Parsing cart \n");
-    cartParser(&carts[game]); // celeste
+
+    bootup_time = now();
+    printf("Parsing cart %s\n", carts[game].name);
+    cartParser(&carts[game]);
 
 
     printf("init lua \n");
@@ -95,8 +100,8 @@ int main( int argc, char* args[] )
         }
         return 1;
     }
-    uint32_t init_done = now();
-    printf("Parsing and initializing took %ldms\n", init_done-bootup_time);
+    init_done = now();
+    printf("Parsing took %dms\n", init_done-bootup_time);
 
     // call _init first, in case _update / _draw are defined then
     if (_lua_fn_exists("_init")) _to_lua_call("_init");

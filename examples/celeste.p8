@@ -48,10 +48,7 @@ function title_screen()
 	start_game_flash=0
 	music(40,0,7)
 	
-	load_room(7,3)
         begin_game()
-        next_room()
-        next_room()
 end
 
 function begin_game()
@@ -62,6 +59,7 @@ function begin_game()
 	start_game=false
 	music(0,0,7)
 	load_room(0,0)
+	-- load_room(7,1)
 end
 
 function level_index()

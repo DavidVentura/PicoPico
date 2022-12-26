@@ -165,6 +165,10 @@ bool handle_input() {
 		    buttons[5] = 1;
 		    break;
 
+		case SDLK_ESCAPE:
+		case SDLK_q:
+		    return true;
+
 	    }
 	} else if (e.type == SDL_KEYUP) {
 	    switch( e.key.keysym.sym )

@@ -799,7 +799,7 @@ void fontParser(const uint8_t* text) {
     free(rawbuf);
 }
 
-void cartParser(const uint8_t* text) {
+void cartParser(RawCart* parsingCart) {
     uint8_t section = 0;
     uint32_t spriteCount = 0;
     uint8_t sfCount = 0;
@@ -815,7 +815,7 @@ void cartParser(const uint8_t* text) {
     uint16_t lineLen = 0;
     uint32_t bytesRead = 0;
     do {
-        lineLen = readLine(&text, (uint8_t*)rawbuf);
+        lineLen = readLine(&(parsingCart->code), (uint8_t*)rawbuf);
         // FIXME: BUG: readLine does not take 2 newlines in a row too happily
         if (strncmp(rawbuf, "__lua__", 7) == 0) {
             section = SECT_LUA;
@@ -883,7 +883,7 @@ void cartParser(const uint8_t* text) {
                 break;
         }
         bytesRead += lineLen;
-    } while (*text != 0);
+    } while (*(parsingCart->code) != 0);
     free(decbuf);
     free(rawbuf);
 }

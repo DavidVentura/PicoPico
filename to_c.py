@@ -1,7 +1,7 @@
 import os
 import sys
 import enum
-import glob
+import textwrap
 
 from pathlib import Path
 
@@ -106,13 +106,17 @@ def process_cart(data: bytes, strip_label: bool=False):
 
     return compressed
 
+def path_to_identifier(p: Path) -> str:
+    pname = os.path.dirname(p).replace('.', '_').replace('-', '_')
+    bname = os.path.basename(p).replace('.', '_').replace('-', '_')
+    return f'{pname}_{bname}'
+
 def parse(fname: Path, process_as: ProcessType, strip_label: bool, debug: bool=False):
     if not os.path.isfile(fname):
         print(f"'{fname}' does not exist or is not a file")
         sys.exit(1)
-    pname = os.path.dirname(fname).replace('.', '_').replace('-', '_')
-    bname = os.path.basename(fname).replace('.', '_').replace('-', '_')
-    bname = f'{pname}_{bname}'
+
+    bname = path_to_identifier(fname)
 
     with open(fname, 'rb') as fd:
         data = fd.read()
@@ -132,7 +136,11 @@ def parse(fname: Path, process_as: ProcessType, strip_label: bool, debug: bool=F
     new_len = len(processed_data)
 
     output = []
-    output.append(f'const uint8_t {bname}[] = {{')
+    if process_as is ProcessType.CART:
+        output.append(f'const uint8_t code_{bname}[] = {{')
+    else:
+        output.append(f'const uint8_t {bname}[] = {{')
+
     for chunk in chunked(processed_data, 16):
         output.append('  ' + ', '.join([f'0x{b:02x}' for b in chunk]) + ',')
     output.append('};')
@@ -143,10 +151,21 @@ def parse(fname: Path, process_as: ProcessType, strip_label: bool, debug: bool=F
 
 def main():
     debug = True
-    print(parse('stdlib/stdlib.lua', ProcessType.SKIP, False, debug))
-    print(parse('artifacts/font.lua', ProcessType.RAW, False, debug))
-    for f in glob.glob('examples/*'):
+    print(parse(Path('stdlib/stdlib.lua'), ProcessType.SKIP, False, debug))
+    print(parse(Path('artifacts/font.lua'), ProcessType.RAW, False, debug))
+
+    games = []
+    for f in Path('examples/').glob('*'):
+        games.append(path_to_identifier(f))
         print(parse(f, ProcessType.CART, True, debug))
+
+
+    print('RawCart carts[] = {')
+    for game in games:
+        game_name = game.replace('examples_', '')
+        print(f'    "{game_name}", {len(game_name)}, code_{game},')
+    print('};')
+    #print(games)
 
 if __name__ == '__main__':
     main()

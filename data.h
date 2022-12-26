@@ -1,6 +1,16 @@
 #ifndef DATA
 #define DATA
 #include <stdint.h>
+struct Cart {
+    char* code;
+};
+struct RawCart {
+    const char* name;
+    const uint8_t name_len;
+    const uint8_t* code;
+};
+
+typedef struct RawCart RawCart;
 #include "static_game_data.h"
 #define SAMPLE_RATE 22050
 int buttons[6] = {0};
@@ -30,11 +40,6 @@ struct DrawState {
 
 typedef struct DrawState DrawState;
 
-struct Cart {
-    char* code;
-};
-
-typedef struct Cart Cart;
 static Cart cart;
 
 struct Note {

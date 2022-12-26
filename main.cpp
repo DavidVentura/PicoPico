@@ -13,6 +13,46 @@
 #endif
 
 
+int16_t drawMenu() {
+        bool quit = handle_input();
+        uint8_t highlighted = 0;
+        uint8_t cartCount = sizeof(carts)/sizeof(RawCart);
+        bool old_down = false;
+        bool old_up = false;
+        while(!quit) {
+                for(uint8_t i=0; i<cartCount; i++) {
+                        _print(carts[i].name, carts[i].name_len, 10, 10+i*7, highlighted == i ? 10 : 7);
+                }
+
+                if (buttons[3]) { // DOWN
+                        if (!old_down) {
+                                old_down = true;
+                                highlighted = (highlighted + 1) % cartCount;
+                        }
+                } else {
+                        old_down = false;
+                }
+
+                if (buttons[2]) { // UP
+                        if (!old_up) {
+                                old_up = true;
+                                highlighted = highlighted == 0 ? cartCount - 1 : highlighted - 1;
+                        }
+                } else {
+                        old_up = false;
+                }
+
+                if (buttons[4] || buttons[5]) {
+                        return highlighted;
+                }
+
+                gfx_flip();
+                quit = handle_input();
+                delay(30);
+        }
+        return -1;
+}
+
 int main( int argc, char* args[] )
 {
     bool quit = false;
@@ -31,19 +71,17 @@ int main( int argc, char* args[] )
     }
 
     engine_init();
-
-    printf("Parsing cart \n");
-    // cartParser(examples_map_p8);
-    // cartParser(examples_hello_world_lua);
-    // cartParser(examples_dice_p8);
-    // cartParser(examples_tennis_p8);
-    // cartParser(examples_rockets_p8);
-    // cartParser(examples_celeste_p8);
-    cartParser(examples_shelled_p8);
-    // cartParser(examples_benchmark_p8);
-
     printf("Parsing font \n");
     fontParser(artifacts_font_lua);
+
+    int16_t game = drawMenu();
+    if (game < 0) {
+        video_close();
+        return 1;
+    }
+    printf("Parsing cart \n");
+    cartParser(&carts[game]); // celeste
+
 
     printf("init lua \n");
     bool lua_ok = init_lua(cart.code);
@@ -58,7 +96,7 @@ int main( int argc, char* args[] )
         return 1;
     }
     uint32_t init_done = now();
-    printf("Parsing and initializing took %dms\n", init_done-bootup_time);
+    printf("Parsing and initializing took %ldms\n", init_done-bootup_time);
 
     // call _init first, in case _update / _draw are defined then
     if (_lua_fn_exists("_init")) _to_lua_call("_init");

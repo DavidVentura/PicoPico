@@ -153,6 +153,7 @@ def main():
     debug = True
     print(parse(Path('stdlib/stdlib.lua'), ProcessType.SKIP, False, debug))
     print(parse(Path('artifacts/font.lua'), ProcessType.RAW, False, debug))
+    print(parse(Path('artifacts/hud.p8'), ProcessType.RAW, False, debug))
 
     games = []
     for f in Path('examples/').glob('*'):

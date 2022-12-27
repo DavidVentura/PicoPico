@@ -25,6 +25,7 @@
 
 #define SCREEN_HEIGHT CONFIG_HEIGHT
 #define SCREEN_WIDTH CONFIG_WIDTH
+#define HUD_HEIGHT 8
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
 

@@ -319,23 +319,18 @@ void lcdInit(TFT_t * dev, uint16_t model, int width, int height, int offsetx, in
 
 }
 
-void set_window_sprite(TFT_t* dev, uint8_t index) {
-    // set regular window
-    printf("setting window\n");
+void set_window_hud(TFT_t* dev, uint8_t width, uint8_t height) {
     spi_master_write_comm_byte(dev, 0x2A);	// set column(x) address
-    //spi_master_write_data_word(dev, 16);
-    //spi_master_write_data_word(dev, 16+127);
-    spi_master_write_data_word(dev, index*8+index);
-    spi_master_write_data_word(dev, (index+1)*8+index-1);
+    spi_master_write_data_word(dev, 0);
+    spi_master_write_data_word(dev, width);
 
     spi_master_write_comm_byte(dev, 0x2B);	// set Page(y) address
-    spi_master_write_data_word(dev, 4);
-    spi_master_write_data_word(dev, 12);
+    spi_master_write_data_word(dev, 4); // 4 = offset/padding
+    spi_master_write_data_word(dev, 4+height);
 }
 
 void set_window(TFT_t* dev) {
     // set regular window
-    printf("setting window\n");
     spi_master_write_comm_byte(dev, 0x2A);	// set column(x) address
     //spi_master_write_data_word(dev, 16);
     //spi_master_write_data_word(dev, 16+127);

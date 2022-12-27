@@ -7,8 +7,6 @@
 
 //Screen dimension constants
 
-const uint8_t HUD_HEIGHT = 16;
-
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Event e;
@@ -37,6 +35,8 @@ bool init_video()
 	return false;
     }
     SDL_RenderSetLogicalSize(gRenderer, SCREEN_WIDTH, SCREEN_HEIGHT + HUD_HEIGHT);
+    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+    SDL_RenderClear(gRenderer);
     SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 
     return true;
@@ -54,24 +54,16 @@ void video_close()
 }
 
 void draw_hud() {
-    for(uint8_t y=0; y<8; y++)
-        for(uint8_t x=0; x<8; x++){
-            uint16_t color = bat1[x+y*8];
+    for(uint8_t y=0; y<HUD_HEIGHT; y++) {
+        for(uint8_t x=0; x<SCREEN_WIDTH; x++){
+            uint16_t first_byte_pos = x*2+y*SCREEN_WIDTH*2;
+            uint8_t msb = hud_buffer[first_byte_pos  ];
+            uint8_t lsb = hud_buffer[first_byte_pos+1];
+            uint16_t color = (((uint16_t)msb)<<8) | lsb;
             SDL_SetRenderDrawColor(gRenderer, (color >> 11) << 3, ((color >> 5) & 0x3f) << 2, (color & 0x1f) << 3, 0xFF );
-            SDL_RenderDrawPoint(gRenderer, x, y+4);
-
-            color = bat2[x+y*8];
-            SDL_SetRenderDrawColor(gRenderer, (color >> 11) << 3, ((color >> 5) & 0x3f) << 2, (color & 0x1f) << 3, 0xFF );
-            SDL_RenderDrawPoint(gRenderer, x+10, y+4);
-
-            color = bat3[x+y*8];
-            SDL_SetRenderDrawColor(gRenderer, (color >> 11) << 3, ((color >> 5) & 0x3f) << 2, (color & 0x1f) << 3, 0xFF );
-            SDL_RenderDrawPoint(gRenderer, x+20, y+4);
-
-            color = wifi[x+y*8];
-            SDL_SetRenderDrawColor(gRenderer, (color >> 11) << 3, ((color >> 5) & 0x3f) << 2, (color & 0x1f) << 3, 0xFF );
-            SDL_RenderDrawPoint(gRenderer, x+30, y+4);
+            SDL_RenderDrawPoint(gRenderer, x, y);
         }
+    }
 }
 
 void gfx_flip() {

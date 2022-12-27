@@ -71,12 +71,32 @@ int main( int argc, char* args[] )
     }
 
     engine_init();
+    init_done = now();
+    printf("initializing engine took %dms\n", init_done-bootup_time);
+    bootup_time = now();
     printf("Parsing font \n");
-    fontParser(artifacts_font_lua);
+    rawSpriteParser(&fontsheet, artifacts_font_lua);
+    printf("Parsing HUD \n");
+    rawSpriteParser(&hud_sprites, artifacts_hud_p8);
 
-    uint32_t init_done = now();
+    init_done = now();
     printf("initializing took %dms\n", init_done-bootup_time);
 
+
+    _draw_hud_sprite(&hud_sprites, 0, 0, 18*13, 0);
+    //_draw_hud_sprite(&hud_sprites, 1, 0, 18*1, 0);
+    //_draw_hud_sprite(&hud_sprites, 2, 0, 18*2, 0);
+    //_draw_hud_sprite(&hud_sprites, 3, 0, 18*3, 0);
+    //_draw_hud_sprite(&hud_sprites, 0, 1, 18*4, 0);
+    //_draw_hud_sprite(&hud_sprites, 1, 1, 18*5, 0);
+    //_draw_hud_sprite(&hud_sprites, 2, 1, 18*6, 0);
+    _draw_hud_sprite(&hud_sprites, 3, 1, 18*12, 0);
+
+    _draw_hud_sprite(&fontsheet, 01, 3, 110, 3);
+    _draw_hud_sprite(&fontsheet, 03, 3, 118, 3);
+    _draw_hud_sprite(&fontsheet, 10, 3, 126, 3); // :, 6 wide, centered at 128 (which is 2x, so 64)
+    _draw_hud_sprite(&fontsheet, 03, 3, 134, 3);
+    _draw_hud_sprite(&fontsheet, 07, 3, 142, 3);
     int16_t game = drawMenu();
     if (game < 0) {
         video_close();
@@ -121,7 +141,6 @@ int main( int argc, char* args[] )
     const uint8_t target_fps = 30;
     const uint8_t ms_delay = 1000 / target_fps;
     bool skip_next_render = false;
-
     uint16_t frame_count = 0;
     while (!quit) {
         frame_start_time = now();
@@ -149,6 +168,9 @@ int main( int argc, char* args[] )
         // printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);
         // printf("Frame: %03d [U: %d, D: %03d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
         frame_count++;
+        if (frame_count % 300) {
+            draw_hud();
+        }
     }
 
     lua_close(L);

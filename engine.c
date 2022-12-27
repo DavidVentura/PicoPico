@@ -15,9 +15,11 @@ static uint8_t ram[0x5DFF - 0x4300]; // 7KB
 static uint32_t cartdata[64];
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
+static Spritesheet hud_sprites;
 static uint8_t map_data[32 * 128];
 static uint32_t bootup_time;
 static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
+static uint8_t hud_buffer[SCREEN_WIDTH*HUD_HEIGHT*2];
 
 // TODO: consider shifting << 2**12 (slightly above max range) or 2**11
 const z8::fix32 VOL_NORMALIZER = 32767.99f/7.f;
@@ -779,7 +781,7 @@ void engine_init() {
     channels[3].sfx = NULL;
 }
 
-void fontParser(const uint8_t* text) {
+void rawSpriteParser(Spritesheet* sheet, const uint8_t* text) {
     int spriteCount = 0;
     uint8_t* rawbuf = (uint8_t*)malloc(129);
     uint8_t* decbuf = (uint8_t*)malloc(129);
@@ -790,10 +792,10 @@ void fontParser(const uint8_t* text) {
     memset(decbuf, 0, 129);
     memset(rawbuf, 0, 129);
     do {
-	lineLen = readLine(&text, rawbuf);
-	decodeRLE(decbuf, rawbuf, lineLen);
-	gfxParser(decbuf, spriteCount, &fontsheet);
-	spriteCount++;
+	    lineLen = readLine(&text, rawbuf);
+	    decodeRLE(decbuf, rawbuf, lineLen);
+	    gfxParser(decbuf, spriteCount, sheet);
+	    spriteCount++;
     } while (*text != 0);
     free(decbuf);
     free(rawbuf);
@@ -888,6 +890,21 @@ void cartParser(RawCart* parsingCart) {
     free(rawbuf);
 }
 
+
+// position is an index, from the right
+inline void _draw_hud_sprite(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t xOffset, uint16_t yOffset) {
+    for (uint16_t y=(sy*8); y<((sy+1)*8); y++) {
+        for (uint16_t x=(sx*8); x<((sx+1)*8); x++) {
+            uint8_t val = s->sprite_data[y*SCREEN_WIDTH + x];
+            if (val > 0) {
+                const color_t p = original_palette[val];
+                uint16_t first_byte = (((y+yOffset)-(sy*8))*SCREEN_WIDTH*2+(x-(sx*8))*2 + xOffset);
+                hud_buffer[first_byte  ] = (p >> 8);
+                hud_buffer[first_byte+1] = p & 0xFF;
+            }
+        }
+    }
+}
 inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
     uint16_t val;
 

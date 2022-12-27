@@ -101,10 +101,9 @@ bool init_audio() {
 }
 
 void draw_hud() {
-    draw_sprite(&dev, (uint8_t *)bat1, sizeof(bat1), 1);
-    draw_sprite(&dev, (uint8_t *)bat2, sizeof(bat2), 2);
-    draw_sprite(&dev, (uint8_t *)bat3, sizeof(bat3), 3);
-    draw_sprite(&dev, (uint8_t *)wifi, sizeof(wifi), 4);
+    set_window_hud(&dev, SCREEN_WIDTH, HUD_HEIGHT);
+    send_buffer(&dev, hud_buffer, sizeof(hud_buffer));
+    set_window(&dev);
 }
 
 bool init_video() {
@@ -120,8 +119,6 @@ bool init_video() {
     };
     gpio_config(&c);
 
-    draw_hud();
-
     return true;
 }
 
@@ -135,6 +132,7 @@ bool handle_input() {
     buttons[0] = left == 1;
     buttons[1] = right == 1;
     buttons[2] = up == 1;
+    buttons[3] = 0; // FIXME no down connected
     buttons[4] = a == 1;
     buttons[5] = b == 1;
 

@@ -56,11 +56,11 @@ void spi_master_init(TFT_t * dev, gpio_num_t GPIO_MOSI, gpio_num_t GPIO_SCLK, gp
 		gpio_reset_pin( GPIO_RESET );
 		gpio_set_direction( GPIO_RESET, GPIO_MODE_OUTPUT );
 		gpio_set_level( (gpio_num_t)GPIO_RESET, 1 );
-		vTaskDelay( pdMS_TO_TICKS( 50 ) );
+		vTaskDelay( pdMS_TO_TICKS( 1 ) );
 		gpio_set_level((gpio_num_t) GPIO_RESET, 0 );
-		vTaskDelay( pdMS_TO_TICKS( 150 ) );
+		vTaskDelay( pdMS_TO_TICKS( 5 ) );
 		gpio_set_level( (gpio_num_t)GPIO_RESET, 1 );
-		vTaskDelay( pdMS_TO_TICKS( 150 ) );
+		vTaskDelay( pdMS_TO_TICKS( 5 ) );
 	}
 
 	ESP_LOGI(TAG, "GPIO_BL=%d",GPIO_BL);
@@ -280,24 +280,9 @@ void lcdInit(TFT_t * dev, uint16_t model, int width, int height, int offsetx, in
 		spi_master_write_data_byte(dev, 0x02);
 		spi_master_write_data_byte(dev, 0x10);
 
-		//spi_master_write_data_byte(dev, 0x00);
-		//spi_master_write_data_byte(dev, 0x0E);
-		//spi_master_write_data_byte(dev, 0x14);
-		//spi_master_write_data_byte(dev, 0x03);
-		//spi_master_write_data_byte(dev, 0x11);
-		//spi_master_write_data_byte(dev, 0x07);
-		//spi_master_write_data_byte(dev, 0x31);
-		//spi_master_write_data_byte(dev, 0xC1);
-		//spi_master_write_data_byte(dev, 0x48);
-		//spi_master_write_data_byte(dev, 0x08);
-		//spi_master_write_data_byte(dev, 0x0F);
-		//spi_master_write_data_byte(dev, 0x0C);
-		//spi_master_write_data_byte(dev, 0x31);
-		//spi_master_write_data_byte(dev, 0x36);
-		//spi_master_write_data_byte(dev, 0x0F);
 
 		spi_master_write_comm_byte(dev, 0x11);	//Sleep Out
-		delayMS(120);
+		delayMS(10);
 
 		spi_master_write_comm_byte(dev, 0x29);	//Display ON
 	}

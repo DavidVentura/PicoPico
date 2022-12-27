@@ -224,9 +224,6 @@ void lcdInit(TFT_t * dev, uint16_t model, int width, int height, int offsetx, in
 		spi_master_write_data_byte(dev, 0x27);
 		spi_master_write_data_byte(dev, 0x00);
 
-		//spi_master_write_comm_byte(dev, 0x26);	//Gamma Set
-		//spi_master_write_data_byte(dev, 0x01);
-
         // {0x02, 0x1C, 0x07, 0x12, 0x37, 0x32, 0x29, 0x2D, 0x29, 0x25, 0x2B, 0x39, 0x00, 0x01, 0x03, 0x10 }},
 		spi_master_write_comm_byte(dev, 0xE0);	//Positive Gamma Correction
 		spi_master_write_data_byte(dev, 0x02);
@@ -245,21 +242,6 @@ void lcdInit(TFT_t * dev, uint16_t model, int width, int height, int offsetx, in
 		spi_master_write_data_byte(dev, 0x01);
 		spi_master_write_data_byte(dev, 0x03);
 		spi_master_write_data_byte(dev, 0x10);
-		//spi_master_write_data_byte(dev, 0x0F);
-		//spi_master_write_data_byte(dev, 0x31);
-		//spi_master_write_data_byte(dev, 0x2B);
-		//spi_master_write_data_byte(dev, 0x0C);
-		//spi_master_write_data_byte(dev, 0x0E);
-		//spi_master_write_data_byte(dev, 0x08);
-		//spi_master_write_data_byte(dev, 0x4E);
-		//spi_master_write_data_byte(dev, 0xF1);
-		//spi_master_write_data_byte(dev, 0x37);
-		//spi_master_write_data_byte(dev, 0x07);
-		//spi_master_write_data_byte(dev, 0x10);
-		//spi_master_write_data_byte(dev, 0x03);
-		//spi_master_write_data_byte(dev, 0x0E);
-		//spi_master_write_data_byte(dev, 0x09);
-		//spi_master_write_data_byte(dev, 0x00);
 
         // {0x03, 0x1d, 0x07, 0x06, 0x2E, 0x2C, 0x29, 0x2D, 0x2E, 0x2E, 0x37, 0x3F, 0x00, 0x00, 0x02, 0x10 }},
 		spi_master_write_comm_byte(dev, 0xE1);	//Negative Gamma Correction
@@ -299,15 +281,14 @@ void lcdInit(TFT_t * dev, uint16_t model, int width, int height, int offsetx, in
     // blank entire window
     spi_master_write_comm_byte(dev, 0x2A);	// set column(x) address
     spi_master_write_data_word(dev, 0);
-    //spi_master_write_data_word(dev, 160);
     spi_master_write_data_word(dev, 128);
 
     spi_master_write_comm_byte(dev, 0x2B);	// set Page(y) address
     spi_master_write_data_word(dev, 0);
     spi_master_write_data_word(dev, 160);
-    //spi_master_write_data_word(dev, 128);
 
 
+    // blank screen
     uint8_t buffer[160*2];
     memset(buffer, 0x0, sizeof(buffer));
     gpio_set_level(dev->_dc, SPI_Command_Mode);
@@ -342,18 +323,6 @@ void set_window(TFT_t* dev) {
     spi_master_write_data_word(dev, 32+127);
 }
 
-// Display OFF
-void lcdDisplayOff(TFT_t * dev) {
-	if (dev->_model == 0x9340 || dev->_model == 0x9341 || dev->_model == 0x7735 || dev->_model == 0x7796) {
-		spi_master_write_comm_byte(dev, 0x28);
-	} // endif 0x9340/0x9341/0x7735/0x7796
-
-	if (dev->_model == 0x9225 || dev->_model == 0x9226) {
-		lcdWriteRegisterByte(dev, 0x07, 0x1014);
-	} // endif 0x9225/0x9226
-
-}
- 
 // Display ON
 void lcdDisplayOn(TFT_t * dev) {
 	if (dev->_model == 0x9340 || dev->_model == 0x9341 || dev->_model == 0x7735 || dev->_model == 0x7796) {
@@ -430,10 +399,4 @@ void send_buffer(TFT_t* dev, uint8_t *buffer, uint16_t bufferLen) {
     gpio_set_level((gpio_num_t)dev->_dc, SPI_Data_Mode);
     spi_master_write_byte(dev->_TFT_Handle, buffer, bufferLen);
     spi_device_release_bus(dev->_TFT_Handle);
-}
-
-void draw_sprite(TFT_t* dev, uint8_t *buffer, uint16_t bufferLen, uint8_t sprite_index) {
-    set_window_sprite(dev, sprite_index);
-    send_buffer(dev, buffer, bufferLen);
-    set_window(dev);
 }

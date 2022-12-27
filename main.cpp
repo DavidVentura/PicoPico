@@ -19,15 +19,17 @@ int16_t drawMenu() {
         uint8_t cartCount = sizeof(carts)/sizeof(RawCart);
         bool old_down = false;
         bool old_up = false;
+        delay(10);
         while(!quit) {
                 for(uint8_t i=0; i<cartCount; i++) {
-                        _print(carts[i].name, carts[i].name_len, 10, 10+i*7, highlighted == i ? 10 : 7);
+                        _print(carts[i].name, carts[i].name_len, 10, 10+i*7, highlighted == i ? 9 : 7);
                 }
 
                 if (buttons[3]) { // DOWN
                         if (!old_down) {
                                 old_down = true;
                                 highlighted = (highlighted + 1) % cartCount;
+                                printf("Down\n");
                         }
                 } else {
                         old_down = false;
@@ -37,6 +39,7 @@ int16_t drawMenu() {
                         if (!old_up) {
                                 old_up = true;
                                 highlighted = highlighted == 0 ? cartCount - 1 : highlighted - 1;
+                                printf("up\n");
                         }
                 } else {
                         old_up = false;
@@ -63,6 +66,8 @@ int main( int argc, char* args[] )
         printf( "Failed to initialize video!\n" );
         return 1;
     }
+    uint32_t init_done = now();
+    printf("initializing video took %dms\n", init_done-bootup_time);
 
     if( !init_audio() )
     {

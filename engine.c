@@ -742,12 +742,20 @@ bool init_lua(const char* script_text) {
     }
 
     registerLuaFunctions();
+    uint32_t start_time = now();
     if (luaL_dostring(L, (const char*)stdlib_stdlib_lua) == LUA_OK) {
-        printf("stdlib loaded\n");
         lua_pop(L, lua_gettop(L));
+        uint32_t end_time = now();
+        printf("stdlib loaded, took %dms\n", end_time-start_time);
+        start_time = now();
 
-        if (luaL_dostring(L, script_text) == LUA_OK) {
+        if (luaL_dostring(L, script_text) == LUA_OK) { // FIXME load bytecode
+            // defined as
+            // (luaL_loadstring(L, str) || lua_pcall(L, 0, LUA_MULTRET, 0))
+            // -> luaL_loadbuffer(L, bytecode, len, "debug_name")
             lua_pop(L, lua_gettop(L));
+            end_time = now();
+            printf("cart loaded, took %dms\n", end_time-start_time);
             return true;
         }
     }

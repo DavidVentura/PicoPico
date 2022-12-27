@@ -136,34 +136,6 @@ bool handle_input() {
     buttons[4] = a == 1;
     buttons[5] = b == 1;
 
-    //int xraw = adc1_get_raw(ADC1_CHANNEL_4);
-    //int yraw = adc1_get_raw(ADC1_CHANNEL_5);
-
-    //printf("xraw %d, yraw %d\n", xraw, yraw);
-    /*
-       int c = getchar_timeout_us(0);
-       switch (c) {
-       case 'r':
-       reset_usb_boot(0, 0);
-       break;
-       }
-
-       adc_select_input(X_AXIS_ADC);
-       uint16_t xval = adc_read();
-
-       adc_select_input(Y_AXIS_ADC);
-       uint16_t yval = adc_read();
-
-    // printf("X: %d, Y: %d\n", xval, yval);
-    // range is 0-4k
-    buttons[0] = (xval < 500);
-    buttons[1] = (xval > 3500);
-    buttons[2] = (yval < 500);
-    buttons[3] = (yval > 3500);
-    buttons[4] = !gpio_get(A_BUTTON_GPIO);
-    buttons[5] = !gpio_get(B_BUTTON_GPIO);
-    return false;
-    */
     // TODO
     return false;
 }

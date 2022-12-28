@@ -25,7 +25,8 @@ for basic implementations.
 
 ### In emulator (SDL backed)
 
-![Hello world](artifacts/hello_world.gif?raw=1)
+https://user-images.githubusercontent.com/3650670/209883786-df8e24eb-6469-4147-87f5-97d2407c08f9.mp4
+
 
 ### Celeste in ESP32
 

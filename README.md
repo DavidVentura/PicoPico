@@ -99,7 +99,8 @@ Immediate:
 * ~Pre-encode the palette colors as a RGB565 `uint16_t`; makes no sense to shift them on _every pixel write_~
 * ~SFX~
 * ~Measure and output the correct number of samples out of the audio buffer, currently it's a (badly) guessed number.~
-* Get reasonable audio quality out of SFX
+* ~Get reasonable audio quality out of SFX~
+* Implement more complete SFX
 
 Later:
 
@@ -119,19 +120,6 @@ Later:
 
 # Other stuff
 
-There's a basic RLE encoding mechanism in place, to compress:
-
-* Font data (16.5KB -> 5KB)
-* Examples:
-    * Hello wolrd: 4KB -> 1KB
-    * Dice: 25KB -> 8KB
-    * Tennis: 21KB -> 4KB
-
-Not entirely sure yet why I was running out of memory, even with 40KB of (font+dice), it should be enough.
-
-This whole thing (compression) is a bit of a hack -- it is nice for development to have full carts accessible; 
-there is no code to read/write flash, nor any way to store the actual carts on flash yet.
-
 Resources are parsed from plaintext into a header by the `to_c.py` script, this also covers converting source code to byte-code. 
 Having byte-code compiled in a pre-processing stage makes parsing faster (112ms -> 18ms for a large cart), uses less memory (bytecode 
 stays in flash, not necessary to load to RAM) and enables future bytecode-level optimization
@@ -139,7 +127,7 @@ stays in flash, not necessary to load to RAM) and enables future bytecode-level 
 ## Sound
 
 I yoinked [zepto8's synth](https://github.com/samhocevar/zepto8/blob/master/src/synth.cpp) and converted it to `fix32`; an example SFX went 
-from ~25ms to ~2ms on the ESP32. It works fine in SDL, and sounds like a banshee when using the ESP32's internal DAC.
+from ~25ms to ~2ms on the ESP32.
 
 # API Support
 

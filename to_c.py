@@ -106,7 +106,7 @@ def process_cart(name: str, data: bytes, strip_label: bool=False) -> GameCart:
         with open('output', 'rb') as fd:
             sections[LUA_HEADER] = fd.read()
     else:
-        sections[LUA_HEADER] = b'\n'.join(sections[LUA_HEADER])
+        sections[LUA_HEADER] = b'\n'.join(sections[LUA_HEADER]) + b'\0'
 
     #encoded = rle_compression(line)
     #assert list(line) == rle_decompression(encoded)

@@ -22,6 +22,9 @@ struct GameCart {
 
     const uint16_t map_len;
     const uint8_t* map;
+
+    const uint16_t label_len;
+    const uint8_t* label;
 };
 
 typedef struct GameCart GameCart;

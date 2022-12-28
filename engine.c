@@ -16,6 +16,7 @@ static uint32_t cartdata[64];
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 static Spritesheet hud_sprites;
+static Spritesheet label;
 static uint8_t map_data[64 * 128];
 static uint32_t bootup_time;
 static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];

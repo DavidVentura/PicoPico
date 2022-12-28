@@ -63,7 +63,7 @@ def process_cart(name: str, data: bytes, strip_label: bool=False) -> GameCart:
                     code=sections.get(LUA_HEADER, b''),
                     gfx=b''.join(sections.get(b'__gfx__', [])),
                     gff=b''.join(sections.get(b'__gff__', [])),
-                    label=b''.join(sections.get(LABEL_HEADER, [])),
+                    label=to_char_value(b''.join(sections.get(LABEL_HEADER, []))),
                     map=b''.join(sections.get(b'__map__', [])),
                     sfx=b''.join(sections.get(b'__sfx__', [])),
                     music=b'\n'.join(sections.get(b'__music__', []))
@@ -123,6 +123,7 @@ def parse_cart(fname: Path, strip_label: bool, debug: bool=False):
     {_type('gff', bname, cart.gff)};
     {_type('sfx', bname, cart.sfx)};
     {_type('map', bname, cart.map)};
+    {_type('label', bname, cart.label)};
     const GameCart cart_{bname} = {{
         // name_len
         {len(cart.name)},
@@ -142,6 +143,9 @@ def parse_cart(fname: Path, strip_label: bool, debug: bool=False):
         // map_len
         {len(cart.map)},
         map_{bname},
+        // label_len
+        {len(cart.label)},
+        label_{bname},
     }};
     ''')
     return output

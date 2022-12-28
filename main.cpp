@@ -15,21 +15,29 @@
 
 int16_t drawMenu() {
     bool quit = handle_input();
-    uint8_t highlighted = 0;
+    int8_t highlighted = 0;
     uint8_t cartCount = sizeof(carts)/sizeof(GameCart);
+    uint8_t cartsToShow = 8;
     bool old_down = false;
     bool old_up = false;
+    bool changed = false;
+    uint8_t first, last = 0;
     delay(10);
     while(!quit) {
-        for(uint8_t i=0; i<cartCount; i++) {
-            _print(carts[i].name, carts[i].name_len, 10, 10+i*7, highlighted == i ? 9 : 7);
+        gfx_cls(original_palette[0]);
+        render_stretched(&label, 0, 0, 128, 128, 32, 0, 64, 64);
+        //_render(&label, 0, 0, 0, 0, -1, false, false, 128, 128);
+        first = MAX(0, highlighted - cartsToShow/2);
+        for(uint8_t i=0; i<MIN(cartsToShow, cartCount); i++) {
+            _print(carts[i+first].name, carts[i+first].name_len, 10, 70+i*7, highlighted == (i+first) ? 9 : 7);
         }
+        changed = false;
 
         if (buttons[3]) { // DOWN
             if (!old_down) {
                 old_down = true;
                 highlighted = (highlighted + 1) % cartCount;
-                printf("Down\n");
+                changed = true;
             }
         } else {
             old_down = false;
@@ -39,10 +47,18 @@ int16_t drawMenu() {
             if (!old_up) {
                 old_up = true;
                 highlighted = highlighted == 0 ? cartCount - 1 : highlighted - 1;
-                printf("up\n");
+                changed = true;
             }
         } else {
             old_up = false;
+        }
+
+        if(changed) {
+            if (carts[highlighted].label_len) {
+                memcpy(&label.sprite_data, carts[highlighted].label, carts[highlighted].label_len);
+            } else {
+                memset(&label.sprite_data, 0, sizeof(label.sprite_data));
+            }
         }
 
         if (buttons[4] || buttons[5]) {

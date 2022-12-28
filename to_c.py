@@ -44,20 +44,13 @@ def process_cart(name: str, data: bytes, strip_label: bool=False) -> GameCart:
             continue
         sections[section].append(bytes(line))
 
-    if True:
-        with subprocess.Popen(['./lua/luac', '-o', 'output', '-s', '-'], stdin=subprocess.PIPE) as p:
-            p.communicate(b'\n'.join(sections[LUA_HEADER]))
-        if p.returncode != 0:
-            raise ValueError("dead")
+    with subprocess.Popen(['./lua/luac', '-o', 'output', '-s', '-'], stdin=subprocess.PIPE) as p:
+        p.communicate(b'\n'.join(sections[LUA_HEADER]))
+    if p.returncode != 0:
+        raise ValueError("dead")
 
-        with open('output', 'rb') as fd:
-            sections[LUA_HEADER] = fd.read()
-    else:
-        sections[LUA_HEADER] = b'\n'.join(sections[LUA_HEADER]) + b'\0'
-
-    #encoded = rle_compression(line)
-    #assert list(line) == rle_decompression(encoded)
-    #compressed += encoded + b'\n'
+    with open('output', 'rb') as fd:
+        sections[LUA_HEADER] = fd.read()
 
     return GameCart(name=name,
                     code=sections.get(LUA_HEADER, b''),
@@ -95,7 +88,7 @@ def _chunk(data: bytes, join: str='\n', brace_enclosed=True) -> str:
     if brace_enclosed:
         output.append('{')
 
-    for chunk in chunked(data, 16):
+    for chunk in chunked(data, 32):
         output.append('  ' + ', '.join([f'0x{b:02x}' for b in chunk]) + ',')
 
     if brace_enclosed:

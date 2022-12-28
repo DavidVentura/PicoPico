@@ -31,7 +31,7 @@ void flagParser(const uint8_t* line, int spriteLineCount, Spritesheet* s) {
 void gfxParser(const uint8_t* line, int spriteLineCount, Spritesheet* s) {
     const int offset = spriteLineCount * 128;
     for (uint8_t i = 0; i < 128; i++) {
-	s->sprite_data[ i + offset] = parseChar(line[i]);
+	    s->sprite_data[ i + offset] = parseChar(line[i]);
     }
 }
 

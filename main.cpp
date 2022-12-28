@@ -114,7 +114,7 @@ int main( int argc, char* args[] )
 
 
     printf("init lua \n");
-    bool lua_ok = init_lua(cart.code);
+    bool lua_ok = init_lua(cart.code, carts[game].code_len);
     free(cart.code);
     printf("init done \n");
     if ( !lua_ok ) {

@@ -725,7 +725,7 @@ static int p_init_lua(lua_State* L) {
     lua_gc(L, LUA_GCRESTART, 0);
     return 1;
 }
-bool init_lua(const char* script_text) {
+bool init_lua(const char* script_text, uint16_t code_len) {
     L = luaL_newstate();
     if (L == NULL) {
         printf("cannot create LUA state: not enough memory\n");
@@ -749,12 +749,9 @@ bool init_lua(const char* script_text) {
         printf("stdlib loaded, took %dms\n", end_time-start_time);
         start_time = now();
 
-	// if (luaL_loadbuffer(L, script_text, sizeof(script_text), "debugname") == LUA_OK) {
-        if (luaL_dostring(L, script_text) == LUA_OK) { // FIXME load bytecode
-            // defined as
-            // (luaL_loadstring(L, str) || lua_pcall(L, 0, LUA_MULTRET, 0))
-            // -> luaL_loadbuffer(L, bytecode, len, "debug_name")
-            lua_pop(L, lua_gettop(L));
+        printf("Code len for lua %d\n", code_len);
+        int error = luaL_loadbuffer(L, script_text, code_len, "debugname") || lua_pcall(L, 0, 0, 0);
+	    if (!error) {
             end_time = now();
             printf("cart loaded, took %dms\n", end_time-start_time);
             return true;
@@ -812,6 +809,7 @@ void rawSpriteParser(Spritesheet* sheet, const uint8_t* text) {
 
 void cartParser(GameCart* parsingCart) {
         // FIXME skip copy?
+        printf("Code size %d\n", parsingCart->code_len);
         cart.code = (char*)malloc(parsingCart->code_len);
         memset(cart.code, 0, parsingCart->code_len);
         memcpy(cart.code, parsingCart->code, parsingCart->code_len);

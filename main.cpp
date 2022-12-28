@@ -107,6 +107,9 @@ int main( int argc, char* args[] )
         video_close();
         return 1;
     }
+    gfx_cls(original_palette[0]);
+    memset(buttons, 0, sizeof(buttons));
+    delay(10);
 
     bootup_time = now();
     printf("Parsing cart %s\n", carts[game].name);

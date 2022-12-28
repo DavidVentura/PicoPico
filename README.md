@@ -47,23 +47,26 @@ https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-9
 Memory requirements:
 
 * Spritesheet, at 128x128 in size = 16KB 
+    * Can move to flash
 * Fontsheet, at 128x128 in size = 16KB
-* Map, at 32x128 = 4 KB
+    * Can move to flash
+* Map, at 64x128 = 8 KB
+    * Can move to flash
 * Flags, at 2x128 = 256B
+    * Can move to flash
 * Sound effects, 64x84 = 5376B (~5KB)
+    * Can move to flash
 * Music patterns, 64x6 = 384B
+    * Can move to flash
 * Front buffer 128x128 = 16KB (x/y position -> palette; could be 8KB if using only a nibble per pixel)
 * Back buffer 128x128x2 = 32KB (x/y position -> color, at 16bpp)
-* Game memory = 32KB
-    * Lua = ???KB
-    * how to measure?
+* HUD buffer 16x128x2 = 4KB
+    * Can squeeze to 8x64x2 = 1KB, or even 7 sprites (896b)
+* Dedicated "Game memory" = 32KB
 
+Totals ~138KB (of which 82KB for screen buffers and game memory have to stay).
 
-~130KB, should have plenty of space for things going wrong.
-Both Spritesheet (16KB), and Map (4KB) can be squeezed to half, as they need a nibble per pixel, instead of a byte.  
-SFX can also be squeezed drastically - each of the 32 nots in the 64 SFX currently take 4 bytes instead of 2, could reclaim 4KB more DRAM.   
-
-And **most importantly** 2MB for game RAM (Lua memory). This varies based on each game, but on the PICO the 256KB ran out way too fast. There's [this thing](https://github.com/yocto-8/yocto-8/blob/main/doc/extmem.md) to use _very slow, very cursed_ external RAM 
+And **most importantly** 2MB for game RAM (Lua memory). This varies based on each game, but on the PICO the 264KB ran out pretty fast. There's [this thing](https://github.com/yocto-8/yocto-8/blob/main/doc/extmem.md) to use _very slow, very cursed_ external RAM. _Some_ games 
 
 # Performance
 
@@ -173,7 +176,7 @@ All implemented (z8lua)
 
 |    Function   | Supported |                     Notes |
 |---------------|-----------|---------------------------|
-|sfx            |⚠️          | There is only 1 channel; and offset is not implemented |
+|sfx            |⚠️          | Offset is not implemented |
 |music          |❌         |                           |
 
 ## Map

@@ -85,7 +85,11 @@ struct Channel {
     uint8_t id = 0;
     SFX* sfx;
     uint8_t sfx_id = 0;
-    uint16_t offset = 0; // in samples
+    // TODO: review if <offset> can go back to uint16_t, 
+    // currently it overflows (eg: celeste sfx 38), but the formula
+    // samples_per_duration * notes_per_sfx * duration
+    // may not need the <notes_per_sfx> ??
+    uint32_t offset = 0; // in samples
     z8::fix32 phi = 0;
 };
 

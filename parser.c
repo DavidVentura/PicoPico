@@ -71,11 +71,18 @@ void SFXParser(const uint8_t* line, int n, SFX* s) {
     s[n].loop_end   = (parseChar(line[6]) << 4) | parseChar(line[7]);
     noteParser(line+8, n, s[n].notes);
 }
-void mapParser(const uint8_t* line, int spriteLineCount, uint8_t* map_data) {
+void mapParser(const uint8_t* line, int spriteLineCount, uint8_t* map_data, bool msb) {
     const int offset = spriteLineCount * 128;
+    uint8_t msn, lsn;
     for (uint8_t i = 0; i < 128; i++) {
-        uint8_t msn = parseChar(line[i*2  ]);
-        uint8_t lsn = parseChar(line[i*2+1]);
+        if (msb) {
+            // regular map is MSB
+            msn = parseChar(line[i*2  ]);
+            lsn = parseChar(line[i*2+1]);
+        } else {
+            msn = parseChar(line[i*2+1]);
+            lsn = parseChar(line[i*2  ]);
+        }
         uint8_t sprite = ((msn & 0xf) << 4) | (lsn & 0xf);
         map_data[i+offset] = sprite;
     }

@@ -16,7 +16,7 @@ static uint32_t cartdata[64];
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 static Spritesheet hud_sprites;
-static uint8_t map_data[32 * 128];
+static uint8_t map_data[64 * 128];
 static uint32_t bootup_time;
 static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 static uint8_t hud_buffer[SCREEN_WIDTH*HUD_HEIGHT*2];
@@ -820,7 +820,12 @@ void cartParser(GameCart* parsingCart) {
                 flagParser(parsingCart->gff+(i*128), i, &spritesheet);
         }
         for(uint8_t i=0; i<(parsingCart->map_len/256); i++) {
-                mapParser(parsingCart->map+(i*256), i, map_data);
+                mapParser(parsingCart->map+(i*256), i, map_data, true);
+        }
+        if (parsingCart->gfx_len > (64*128)) { // 64 half-sized lines (128bytes) == 32 256 lines
+            for(uint16_t i=32; i<(parsingCart->gfx_len/256); i++) {
+                mapParser(parsingCart->gfx+(i*256), i, map_data, false);
+            }
         }
         for(uint8_t i=0; i<(parsingCart->sfx_len/168); i++) {
                 SFXParser(parsingCart->sfx+(i*168), i, sfx);

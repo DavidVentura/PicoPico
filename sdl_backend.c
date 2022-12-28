@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <time.h>
 #include <sys/time.h>
+#include "backend.h"
 #ifndef ENGINE
 #include "engine.c"
 #endif

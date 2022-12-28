@@ -749,6 +749,7 @@ bool init_lua(const char* script_text) {
         printf("stdlib loaded, took %dms\n", end_time-start_time);
         start_time = now();
 
+	// if (luaL_loadbuffer(L, script_text, sizeof(script_text), "debugname") == LUA_OK) {
         if (luaL_dostring(L, script_text) == LUA_OK) { // FIXME load bytecode
             // defined as
             // (luaL_loadstring(L, str) || lua_pcall(L, 0, LUA_MULTRET, 0))
@@ -809,93 +810,23 @@ void rawSpriteParser(Spritesheet* sheet, const uint8_t* text) {
     free(rawbuf);
 }
 
-void cartParser(RawCart* parsingCart) {
-    uint8_t section = 0;
-    uint32_t spriteCount = 0;
-    uint8_t sfCount = 0;
-    char* rawbuf = (char*)malloc(257);
-    char* decbuf = (char*)malloc(257);
-    // up to 256 bytes per line
-    // 1 byte for \0
-
-    memset(rawbuf, 0, 257);
-    cart.code = (char*)malloc(0xFFFF);
-    memset(cart.code, 0, 0xFFFF);
-
-    uint16_t lineLen = 0;
-    uint32_t bytesRead = 0;
-    do {
-        lineLen = readLine(&(parsingCart->code), (uint8_t*)rawbuf);
-        // FIXME: BUG: readLine does not take 2 newlines in a row too happily
-        if (strncmp(rawbuf, "__lua__", 7) == 0) {
-            section = SECT_LUA;
-            bytesRead = 0;
-            continue;
+void cartParser(GameCart* parsingCart) {
+        // FIXME skip copy?
+        cart.code = (char*)malloc(parsingCart->code_len);
+        memset(cart.code, 0, parsingCart->code_len);
+        memcpy(cart.code, parsingCart->code, parsingCart->code_len);
+        for(uint8_t i=0; i<(parsingCart->gfx_len/128); i++) {
+                gfxParser(parsingCart->gfx+(i*128), i, &spritesheet);
         }
-        if (strncmp(rawbuf, "__gfx__", 7) == 0) {
-            section = SECT_GFX;
-            spriteCount = 0;
-            bytesRead = 0;
-            continue;
+        for(uint8_t i=0; i<(parsingCart->gff_len/128); i++) {
+                flagParser(parsingCart->gff+(i*128), i, &spritesheet);
         }
-        if (strncmp(rawbuf, "__gff__", 7) == 0) {
-            spriteCount = 0;
-            section = SECT_GFF;
-            continue;
+        for(uint8_t i=0; i<(parsingCart->map_len/256); i++) {
+                mapParser(parsingCart->map+(i*256), i, map_data);
         }
-        if (strncmp(rawbuf, "__label__", 7) == 0) {
-            section = SECT_LABEL;
-            continue;
+        for(uint8_t i=0; i<(parsingCart->sfx_len/168); i++) {
+                SFXParser(parsingCart->sfx+(i*168), i, sfx);
         }
-        if (strncmp(rawbuf, "__map__", 7) == 0) {
-            section = SECT_MAP;
-            spriteCount = 0;
-            bytesRead = 0;
-            continue;
-        }
-        if (strncmp(rawbuf, "__sfx__", 7) == 0) {
-            section = SECT_SFX;
-            spriteCount = 0;
-            continue;
-        }
-        if (strncmp(rawbuf, "__music__", 7) == 0) {
-            section = SECT_MUSIC;
-            continue;
-        }
-        if (section > SECT_SFX) {
-            break;
-            // TODO: implement SFX etc
-        }
-        switch (section) {
-            case SECT_LUA:
-                memcpy(cart.code+bytesRead, rawbuf, lineLen);
-                break;
-            case SECT_GFX:
-                decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
-                gfxParser((uint8_t*)decbuf, spriteCount, &spritesheet);
-                spriteCount++;
-                break;
-            case SECT_GFF:
-                decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
-                flagParser((uint8_t*)decbuf, spriteCount, &spritesheet);
-                spriteCount++;
-                break;
-            case SECT_SFX:
-                decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
-                SFXParser(decbuf, spriteCount, sfx);
-                sfCount++;
-                spriteCount++;
-                break;
-            case SECT_MAP:
-                decodeRLE((uint8_t*)decbuf, (uint8_t*)rawbuf, lineLen);
-                mapParser(decbuf, spriteCount, map_data);
-                spriteCount++;
-                break;
-        }
-        bytesRead += lineLen;
-    } while (*(parsingCart->code) != 0);
-    free(decbuf);
-    free(rawbuf);
 }
 
 

@@ -39,7 +39,7 @@ void decodeRLE(uint8_t* decbuf, uint8_t* rawbuf, uint16_t rawLen) {
 		decPos += count;
 	}
 }
-void flagParser(uint8_t* line, int spriteLineCount, Spritesheet* s) {
+void flagParser(const uint8_t* line, int spriteLineCount, Spritesheet* s) {
     const int offset = spriteLineCount * 128;
     for (uint8_t i = 0; i < 128; i++) {
         uint8_t msn = parseChar(line[i*2  ]);
@@ -48,14 +48,14 @@ void flagParser(uint8_t* line, int spriteLineCount, Spritesheet* s) {
         s->flags[i+offset] = flag;
     }
 }
-void gfxParser(uint8_t* line, int spriteLineCount, Spritesheet* s) {
+void gfxParser(const uint8_t* line, int spriteLineCount, Spritesheet* s) {
     const int offset = spriteLineCount * 128;
     for (uint8_t i = 0; i < 128; i++) {
 	s->sprite_data[ i + offset] = parseChar(line[i]);
     }
 }
 
-void noteParser(char* line, uint8_t sfx_id, Note* notes) {
+void noteParser(const uint8_t* line, uint8_t sfx_id, Note* notes) {
     for(uint8_t note=0; note<NOTES_PER_SFX; note++) {
         notes[note].key         = (parseChar(line[note*5+0]) << 4) | parseChar(line[note*5+1]);
         notes[note].waveform    = parseChar(line[note*5+2]);
@@ -63,7 +63,7 @@ void noteParser(char* line, uint8_t sfx_id, Note* notes) {
         notes[note].effect      = parseChar(line[note*5+4]);
     }
 }
-void SFXParser(char* line, int n, SFX* s) {
+void SFXParser(const uint8_t* line, int n, SFX* s) {
     // byte 0 is for the editor
     s[n].id         = n;
     s[n].duration   = (parseChar(line[2]) << 4) | parseChar(line[3]);
@@ -71,7 +71,7 @@ void SFXParser(char* line, int n, SFX* s) {
     s[n].loop_end   = (parseChar(line[6]) << 4) | parseChar(line[7]);
     noteParser(line+8, n, s[n].notes);
 }
-void mapParser(char* line, int spriteLineCount, uint8_t* map_data) {
+void mapParser(const uint8_t* line, int spriteLineCount, uint8_t* map_data) {
     const int offset = spriteLineCount * 128;
     for (uint8_t i = 0; i < 128; i++) {
         uint8_t msn = parseChar(line[i*2  ]);

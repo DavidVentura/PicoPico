@@ -16,7 +16,7 @@
 int16_t drawMenu() {
     bool quit = handle_input();
     uint8_t highlighted = 0;
-    uint8_t cartCount = sizeof(carts)/sizeof(RawCart);
+    uint8_t cartCount = sizeof(carts)/sizeof(GameCart);
     bool old_down = false;
     bool old_up = false;
     delay(10);
@@ -119,6 +119,7 @@ int main( int argc, char* args[] )
     printf("init done \n");
     if ( !lua_ok ) {
         printf( "Failed to initialize LUA!\n" );
+	return 1;
         while (!quit) {
             quit = handle_input();
             delay(100);

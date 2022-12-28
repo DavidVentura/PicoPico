@@ -19,26 +19,6 @@ uint32_t readLine(const uint8_t** text, uint8_t* line) {
     return count;
 }
 
-void decodeRLE(uint8_t* decbuf, uint8_t* rawbuf, uint16_t rawLen) {
-	uint16_t decPos = 0;
-	uint8_t count = 1;
-	for(uint16_t i=0; i<rawLen; i++) {
-		uint8_t chr = rawbuf[i] & 0x7F;
-		bool multiple = (rawbuf[i] & 0x80) == 0x80;
-		if(multiple == true) {
-			i++;
-			if (rawbuf[i] == 0xFF) {
-				count = 11; // HACK: can't encode a 10 (\n) as it breaks the newline parser
-			} else {
-				count = rawbuf[i] + 1;
-			}
-		} else {
-			count = 1;
-		}
-		memset(decbuf+decPos, chr, count);
-		decPos += count;
-	}
-}
 void flagParser(const uint8_t* line, int spriteLineCount, Spritesheet* s) {
     const int offset = spriteLineCount * 128;
     for (uint8_t i = 0; i < 128; i++) {

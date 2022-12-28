@@ -791,20 +791,16 @@ void engine_init() {
 void rawSpriteParser(Spritesheet* sheet, const uint8_t* text) {
     int spriteCount = 0;
     uint8_t* rawbuf = (uint8_t*)malloc(129);
-    uint8_t* decbuf = (uint8_t*)malloc(129);
     // 128 bytes per line of data
     // 1 byte per line for \0
 
     uint16_t lineLen = 0;
-    memset(decbuf, 0, 129);
     memset(rawbuf, 0, 129);
     do {
 	    lineLen = readLine(&text, rawbuf);
-	    decodeRLE(decbuf, rawbuf, lineLen);
-	    gfxParser(decbuf, spriteCount, sheet);
+	    gfxParser(rawbuf, spriteCount, sheet);
 	    spriteCount++;
     } while (*text != 0);
-    free(decbuf);
     free(rawbuf);
 }
 

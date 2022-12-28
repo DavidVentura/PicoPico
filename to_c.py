@@ -26,66 +26,11 @@ class ProcessType(enum.Enum):
 def chunked(lst, chunk_size: int):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
-def rle_decompression(data: bytes):
-    out = []
-    idx = 0
-    while idx < len(data):
-        c = data[idx] & 0x7F
-        mult = (data[idx] & 0x80) == 0x80
-        if mult:
-            count = data[idx+1] + 1
-            idx += 1
-        else:
-            count = 1
-
-        if count == 0xFF+1: # FIXME hack
-            count = 11
-        idx += 1
-        out.extend([c] * count)
-    return out
-
-def rle_compression(data: bytes):
-    assert len(data)
-    acc = []
-    cur = []
-    last = data[0]
-    for b in data:
-        assert b < 128  # using highest bit to indicate repetitions
-        # can do only up to 255 repetitions per group (1 byte for count)
-        # and value 0xFF (255) is reserved for newline
-        if b == last and len(cur) < 254:
-            cur.append(b)
-        else:
-            acc.append(cur)
-            last = b
-            cur = [b]
-
-    if cur:
-        acc.append(cur)
-    ret = b''
-    for r in acc:
-        count = len(r)
-        char = r[0]
-        if count > 1:  # highest bit set = repeated
-            char = char | 0x80
-
-            if count == 11:  # FIXME: HACK: 10 == '\n'; which messes up the read-liner
-                count = 0xFF+1
-            ret += bytes([char, count-1])
-        else:
-            ret += bytes([char])
-
-    data = list(data)
-    dec = rle_decompression(ret)
-    assert data == dec
-    return ret
-
 def process_cart(name: str, data: bytes, strip_label: bool=False) -> GameCart:
     LUA_HEADER = b'__lua__'
     LABEL_HEADER = b"__label__"
     headers = [LUA_HEADER, b'__gfx__', b"__gff__", LABEL_HEADER, b"__map__", b"__sfx__", b"__music__"]
 
-    compressed = b''
     sections = {}
     section = None
     for line in data.splitlines():
@@ -123,6 +68,20 @@ def process_cart(name: str, data: bytes, strip_label: bool=False) -> GameCart:
                     sfx=b''.join(sections.get(b'__sfx__', [])),
                     music=b'\n'.join(sections.get(b'__music__', []))
                     )
+
+def to_char_value(data: bytes) -> bytes:
+    """
+    0-f -> 0-15
+    """
+    ret = []
+    for b in data:
+        n = 0xAA
+        if b >= 97: # a-f
+            n = b - 87 # -> 10-15
+        elif b >= 48 and b <= 57: # 0-9
+            n = b - 48
+        ret.append(n)
+    return bytes(ret)
 
 def path_to_identifier(p: Path) -> str:
     pname = os.path.dirname(p).replace('.', '_').replace('-', '_')
@@ -202,10 +161,7 @@ def parse(fname: Path, process_as: ProcessType, debug: bool=False):
 
     initial_len = len(data)
 
-    if process_as is ProcessType.RAW:
-        processed_data = rle_compression(data)
-    else:
-        processed_data = data
+    processed_data = data
 
     new_len = len(processed_data)
 

@@ -132,6 +132,10 @@ Not entirely sure yet why I was running out of memory, even with 40KB of (font+d
 This whole thing (compression) is a bit of a hack -- it is nice for development to have full carts accessible; 
 there is no code to read/write flash, nor any way to store the actual carts on flash yet.
 
+Resources are parsed from plaintext into a header by the `to_c.py` script, this also covers converting source code to byte-code. 
+Having byte-code compiled in a pre-processing stage makes parsing faster (112ms -> 18ms for a large cart), uses less memory (bytecode 
+stays in flash, not necessary to load to RAM) and enables future bytecode-level optimization
+
 ## Sound
 
 I yoinked [zepto8's synth](https://github.com/samhocevar/zepto8/blob/master/src/synth.cpp) and converted it to `fix32`; an example SFX went 

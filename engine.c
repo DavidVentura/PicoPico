@@ -33,7 +33,7 @@ bool init_lua(const char* script_text, uint16_t code_len) {
     lua_pushcfunction(L, &p_init_lua);
 
     int status = lua_pcall(L, 0, 1, 0);
-    if (status != LUA_OK) { // err
+    if (status != LUA_OK) {
         int result = lua_toboolean(L, -1);
         printf("Error loading lua VM: %s\n", lua_tostring(L, lua_gettop(L)));
         return false;
@@ -41,20 +41,25 @@ bool init_lua(const char* script_text, uint16_t code_len) {
 
     registerLuaFunctions();
     uint32_t start_time = now();
-    if (luaL_dostring(L, (const char*)stdlib_stdlib_lua) == LUA_OK) {
-        lua_pop(L, lua_gettop(L));
-        uint32_t end_time = now();
-        printf("stdlib loaded, took %dms\n", end_time-start_time);
-        start_time = now();
-
-        printf("Code len for lua %d\n", code_len);
-        int error = luaL_loadbuffer(L, script_text, code_len, "debugname") || lua_pcall(L, 0, 0, 0);
-	    if (!error) {
-            end_time = now();
-            printf("cart loaded, took %dms\n", end_time-start_time);
-            return true;
-        }
+    uint32_t end_time;
+    int error = luaL_loadbuffer(L, (const char*)stdlib_stdlib_lua, stdlib_stdlib_lua_len, "stdlib") || lua_pcall(L, 0, 0, 0);
+    if (error) {
+        goto handle_error;
     }
+
+    end_time = now();
+    printf("stdlib loaded, took %dms\n", end_time-start_time);
+    start_time = now();
+
+    error = luaL_loadbuffer(L, (const char*)bytecode, code_len, "cart") || lua_pcall(L, 0, 0, 0);
+    if (error) {
+        goto handle_error;
+    }
+    end_time = now();
+    printf("cart loaded, took %dms\n", end_time-start_time);
+    return true;
+
+handle_error:
     printf("Fail: %s\n", lua_tostring(L, lua_gettop(L)));
     lua_close(L);
     return false;

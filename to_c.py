@@ -1,7 +1,8 @@
-import os
-import sys
 import enum
+import os
 import subprocess
+import sys
+import tempfile
 import textwrap
 
 from dataclasses import dataclass
@@ -20,13 +21,23 @@ class GameCart:
     music: bytes
 
 class ProcessType(enum.Enum):
-    SKIP = enum.auto()
+    COMPILE = enum.auto()
     RAW = enum.auto()
 
 def chunked(lst, chunk_size: int):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
-def process_cart(name: str, data: bytes, strip_label: bool=False) -> GameCart:
+def compile_lua_to_bytecode(code: bytes) -> bytes:
+    with tempfile.NamedTemporaryFile() as named:
+        with subprocess.Popen(['./lua/luac', '-o', named.name, '-s', '-'], stdin=subprocess.PIPE) as p:
+            p.communicate(code)
+        if p.returncode != 0:
+            raise ValueError("dead")
+        named.flush()
+        named.seek(0)
+        return named.read()
+
+def process_cart(name: str, data: bytes) -> GameCart:
     LUA_HEADER = b'__lua__'
     LABEL_HEADER = b"__label__"
     headers = [LUA_HEADER, b'__gfx__', b"__gff__", LABEL_HEADER, b"__map__", b"__sfx__", b"__music__"]
@@ -44,13 +55,7 @@ def process_cart(name: str, data: bytes, strip_label: bool=False) -> GameCart:
             continue
         sections[section].append(bytes(line))
 
-    with subprocess.Popen(['./lua/luac', '-o', 'output', '-s', '-'], stdin=subprocess.PIPE) as p:
-        p.communicate(b'\n'.join(sections[LUA_HEADER]))
-    if p.returncode != 0:
-        raise ValueError("dead")
-
-    with open('output', 'rb') as fd:
-        sections[LUA_HEADER] = fd.read()
+    sections[LUA_HEADER] = compile_lua_to_bytecode(b'\n'.join(sections[LUA_HEADER]))
 
     return GameCart(name=name,
                     code=sections.get(LUA_HEADER, b''),
@@ -100,7 +105,7 @@ def _type(varname: str, uniq: str, data: bytes) -> str:
         return f'const uint8_t* {varname}_{uniq} = NULL'
     return f'const uint8_t {varname}_{uniq}[] = {_chunk(data)}'
 
-def parse_cart(fname: Path, strip_label: bool, debug: bool=False):
+def parse_cart(fname: Path, debug: bool=False):
     if not os.path.isfile(fname):
         print(f"'{fname}' does not exist or is not a file")
         sys.exit(1)
@@ -109,7 +114,7 @@ def parse_cart(fname: Path, strip_label: bool, debug: bool=False):
 
     with open(fname, 'rb') as fd:
         data = fd.read()
-    cart = process_cart(bname, data, strip_label)
+    cart = process_cart(bname, data)
     output = textwrap.dedent(f'''
     {_type('code', bname, cart.code)};
     {_type('gfx', bname, cart.gfx)};
@@ -153,13 +158,14 @@ def parse(fname: Path, process_as: ProcessType, debug: bool=False):
     with open(fname, 'rb') as fd:
         data = fd.read()
 
-    # add a null byte
-    data += b'\0'
+    if process_as is ProcessType.RAW:
+        # add a null byte, length is unknown
+        data += b'\0'
+    else:
+        data = compile_lua_to_bytecode(data)
 
     initial_len = len(data)
-
     processed_data = data
-
     new_len = len(processed_data)
 
     output = []
@@ -167,20 +173,22 @@ def parse(fname: Path, process_as: ProcessType, debug: bool=False):
     output.append(_chunk(processed_data, join='\n'))
     output.append(';')
 
+    if process_as is ProcessType.COMPILE:
+        output.append(f'const uint16_t {bname}_len = {len(data)};')
     if debug:
         print(f'[{bname}] {initial_len=} {new_len=}', file=sys.stderr)
     return '\n'.join(output)
 
 def main():
     debug = True
-    print(parse(Path('stdlib/stdlib.lua'), ProcessType.SKIP, debug))
+    print(parse(Path('stdlib/stdlib.lua'), ProcessType.COMPILE, debug))
     print(parse(Path('artifacts/font.lua'), ProcessType.RAW, debug))
     print(parse(Path('artifacts/hud.p8'), ProcessType.RAW, debug))
 
     games = []
     for f in Path('examples/').glob('*'):
         games.append(path_to_identifier(f))
-        print(parse_cart(f, True, debug))
+        print(parse_cart(f, debug))
 
     print('GameCart carts[] = {')
     for game in games:

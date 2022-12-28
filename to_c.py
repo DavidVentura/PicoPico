@@ -99,9 +99,11 @@ def process_cart(name: str, data: bytes, strip_label: bool=False) -> GameCart:
             continue
         sections[section].append(bytes(line))
 
-    if False:
+    if True:
         with subprocess.Popen(['./lua/luac', '-o', 'output', '-s', '-'], stdin=subprocess.PIPE) as p:
             p.communicate(b'\n'.join(sections[LUA_HEADER]))
+        if p.returncode != 0:
+            raise ValueError("dead")
 
         with open('output', 'rb') as fd:
             sections[LUA_HEADER] = fd.read()

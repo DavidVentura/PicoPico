@@ -200,7 +200,8 @@ int main( int argc, char* args[] )
         // printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);
         // printf("Frame: %03d [U: %d, D: %03d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
         frame_count++;
-        if (frame_count % 300) {
+        if ((frame_count % 150) == 0) { // ~5s
+            drawHud();
             draw_hud();
         }
     }

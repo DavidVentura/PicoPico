@@ -13,25 +13,34 @@
 #endif
 
 
+void drawHud() {
+    _draw_hud_sprite(&hud_sprites, 0, 0, 18*13, 0);
+    //_draw_hud_sprite(&hud_sprites, 1, 0, 18*1, 0);
+    //_draw_hud_sprite(&hud_sprites, 2, 0, 18*2, 0);
+    //_draw_hud_sprite(&hud_sprites, 3, 0, 18*3, 0);
+    //_draw_hud_sprite(&hud_sprites, 0, 1, 18*4, 0);
+    //_draw_hud_sprite(&hud_sprites, 1, 1, 18*5, 0);
+    //_draw_hud_sprite(&hud_sprites, 2, 1, 18*6, 0);
+    _draw_hud_sprite(&hud_sprites, 3, 1, 18*12, 0);
+
+    _draw_hud_sprite(&fontsheet, 01, 3, 110, 3);
+    _draw_hud_sprite(&fontsheet, 03, 3, 118, 3);
+    _draw_hud_sprite(&fontsheet, 10, 3, 126, 3); // :, 6 wide, centered at 128 (which is 2x, so 64)
+    _draw_hud_sprite(&fontsheet, 03, 3, 134, 3);
+    _draw_hud_sprite(&fontsheet, 07, 3, 142, 3);
+    draw_hud();
+}
 int16_t drawMenu() {
     bool quit = handle_input();
     int8_t highlighted = 0;
     uint8_t cartCount = sizeof(carts)/sizeof(GameCart);
-    uint8_t cartsToShow = 8;
+    uint8_t cartsToShow = 3;
     bool old_down = false;
     bool old_up = false;
-    bool changed = false;
+    bool changed = true;
     uint8_t first, last = 0;
     delay(10);
     while(!quit) {
-        gfx_cls(original_palette[0]);
-        render_stretched(&label, 0, 0, 128, 128, 32, 0, 64, 64);
-        //_render(&label, 0, 0, 0, 0, -1, false, false, 128, 128);
-        first = MAX(0, highlighted - cartsToShow/2);
-        for(uint8_t i=0; i<MIN(cartsToShow, cartCount); i++) {
-            _print(carts[i+first].name, carts[i+first].name_len, 10, 70+i*7, highlighted == (i+first) ? 9 : 7);
-        }
-        changed = false;
 
         if (buttons[3]) { // DOWN
             if (!old_down) {
@@ -57,8 +66,21 @@ int16_t drawMenu() {
             if (carts[highlighted].label_len) {
                 memcpy(&label.sprite_data, carts[highlighted].label, carts[highlighted].label_len);
             } else {
-                memset(&label.sprite_data, 0, sizeof(label.sprite_data));
+                memset(&label.sprite_data, 0x1f, sizeof(label.sprite_data));
             }
+            gfx_cls(original_palette[0]);
+            drawHud();
+            //render_stretched(&label, 0, 0, 128, 128, 32, 0, 64, 64);
+            render_stretched(&label, 0, 0, 128, 128, 16, 0, 96, 96);
+            //_render(&label, 0, 0, 0, 0, -1, false, false, 128, 128);
+            first = MAX(0, highlighted - cartsToShow/2);
+            last = MIN(cartsToShow, cartCount);
+            for(uint8_t i=0; i<last; i++) {
+                uint8_t idx = i+first;
+                if (idx >= cartCount) break;
+                _print(carts[idx].name, carts[idx].name_len, 10, 100+i*7, highlighted == idx ? 9 : 7);
+            }
+            changed = false;
         }
 
         if (buttons[4] || buttons[5]) {
@@ -104,20 +126,7 @@ int main( int argc, char* args[] )
     printf("initializing took %dms\n", init_done-bootup_time);
 
 
-    _draw_hud_sprite(&hud_sprites, 0, 0, 18*13, 0);
-    //_draw_hud_sprite(&hud_sprites, 1, 0, 18*1, 0);
-    //_draw_hud_sprite(&hud_sprites, 2, 0, 18*2, 0);
-    //_draw_hud_sprite(&hud_sprites, 3, 0, 18*3, 0);
-    //_draw_hud_sprite(&hud_sprites, 0, 1, 18*4, 0);
-    //_draw_hud_sprite(&hud_sprites, 1, 1, 18*5, 0);
-    //_draw_hud_sprite(&hud_sprites, 2, 1, 18*6, 0);
-    _draw_hud_sprite(&hud_sprites, 3, 1, 18*12, 0);
-
-    _draw_hud_sprite(&fontsheet, 01, 3, 110, 3);
-    _draw_hud_sprite(&fontsheet, 03, 3, 118, 3);
-    _draw_hud_sprite(&fontsheet, 10, 3, 126, 3); // :, 6 wide, centered at 128 (which is 2x, so 64)
-    _draw_hud_sprite(&fontsheet, 03, 3, 134, 3);
-    _draw_hud_sprite(&fontsheet, 07, 3, 142, 3);
+    //int16_t game = 0; // FIXME drawMenu();
     int16_t game = drawMenu();
     if (game < 0) {
         video_close();

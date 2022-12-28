@@ -104,7 +104,12 @@ Immediate:
 * ~SFX~
 * ~Measure and output the correct number of samples out of the audio buffer, currently it's a (badly) guessed number.~
 * ~Get reasonable audio quality out of SFX~
+* Deal with warnings when building for ESP
+    * Figure out why they don't show up when building with SDL backend
+* Move hardcoded pin for ESP32 to sdkconfig
+    * Extract current values for docs
 * Implement more complete SFX
+* Generate board captures automatically
 
 Later:
 

@@ -495,6 +495,7 @@ int _lua_dset(lua_State* L) {
 int _lua_printh(lua_State* L) {
     const char* val = luaL_checkstring(L, 1);
     printf("> %s\n", val);
+    fflush(stdout);
     return 0;
 }
 

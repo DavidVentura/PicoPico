@@ -13,6 +13,10 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 SDL_Event e;
 
+bool init_platform() {
+    return true;
+}
+
 bool init_video()
 {
 	memset(frontbuffer, 0, sizeof(frontbuffer));

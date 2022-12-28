@@ -7,6 +7,7 @@
 #include "data.h"
 #include "engine.c"
 #include "esp_timer.h"
+#include "esp_wifi.h"
 #include <time.h>
 
 static const i2s_config_t i2s_config = {
@@ -89,7 +90,17 @@ void i2sTask(void*) {
 }
 
 
+bool init_platform() {
+    /*
+    esp_bluedroid_disable();
+    esp_bluedroid_deinit();
+    esp_bt_controller_disable();
+    esp_bt_controller_deinit();
+    */
+    return true;
+}
 bool init_audio() {
+
     i2s_driver_install(I2S_NUM_0, &i2s_config, 4, &i2s_event_queue);   //install and start i2s driver
     i2s_zero_dma_buffer(I2S_NUM_0);
 
@@ -182,9 +193,20 @@ uint8_t current_minute() {
     return timeinfo->tm_min;
 }
 uint8_t wifi_strength() {
-    // arbitrary 0-3 scale
-    // 0 = low, 3 = high
-    return 0;
+    // arbitrary 0-3 scale (limited sprites)
+    // 0 = off, 1=low, 2=med, 3 = high
+    wifi_ap_record_t ap;
+    esp_err_t result = esp_wifi_sta_get_ap_info(&ap);
+    if (result == ESP_ERR_WIFI_NOT_CONNECT || result == ESP_ERR_WIFI_CONN) {
+        printf("ded wifi\n");
+        return 0;
+    }
+    printf("rssi %d\n", ap.rssi);
+    if (ap.rssi == 0) return 0; // probably bug, too good signal
+    // ap.rssi is -127..0
+    if (ap.rssi > -10) return 3;
+    if (ap.rssi > -30) return 2;
+    return 1;
 }
 uint8_t battery_left() {
     // arbitrary 0-3 scale

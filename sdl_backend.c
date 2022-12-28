@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <time.h>
 #include <sys/time.h>
 #ifndef ENGINE
 #include "engine.c"
@@ -188,4 +189,33 @@ bool init_audio() {
     SDL_PauseAudioDevice(dev, 0);
     SDL_Delay(0);
     return true;
+}
+
+uint8_t current_hour() {
+    // 0-24h
+    time_t rawtime;
+    struct tm* timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime ( &rawtime );
+    return timeinfo->tm_hour;
+}
+uint8_t current_minute() {
+    // 0-60m
+    time_t rawtime;
+    struct tm* timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime ( &rawtime );
+    return timeinfo->tm_min;
+}
+uint8_t wifi_strength() {
+    // arbitrary 0-3 scale
+    // 0 = low, 3 = high
+    return 0;
+}
+uint8_t battery_left() {
+    // arbitrary 0-3 scale
+    // 0 = almost empty, 3 = full
+    return 3;
 }

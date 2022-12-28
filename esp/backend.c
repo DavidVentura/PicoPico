@@ -7,6 +7,7 @@
 #include "data.h"
 #include "engine.c"
 #include "esp_timer.h"
+#include <time.h>
 
 static const i2s_config_t i2s_config = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
@@ -160,4 +161,33 @@ void put_buffer(void *pvParameters)
 
         //printf("Copying to SPI took: %d\n", delta);
     }
+}
+
+uint8_t current_hour() {
+    // 0-24h
+    time_t rawtime;
+    struct tm* timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime ( &rawtime );
+    return timeinfo->tm_hour;
+}
+uint8_t current_minute() {
+    // 0-60m
+    time_t rawtime;
+    struct tm* timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime ( &rawtime );
+    return timeinfo->tm_min;
+}
+uint8_t wifi_strength() {
+    // arbitrary 0-3 scale
+    // 0 = low, 3 = high
+    return 0;
+}
+uint8_t battery_left() {
+    // arbitrary 0-3 scale
+    // 0 = almost empty, 3 = full
+    return 3;
 }

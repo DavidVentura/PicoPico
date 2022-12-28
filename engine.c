@@ -112,6 +112,9 @@ void gfx_flip();
 void video_close();
 uint32_t now();
 void reset_transparency();
+uint8_t current_hour();
+uint8_t current_minute();
+uint8_t wifi_strength();
 
 static void map(uint8_t mapX, uint8_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags=0) {
 

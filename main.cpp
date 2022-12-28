@@ -146,10 +146,8 @@ int main( int argc, char* args[] )
     printf("Parsing cart %s\n", carts[game].name);
     cartParser(&carts[game]);
 
-
     printf("init lua \n");
-    bool lua_ok = init_lua(cart.code, carts[game].code_len);
-    free(cart.code);
+    bool lua_ok = init_lua(carts[game].code, carts[game].code_len);
     printf("init done \n");
     if ( !lua_ok ) {
         printf( "Failed to initialize LUA!\n" );

@@ -13,8 +13,6 @@
 static lua_State *L = NULL;
 void registerLuaFunctions();
 
-
-
 static int p_init_lua(lua_State* L) {
     luaL_checkversion(L);
     lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
@@ -23,7 +21,7 @@ static int p_init_lua(lua_State* L) {
     return 1;
 }
 
-bool init_lua(const char* script_text, uint16_t code_len) {
+bool init_lua(const uint8_t* bytecode, uint16_t code_len) {
     L = luaL_newstate();
     if (L == NULL) {
         printf("cannot create LUA state: not enough memory\n");
@@ -107,11 +105,6 @@ void rawSpriteParser(Spritesheet* sheet, const uint8_t* text) {
 }
 
 void cartParser(GameCart* parsingCart) {
-        // FIXME skip copy?
-        printf("Code size %d\n", parsingCart->code_len);
-        cart.code = (char*)malloc(parsingCart->code_len);
-        memset(cart.code, 0, parsingCart->code_len);
-        memcpy(cart.code, parsingCart->code, parsingCart->code_len);
         for(uint8_t i=0; i<(parsingCart->gfx_len/128); i++) {
                 gfxParser(parsingCart->gfx+(i*128), i, &spritesheet);
         }

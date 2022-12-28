@@ -5,9 +5,6 @@
 // this does not include the "General use / extended map" 32KB chunk
 static uint8_t ram[0x5DFF - 0x4300]; // 7KB
 typedef uint16_t color_t;
-struct Cart {
-    char* code;
-};
 struct GameCart {
     const uint8_t  name_len;
     const char*    name;
@@ -60,8 +57,6 @@ struct DrawState {
 };
 
 typedef struct DrawState DrawState;
-
-static Cart cart;
 
 struct Note {
     uint8_t key;        //  pitch / C# / etc ; 0-0x40

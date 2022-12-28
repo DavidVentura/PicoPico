@@ -654,18 +654,18 @@ end
 -- rotated sprite
 -- this function has a bug related to sprite number
 function spr_r(s,x,y,a,w,h)
-    sw=(w or 1)*8
-    sh=(h or 1)*8
-    sx=(s%8)*8
-    sy=flr(s/8)*8
-    x0=flr(0.5*sw)
-    y0=flr(0.5*sh)
-    a=a/360
-    sa=sin(a)
-    ca=cos(a)
+    local sw=(w or 1)*8
+    local sh=(h or 1)*8
+    local sx=(s%8)*8
+    local sy=flr(s/8)*8
+    local x0=flr(0.5*sw)
+    local y0=flr(0.5*sh)
+    local a=a/360
+    local sa=sin(a)
+    local ca=cos(a)
     for ix=sw*-1,sw+4 do
+        dx=ix-x0
         for iy=sh*-1,sh+4 do
-            dx=ix-x0
             dy=iy-y0
             xx=flr(dx*ca-dy*sa+x0)
             yy=flr(dx*sa+dy*ca+y0)

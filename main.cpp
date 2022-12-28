@@ -16,13 +16,7 @@
 void drawHud() {
     memset(hud_buffer, 0, sizeof(hud_buffer));
     _draw_hud_sprite(&hud_sprites, 3 - battery_left(), 0, 18*13, 0); // bat
-    //_draw_hud_sprite(&hud_sprites, 1, 0, 18*1, 0);
-    //_draw_hud_sprite(&hud_sprites, 2, 0, 18*2, 0);
-    //_draw_hud_sprite(&hud_sprites, 3, 0, 18*3, 0);
-    //_draw_hud_sprite(&hud_sprites, 0, 1, 18*4, 0);
-    //_draw_hud_sprite(&hud_sprites, 1, 1, 18*5, 0);
-    //_draw_hud_sprite(&hud_sprites, 2, 1, 18*6, 0);
-    _draw_hud_sprite(&hud_sprites, 3 - wifi_strength(), 1, 18*12, 0);
+    _draw_hud_sprite(&hud_sprites, 3 - wifi_strength(), 1, 18*12, 0); // wifi
 
     uint8_t hour_fdigit, hour_ldigit, min_fdigit, min_ldigit;
     hour_fdigit = current_hour() / 10;

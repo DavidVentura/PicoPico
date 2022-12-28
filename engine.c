@@ -3,9 +3,9 @@
 #include "data.h"
 #include "parser.c"
 #include "synth.c"
+#include "hud.c"
 #include <cstring>
 
-typedef uint16_t color_t;
 static lua_State *L = NULL;
 
 // The memory used by Lua is entirely separate from the PICO-8 memory and is limited to 2 MiB. 
@@ -15,12 +15,9 @@ static uint8_t ram[0x5DFF - 0x4300]; // 7KB
 static uint32_t cartdata[64];
 static Spritesheet spritesheet;
 static Spritesheet fontsheet;
-static Spritesheet hud_sprites;
-static Spritesheet label;
 static uint8_t map_data[64 * 128];
 static uint32_t bootup_time;
 static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
-static uint8_t hud_buffer[SCREEN_WIDTH*HUD_HEIGHT*2];
 
 // TODO: consider shifting << 2**12 (slightly above max range) or 2**11
 const z8::fix32 VOL_NORMALIZER = 32767.99f/7.f;
@@ -51,26 +48,7 @@ uint16_t audiobuf[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER];
 #define SECT_MAP   5
 #define SECT_SFX   6
 #define SECT_MUSIC 7
-#define to_rgb565(r, g, b) (((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3))
 
-static const color_t original_palette[] = {
-    to_rgb565(0, 0, 0),         //	black
-    to_rgb565(29, 43, 83),      //	dark-blue
-    to_rgb565(126, 37, 83),     //	dark-purple
-    to_rgb565(0, 135, 81),      //	dark-green
-    to_rgb565(171, 82, 54),     //	brown
-    to_rgb565(95, 87, 79),      //	dark-grey
-    to_rgb565(194, 195, 199),   //	light-grey
-    to_rgb565(255, 241, 232),   //	white
-    to_rgb565(255, 0, 77),      //	red
-    to_rgb565(255, 163, 0),     //	orange
-    to_rgb565(255, 236, 39),    //	yellow
-    to_rgb565(0, 228, 54),      //	green
-    to_rgb565(41, 173, 255),    //	blue
-    to_rgb565(131, 118, 156),   //	lavender
-    to_rgb565(255, 119, 168),   //	pink
-    to_rgb565(255, 204, 170),   //	light-peach 
-};
 static color_t palette[] = {
     to_rgb565(0, 0, 0),         //	black
     to_rgb565(29, 43, 83),      //	dark-blue
@@ -833,21 +811,6 @@ void cartParser(GameCart* parsingCart) {
         }
 }
 
-
-// position is an index, from the right
-inline void _draw_hud_sprite(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t xOffset, uint16_t yOffset) {
-    for (uint16_t y=(sy*8); y<((sy+1)*8); y++) {
-        for (uint16_t x=(sx*8); x<((sx+1)*8); x++) {
-            uint8_t val = s->sprite_data[y*SCREEN_WIDTH + x];
-            if (val > 0) {
-                const color_t p = original_palette[val];
-                uint16_t first_byte = (((y+yOffset)-(sy*8))*SCREEN_WIDTH*2+(x-(sx*8))*2 + xOffset);
-                hud_buffer[first_byte  ] = (p >> 8);
-                hud_buffer[first_byte+1] = p & 0xFF;
-            }
-        }
-    }
-}
 inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
     uint16_t val;
 

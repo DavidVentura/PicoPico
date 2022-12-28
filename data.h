@@ -1,6 +1,7 @@
 #ifndef DATA
 #define DATA
 #include <stdint.h>
+typedef uint16_t color_t;
 struct Cart {
     char* code;
 };
@@ -96,6 +97,27 @@ struct Channel {
 typedef struct Channel Channel;
 
 static DrawState drawstate;
+
+#define to_rgb565(r, g, b) (((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3))
+
+static const color_t original_palette[] = {
+    to_rgb565(0, 0, 0),         //	black
+    to_rgb565(29, 43, 83),      //	dark-blue
+    to_rgb565(126, 37, 83),     //	dark-purple
+    to_rgb565(0, 135, 81),      //	dark-green
+    to_rgb565(171, 82, 54),     //	brown
+    to_rgb565(95, 87, 79),      //	dark-grey
+    to_rgb565(194, 195, 199),   //	light-grey
+    to_rgb565(255, 241, 232),   //	white
+    to_rgb565(255, 0, 77),      //	red
+    to_rgb565(255, 163, 0),     //	orange
+    to_rgb565(255, 236, 39),    //	yellow
+    to_rgb565(0, 228, 54),      //	green
+    to_rgb565(41, 173, 255),    //	blue
+    to_rgb565(131, 118, 156),   //	lavender
+    to_rgb565(255, 119, 168),   //	pink
+    to_rgb565(255, 204, 170),   //	light-peach 
+};
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))

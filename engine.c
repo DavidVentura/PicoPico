@@ -13,11 +13,11 @@
 static lua_State *L = NULL;
 void registerLuaFunctions();
 
-static int p_init_lua(lua_State* L) {
-    luaL_checkversion(L);
-    lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
-    luaL_openlibs(L);  /* open libraries */
-    lua_gc(L, LUA_GCRESTART, 0);
+static int p_init_lua(lua_State* _L) {
+    luaL_checkversion(_L);
+    lua_gc(_L, LUA_GCSTOP, 0);  /* stop collector during initialization */
+    luaL_openlibs(_L);  /* open libraries */
+    lua_gc(_L, LUA_GCRESTART, 0);
     return 1;
 }
 
@@ -94,10 +94,9 @@ void rawSpriteParser(Spritesheet* sheet, const uint8_t* text) {
     // 128 bytes per line of data
     // 1 byte per line for \0
 
-    uint16_t lineLen = 0;
     memset(rawbuf, 0, 129);
     do {
-	    lineLen = readLine(&text, rawbuf);
+	    readLine(&text, rawbuf);
 	    gfxParser(rawbuf, spriteCount, sheet);
 	    spriteCount++;
     } while (*text != 0);

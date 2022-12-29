@@ -1,5 +1,6 @@
 #ifndef DATA
 #define DATA
+#include <cassert>
 #include <stdint.h>
 // The memory used by Lua is entirely separate from the PICO-8 memory and is limited to 2 MiB. 
 // this does not include the "General use / extended map" 32KB chunk
@@ -53,7 +54,7 @@ struct DrawState {
 	int16_t     camera_y    = 0;
 	uint16_t    line_x      = 0;
 	uint16_t    line_y      = 0;
-	uint8_t     transparent[15];
+	uint8_t     transparent[16];
 };
 
 typedef struct DrawState DrawState;
@@ -192,6 +193,7 @@ void smallHexDump (const void * addr, const int len) {
     int i;
     unsigned char buff[len+1];
     const unsigned char * pc = (const unsigned char *)addr;
+    assert(len > 0);
 
     for (i = 0; i < len; i++) {
         if ((i % len) == 0) {

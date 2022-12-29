@@ -19,17 +19,17 @@ const uint8_t SAMPLES_PER_BUFFER = 6;
 uint16_t audiobuf[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER];
 
 void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
-    SFX* sfx = c->sfx;
-    if(sfx == NULL) {
+    SFX* _sfx = c->sfx;
+    if(_sfx == NULL) {
         return;
     }
 
     // buffer sizes are always multiples of SAMPLES_PER_DURATION
     // which ensures the notes will always play _entire_ "duration" blocks
     for(uint16_t s=0; s<samples; s++) {
-        uint16_t note_id = c->offset / (SAMPLES_PER_DURATION * sfx->duration);
+        uint16_t note_id = c->offset / (SAMPLES_PER_DURATION * _sfx->duration);
 
-        Note n = sfx->notes[note_id];
+        Note n = _sfx->notes[note_id];
         z8::fix32 freq = key_to_freq[n.key];
         const z8::fix32 delta = freq / SAMPLE_RATE;
 
@@ -63,7 +63,7 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
         s += SAMPLES_PER_DURATION-1;
     }
 
-    if(c->offset >= (SAMPLES_PER_DURATION*NOTES_PER_SFX*sfx->duration)) {
+    if(c->offset >= (SAMPLES_PER_DURATION*NOTES_PER_SFX*_sfx->duration)) {
         c->sfx      = NULL;
         c->sfx_id   = 0;
         c->offset   = 0;

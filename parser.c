@@ -15,7 +15,7 @@ uint32_t readLine(const uint8_t** text, uint8_t* line) {
 	    break;
 	}
     }
-    line -= count;
+    *line -= count;
     return count;
 }
 

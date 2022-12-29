@@ -98,7 +98,7 @@ int main( int argc, char* args[] )
 {
     bool quit = false;
 
-    uint32_t bootup_time = now();
+    bootup_time = now();
     if( !init_video() )
     {
         printf( "Failed to initialize video!\n" );
@@ -179,6 +179,8 @@ int main( int argc, char* args[] )
         gfx_flip();
         quit = handle_input();
         update_start_time = now();
+        (void)update_start_time;
+        (void)update_end_time; // logging is conditional, this makes the unused warning go away
         if (call_update) _to_lua_call("_update");
         update_end_time = now();
 

@@ -122,6 +122,7 @@ Later:
 * Music
 * Look at optimizing lua bytecode for "fast function calls", for "standard library"
 * Use headers instead of stupid ifdefs
+* Enable `-Wconversion`
 * Console-based UI game
     * [Virtual keyboard](https://www.lexaloffle.com/bbs/?tid=41855) [(original, no lowercase)](https://www.lexaloffle.com/bbs/?tid=4076)
     * Wifi menu

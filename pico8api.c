@@ -667,6 +667,17 @@ int _lua_color(lua_State* L) {
     return 1;
 }
 
+int _lua_poke(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+    uint16_t addr = luaL_checkinteger(L, 1);
+    for(uint8_t arg=0; arg<argcount-1; arg++){
+	uint8_t value = luaL_checkinteger(L, 2+arg);
+	// printf("Writing %d to %d\n", value, addr+arg);
+	ram[addr+arg] = value;
+    }
+    return 0;
+}
+
 inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
     uint16_t val;
 

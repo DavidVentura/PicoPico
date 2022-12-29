@@ -191,6 +191,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "clip");
     lua_pushcfunction(L, _lua_color);
     lua_setglobal(L, "color");
+    lua_pushcfunction(L, _lua_poke);
+    lua_setglobal(L, "poke");
 }
 
 bool _lua_fn_exists(const char* fn) {

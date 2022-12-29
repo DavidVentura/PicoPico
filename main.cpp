@@ -34,31 +34,19 @@ int16_t drawMenu() {
     int8_t highlighted = 0;
     uint8_t cartCount = sizeof(carts)/sizeof(GameCart);
     uint8_t cartsToShow = 3;
-    bool old_down = false;
-    bool old_up = false;
     bool changed = true;
     uint8_t first, last = 0;
     delay(10);
     while(!wants_to_quit) {
 
-        if (buttons[3]) { // DOWN
-            if (!old_down) {
-                old_down = true;
-                highlighted = (highlighted + 1) % cartCount;
-                changed = true;
-            }
-        } else {
-            old_down = false;
+        if (buttons_frame[3]) { // DOWN
+            highlighted = (highlighted + 1) % cartCount;
+            changed = true;
         }
 
-        if (buttons[2]) { // UP
-            if (!old_up) {
-                old_up = true;
-                highlighted = highlighted == 0 ? cartCount - 1 : highlighted - 1;
-                changed = true;
-            }
-        } else {
-            old_up = false;
+        if (buttons_frame[2]) { // UP
+             highlighted = highlighted == 0 ? cartCount - 1 : highlighted - 1;
+             changed = true;
         }
 
         if(changed) {

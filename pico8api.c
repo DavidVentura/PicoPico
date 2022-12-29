@@ -412,10 +412,9 @@ uint8_t btn(uint8_t idx) {
     return buttons[idx];
 }
 int _lua_btnp(lua_State* L) {
-	// FIXME this is just _btn
     int idx = luaL_checkinteger(L, 1);
     // printf("Button state for %d is %d\n", idx, buttons[idx]);
-    lua_pushboolean(L, buttons[idx]);
+    lua_pushboolean(L, buttons_frame[idx]);
     return 1;
 }
 int _lua_btn(lua_State* L) {

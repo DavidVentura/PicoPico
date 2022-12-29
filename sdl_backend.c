@@ -90,6 +90,7 @@ void delay(uint16_t ms) {
 }
 
 bool handle_input() {
+    memset(buttons_frame, 0, sizeof(buttons_frame));
     while( SDL_PollEvent( &e ) != 0 )
     {
 	//User requests quit
@@ -100,26 +101,32 @@ bool handle_input() {
 	    switch( e.key.keysym.sym )
 	    {
 		case SDLK_LEFT:
+		    buttons_frame[0] = buttons[0] == 0 && buttons_frame[0] == 0;
 		    buttons[0] = 1;
 		    break;
 
 		case SDLK_RIGHT:
+		    buttons_frame[1] = buttons[1] == 0 && buttons_frame[1] == 0;
 		    buttons[1] = 1;
 		    break;
 
 		case SDLK_UP:
+		    buttons_frame[2] = (buttons[2] == 0 && buttons_frame[2] == 0);
 		    buttons[2] = 1;
 		    break;
 
 		case SDLK_DOWN:
+		    buttons_frame[3] = buttons[3] == 0 && buttons_frame[3] == 0;
 		    buttons[3] = 1;
 		    break;
 
 		case SDLK_z:
+		    buttons_frame[4] = buttons[4] == 0 && buttons_frame[4] == 0;
 		    buttons[4] = 1;
 		    break;
 
 		case SDLK_x:
+		    buttons_frame[5] = buttons[5] == 0 && buttons_frame[5] == 0;
 		    buttons[5] = 1;
 		    break;
 
@@ -133,26 +140,32 @@ bool handle_input() {
 	    {
 		case SDLK_LEFT:
 		    buttons[0] = 0;
+		    buttons_frame[0] = 0;
 		    break;
 
 		case SDLK_RIGHT:
 		    buttons[1] = 0;
+		    buttons_frame[1] = 0;
 		    break;
 
 		case SDLK_UP:
 		    buttons[2] = 0;
+		    buttons_frame[2] = 0;
 		    break;
 
 		case SDLK_DOWN:
 		    buttons[3] = 0;
+		    buttons_frame[3] = 0;
 		    break;
 
 		case SDLK_z:
 		    buttons[4] = 0;
+		    buttons_frame[4] = 0;
 		    break;
 
 		case SDLK_x:
 		    buttons[5] = 0;
+		    buttons_frame[5] = 0;
 		    break;
 
 	    }

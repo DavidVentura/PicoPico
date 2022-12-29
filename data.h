@@ -32,7 +32,8 @@ struct GameCart {
 typedef struct GameCart GameCart;
 #include "static_game_data.h"
 #define SAMPLE_RATE 22050
-int buttons[6] = {0, 0, 0, 0, 0, 0};
+int buttons[6] = 	{0, 0, 0, 0, 0, 0};
+int buttons_frame[6] =  {0, 0, 0, 0, 0, 0};
 
 const uint8_t SAMPLES_PER_DURATION = 183;
 const uint8_t NOTES_PER_SFX = 32;

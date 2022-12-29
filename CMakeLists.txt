@@ -35,6 +35,14 @@ add_custom_command(
 	#	DEPENDS stdlib/stdlib.lua artifacts/font.lua examples/*
 	)
 
+file(GLOB ALL_SOURCE_FILES *.c *.h esp/*.c esp/*.h)
+add_custom_target(
+	cppcheck
+	COMMAND /usr/bin/cppcheck
+        --enable=warning,performance,portability,information,missingInclude
+	--language=c++
+	${ALL_SOURCE_FILES}
+)
 if(BACKEND STREQUAL "PICO")
 	# initialize the Raspberry Pi Pico SDK
 	file (GLOB st_src CONFIGURE_DEPENDS "/home/david/git/pico_st7735_80x160/st7735_80x160/*")

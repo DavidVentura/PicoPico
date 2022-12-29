@@ -148,25 +148,43 @@ static void map(uint8_t mapX, uint8_t mapY, int16_t screenX, int16_t screenY, ui
     }
 }
 
+void render_text(Spritesheet* s, uint16_t sprite, uint8_t x0, uint8_t y0) {
+    const uint8_t sprite_count = 16;
+    const uint8_t xIndex = sprite % sprite_count;
+    const uint8_t yIndex = sprite / sprite_count;
+    uint8_t val;
+
+    for (uint8_t y=0; y<8; y++) {
+        if ((y+y0) >= SCREEN_HEIGHT) return;
+        // TODO: memcpy if far from edges
+        for (uint8_t x=0; x<8; x++) {
+            if ((x+x0) >= SCREEN_WIDTH) break;
+            val = s->sprite_data[y*128 + x + xIndex*8 + yIndex*8*128];
+            if (val!=0) {
+                put_pixel(x0+x, y0+y, palette[drawstate.pen_color]);
+            }
+        }
+    }
+}
+
 void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16_t paletteIdx) {
     // FIXME: this only works for ascii
     // FIXME: this should crop, and return the "cropped" number
     drawstate.pen_color = paletteIdx;
 
-    // printf("Requested to print [%d] '%s' at x: %d, y %d\n", textLen, text, x, y);
     for (int i = 0; i<textLen; i++) {
         uint8_t c = text[i];
         if (c == 0xe2) { // ❎ = 0xe2 0x9d 0x8e
             c = 151; // X in font
-            render(&fontsheet, c, x + i * 4 + 2, y, paletteIdx, false, false);
+            render_text(&fontsheet, c, x + i * 4 + 2, y);
             i += 2;
         }
         else if (c == 0xf0) { // 🅾  = 0xf0 0x9f 0x85 0xbe
             c = 142; // "circle" in font (square)
-            render(&fontsheet, c, x + i * 4 + 2, y, paletteIdx, false, false);
+            render_text(&fontsheet, c, x + i * 4 + 2, y);
             i += 3;
         } else {
-            render(&fontsheet, c, x + i * 4, y, paletteIdx, false, false);
+            render_text(&fontsheet, c, x + i * 4, y);
         }
     }
 

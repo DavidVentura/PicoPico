@@ -111,6 +111,10 @@ Immediate:
 * Implement more complete SFX
 * Generate board captures automatically
 * Add support for short-hand print ('?"x"' == print("x"))
+* Implement fillp https://pico-8.fandom.com/wiki/Fillp
+* Lua error: bad argument #1 to 'split' (string expected, got nil)
+* Lua error: bad argument #1 to 'btn' (number expected, got nil)
+* `pal` segfaults the demo
 
 Later:
 
@@ -178,7 +182,7 @@ All implemented (z8lua)
 
 ## Input
 
-`btn` implemented; `btnp` is just an alias to `btn`
+`btn` implemented
 
 ## Sound
 

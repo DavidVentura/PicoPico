@@ -200,6 +200,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "poke");
     lua_pushcfunction(L, _lua_flip);
     lua_setglobal(L, "flip");
+    lua_pushcfunction(L, _lua_fillp);
+    lua_setglobal(L, "fillp");
 }
 
 bool _lua_fn_exists(const char* fn) {

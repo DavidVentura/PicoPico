@@ -682,6 +682,16 @@ int _lua_flip(lua_State* L) {
     return 0;
 }
 
+int _lua_fillp(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+    // TODO: implement fillp
+    if (argcount==0) {
+        return 0;
+    }
+    uint16_t addr = luaL_checkinteger(L, 1);
+    return 0;
+}
+
 inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
     uint16_t val;
 

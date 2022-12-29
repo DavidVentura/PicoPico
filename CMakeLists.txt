@@ -28,11 +28,12 @@ add_compile_options(
         -Wno-unused-variable
 )
 
+file(GLOB ALL_RESOURCE_FILES stdlib/stdlib.lua artifacts/font.lua examples/* to_c.py)
 add_custom_command(
-	OUTPUT static_game_data.h
+	OUTPUT ${CMAKE_SOURCE_DIR}/static_game_data.h
 	COMMAND python3 to_c.py > ${CMAKE_SOURCE_DIR}/static_game_data.h
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-	#	DEPENDS stdlib/stdlib.lua artifacts/font.lua examples/*
+	DEPENDS ${ALL_RESOURCE_FILES}
 	)
 
 file(GLOB ALL_SOURCE_FILES *.c *.h esp/*.c esp/*.h)

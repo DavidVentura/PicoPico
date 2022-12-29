@@ -9,6 +9,11 @@
 #include "pico8api.c"
 #include <cstring>
 
+static bool     wants_to_quit = false;
+static uint8_t  fps = 30;
+static uint8_t  ms_delay = 1000 / fps;
+static uint32_t frame_start_time;
+static uint32_t frame_end_time;
 
 static lua_State *L = NULL;
 void registerLuaFunctions();
@@ -193,6 +198,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "color");
     lua_pushcfunction(L, _lua_poke);
     lua_setglobal(L, "poke");
+    lua_pushcfunction(L, _lua_flip);
+    lua_setglobal(L, "flip");
 }
 
 bool _lua_fn_exists(const char* fn) {
@@ -215,4 +222,15 @@ void _to_lua_call(const char* fn) {
 }
 
 
+void flip() {
+    gfx_flip();
+    wants_to_quit = handle_input();
+    uint32_t n = now();
+    if (n < frame_end_time) {
+         delay(frame_end_time - n);
+    }
+    frame_start_time = now();
+    frame_end_time = frame_start_time + ms_delay;
+}
 #endif
+

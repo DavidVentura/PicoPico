@@ -678,6 +678,11 @@ int _lua_poke(lua_State* L) {
     return 0;
 }
 
+int _lua_flip(lua_State* L) {
+    flip();
+    return 0;
+}
+
 inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
     uint16_t val;
 

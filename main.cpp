@@ -31,7 +31,6 @@ void drawHud() {
     draw_hud();
 }
 int16_t drawMenu() {
-    bool quit = handle_input();
     int8_t highlighted = 0;
     uint8_t cartCount = sizeof(carts)/sizeof(GameCart);
     uint8_t cartsToShow = 3;
@@ -40,7 +39,7 @@ int16_t drawMenu() {
     bool changed = true;
     uint8_t first, last = 0;
     delay(10);
-    while(!quit) {
+    while(!wants_to_quit) {
 
         if (buttons[3]) { // DOWN
             if (!old_down) {
@@ -87,17 +86,13 @@ int16_t drawMenu() {
             return highlighted;
         }
 
-        gfx_flip();
-        quit = handle_input();
-        delay(30);
+	flip();
     }
     return -1;
 }
 
 int main( int argc, char* args[] )
 {
-    bool quit = false;
-
     bootup_time = now();
     if( !init_video() )
     {
@@ -146,9 +141,8 @@ int main( int argc, char* args[] )
     if ( !lua_ok ) {
         printf( "Failed to initialize LUA!\n" );
 	return 1;
-        while (!quit) {
-            quit = handle_input();
-            delay(100);
+        while (!wants_to_quit) {
+	    flip();
         }
         return 1;
     }
@@ -161,23 +155,15 @@ int main( int argc, char* args[] )
     bool call_update = _lua_fn_exists("_update");
     bool call_draw = _lua_fn_exists("_draw");
 
-    quit = false;
-    uint32_t frame_start_time;
     uint32_t update_start_time;
     uint32_t draw_start_time;
 
-    uint32_t frame_end_time;
     uint32_t update_end_time;
     uint32_t draw_end_time;
 
-    const uint8_t target_fps = 30;
-    const uint8_t ms_delay = 1000 / target_fps;
     bool skip_next_render = false;
     uint16_t frame_count = 0;
-    while (!quit) {
-        frame_start_time = now();
-        gfx_flip();
-        quit = handle_input();
+    while (!wants_to_quit) {
         update_start_time = now();
         (void)update_start_time;
         (void)update_end_time; // logging is conditional, this makes the unused warning go away
@@ -206,6 +192,7 @@ int main( int argc, char* args[] )
             drawHud();
             draw_hud();
         }
+	flip();
     }
 
     lua_close(L);

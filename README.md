@@ -110,6 +110,7 @@ Immediate:
     * Extract current values for docs
 * Implement more complete SFX
 * Generate board captures automatically
+* Add support for short-hand print ('?"x"' == print("x"))
 
 Later:
 

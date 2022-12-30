@@ -125,8 +125,11 @@ inline uint16_t get_pixel(uint8_t x, uint8_t y) {
 }
 
 
-static void map(uint8_t mapX, uint8_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags=0) {
+static void map(int16_t mapX, int16_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags=0) {
 
+    //Map at 0 -16, S 0 0, C 16 16, F 4
+    if(mapX<0) return;
+    if(mapY<0) return;
     const uint8_t sprite_count = 16;
 
     for(uint8_t y = mapY; y < mapY+cellH; y++) {

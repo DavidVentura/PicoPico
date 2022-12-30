@@ -7,6 +7,8 @@ function _update()
   if (btn(1)) then x=x+1 end
   if (btn(2)) then y=y-1 end
   if (btn(3)) then y=y+1 end
+  if (btn(❎)) then y=y+1 end
+  if (btn(🅾️)) then x=x+1 end -- not working
 end
 
 function _draw()

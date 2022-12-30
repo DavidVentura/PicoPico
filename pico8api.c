@@ -408,18 +408,30 @@ int _lua_map(lua_State* L) {
     return 0;
 }
 
-uint8_t btn(uint8_t idx) {
-    return buttons[idx];
+uint8_t btn(lua_State* L, uint8_t* _buttons) {
+    uint8_t argcount = lua_gettop(L);
+    if (argcount == 0) {
+	uint8_t bitfield = 0;
+	for(uint8_t i=0; i<6; i++) {
+	    bitfield |= ((_buttons[i]) << i);
+	}
+    	return bitfield;
+    } else if (argcount == 1) {
+    	int idx = luaL_optinteger(L, 1, -1);
+	printf("%d\n", idx);
+	if(idx==-1) return 0;
+    	return _buttons[idx];
+    } else {
+	printf("Unsupported btn/btnp with 2 args\n");
+    	return 0;
+    }
 }
 int _lua_btnp(lua_State* L) {
-    int idx = luaL_checkinteger(L, 1);
-    // printf("Button state for %d is %d\n", idx, buttons[idx]);
-    lua_pushboolean(L, buttons_frame[idx]);
+    lua_pushboolean(L, btn(L, buttons_frame));
     return 1;
 }
 int _lua_btn(lua_State* L) {
-    int idx = luaL_checkinteger(L, 1);
-    lua_pushboolean(L, btn(idx));
+    lua_pushboolean(L, btn(L, buttons));
     // printf("Button state for %d is %d\n", idx, buttons[idx]);
     return 1;
 }

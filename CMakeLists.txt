@@ -124,31 +124,39 @@ elseif(BACKEND STREQUAL "ESP32")
 	# some day i'll figure out how to merge the 2 projects
 elseif(BACKEND STREQUAL "TEST")
 	add_custom_target(
-	bin_to_bmp
-	COMMAND python3 buf_to_bmp.py --in-file data/hud.bin --out-file data/hud.bmp --width 128 --height 12
+	bin_to_png
+	COMMAND python3 buf_to_png.py --in-file data/hud.bin --out-file data/hud.png --width 128 --height 12
+	COMMAND python3 buf_to_png.py --in-file data/menu.bin --out-file data/menu.png --width 128 --height 128 --palette
+	COMMAND python3 buf_to_png.py --in-file data/hello_world.bin --out-file data/hello_world.png --width 128 --height 128 --palette
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/
 	)
-	add_executable(run_tests
-		static_game_data.h
-		tests/run_tests.cpp
-		${lua_src}
-		)
-	add_subdirectory(lua)
-
-	# Add pico_stdlib library which aggregates commonly used features
-	target_link_libraries(run_tests
-		my_lua_lib
-		)
-
-	target_include_directories(run_tests PUBLIC
-		${CMAKE_CURRENT_SOURCE_DIR}
-		lua
-		)
-
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
-        target_compile_options(run_tests PRIVATE -TEST_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
+        set(test_compile_options -TEST_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
+
+	enable_testing()
+	add_subdirectory(lua)
+	# test_hud
+	add_executable(test_hud static_game_data.h tests/test_hud.cpp ${lua_src})
+	target_link_libraries(test_hud my_lua_lib)
+	add_test(NAME test_hud COMMAND test_hud)
+	target_compile_options(test_hud PRIVATE ${test_compile_options})
+
+	# test_menu
+	add_executable(test_menu static_game_data.h tests/test_menu.cpp ${lua_src})
+	target_link_libraries(test_menu my_lua_lib)
+	add_test(NAME test_menu COMMAND test_menu)
+	target_compile_options(test_menu PRIVATE ${test_compile_options})
+
+	# hello_world
+	add_executable(test_hello_world static_game_data.h tests/test_hello_world.cpp ${lua_src})
+	target_link_libraries(test_hello_world my_lua_lib)
+	add_test(NAME test_hello_world COMMAND test_hello_world)
+	target_compile_options(test_hello_world PRIVATE ${test_compile_options})
+
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR} lua)
+
 	add_compile_options(
 		-g3
 		-fsingle-precision-constant

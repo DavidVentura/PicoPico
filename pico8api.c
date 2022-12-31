@@ -882,7 +882,9 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
         uint16_t yoff = (((y*ratio_y)>>16)+sy)*128;
 
         for (uint16_t x=0; x<dw; x++) {
-            uint8_t val = s->sprite_data[yoff + ((x*ratio_x) >> 16)+sx];
+	    //if(dx+x-drawstate.camera_x < 0) continue;
+	    //if(dx+x-drawstate.camera_x >= SCREEN_WIDTH) continue;
+            uint8_t val = s->sprite_data[(yoff + ((x*ratio_x) >> 16)+sx)] % 15; // FIXME mod15 is alternate palette..
             if (drawstate.transparent[val] == 0){
                 put_pixel(dx+x-drawstate.camera_x, screen_y, val);
             }

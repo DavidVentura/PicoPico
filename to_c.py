@@ -60,12 +60,28 @@ def process_cart(name: str, data: bytes) -> GameCart:
     return GameCart(name=name,
                     code=sections.get(LUA_HEADER, b''),
                     gfx=b''.join(sections.get(b'__gfx__', [])),
-                    gff=b''.join(sections.get(b'__gff__', [])),
+                    gff=hex_digits_to_bytes(b''.join(sections.get(b'__gff__', []))),
                     label=to_char_value(b''.join(sections.get(LABEL_HEADER, []))),
                     map=b''.join(sections.get(b'__map__', [])),
                     sfx=b''.join(sections.get(b'__sfx__', [])),
                     music=b'\n'.join(sections.get(b'__music__', []))
                     )
+
+def hex_digits_to_bytes(data: bytes) -> bytes:
+    """
+    0xa 0xf -> 0xaf ...
+    """
+    ret = []
+    for i in range(0, len(data), 2):
+        ret.append(_to_char(data[i]) << 4 | _to_char(data[i+1]))
+    return bytes(ret)
+
+def _to_char(c: int) -> int:
+    if c >= 97:
+        return c - 87 # 'a'-'f' -> 10-15
+    elif c >= 48 and c <= 57:
+        return c - 48 # '0'-9' -> 0-9
+    raise ValueError(f"Can't convert {c}")
 
 def to_char_value(data: bytes) -> bytes:
     """
@@ -73,11 +89,7 @@ def to_char_value(data: bytes) -> bytes:
     """
     ret = []
     for b in data:
-        n = 0xAA
-        if b >= 97: # a-f
-            n = b - 87 # -> 10-15
-        elif b >= 48 and b <= 57: # 0-9
-            n = b - 48
+        n = _to_char(b)
         ret.append(n)
     return bytes(ret)
 

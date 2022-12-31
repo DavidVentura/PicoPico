@@ -19,15 +19,6 @@ uint32_t readLine(const uint8_t** text, uint8_t* line) {
     return count;
 }
 
-void flagParser(const uint8_t* line, int spriteLineCount, Spritesheet* s) {
-    const int offset = spriteLineCount * 128;
-    for (uint8_t i = 0; i < 128; i++) {
-        uint8_t msn = parseChar(line[i*2  ]);
-        uint8_t lsn = parseChar(line[i*2+1]);
-        uint8_t flag = ((msn & 0xf) << 4) | (lsn & 0xf);
-        s->flags[i+offset] = flag;
-    }
-}
 void gfxParser(const uint8_t* line, int spriteLineCount, Spritesheet* s) {
     const int offset = spriteLineCount * 128;
     for (uint8_t i = 0; i < 128; i++) {

@@ -95,7 +95,7 @@ void engine_init() {
 
 void rawSpriteParser(Spritesheet* sheet, const uint8_t* text) {
     int spriteCount = 0;
-    uint8_t* rawbuf = (uint8_t*)malloc(129);
+    uint8_t* rawbuf = (uint8_t*)malloc(130);
     // 128 bytes per line of data
     // 1 byte per line for \0
 
@@ -112,9 +112,8 @@ void cartParser(GameCart* parsingCart) {
         for(uint8_t i=0; i<(parsingCart->gfx_len/128); i++) {
                 gfxParser(parsingCart->gfx+(i*128), i, &spritesheet);
         }
-        for(uint8_t i=0; i<(parsingCart->gff_len/128); i++) {
-                flagParser(parsingCart->gff+(i*128), i, &spritesheet);
-        }
+	assert(parsingCart->gff_len <= 256);
+	memcpy(spritesheet.flags, parsingCart->gff, parsingCart->gff_len);
         for(uint8_t i=0; i<(parsingCart->map_len/256); i++) {
                 mapParser(parsingCart->map+(i*256), i, map_data, true);
         }

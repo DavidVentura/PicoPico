@@ -57,8 +57,8 @@ int16_t drawMenu() {
             }
             gfx_cls(original_palette[0]);
             drawHud();
-            //render_stretched(&label, 0, 0, 128, 128, 32, 0, 64, 64);
-            render_stretched(&label, 0, 0, 128, 128, 16, 0, 96, 96);
+            render_stretched(&label, 0, 0, 128, 128, 32, 0, 64, 64);
+            //render_stretched(&label, 0, 0, 127, 127, 16, 0, 96, 96);
             //_render(&label, 0, 0, 0, 0, -1, false, false, 128, 128);
             first = MAX(0, highlighted - cartsToShow/2);
             last = MIN(cartsToShow, cartCount);

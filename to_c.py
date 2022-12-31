@@ -166,9 +166,11 @@ def parse(fname: Path, process_as: ProcessType, debug: bool=False):
     with open(fname, 'rb') as fd:
         data = fd.read()
 
+    output = []
     if process_as is ProcessType.RAW:
         # add a null byte, length is unknown
-        data += b'\0'
+        data = to_char_value(b''.join(data.splitlines()))
+        output.append(f'const uint16_t {bname}_len = {len(data)};')
     else:
         data = compile_lua_to_bytecode(data)
 
@@ -176,7 +178,6 @@ def parse(fname: Path, process_as: ProcessType, debug: bool=False):
     processed_data = data
     new_len = len(processed_data)
 
-    output = []
     output.append(f'const uint8_t {bname}[] = ')
     output.append(_chunk(processed_data, join='\n'))
     output.append(';')

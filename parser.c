@@ -3,29 +3,6 @@
 
 uint8_t parseChar(char c);
 
-uint32_t readLine(const uint8_t** text, uint8_t* line) {
-    uint32_t count = 0;
-
-    while(**text != '\0') {
-	count++;
-	*line++ = *(*text)++;
-	if (**text == '\n') {
-	    count++;
-	    *line++ = *(*text)++;
-	    break;
-	}
-    }
-    *line -= count;
-    return count;
-}
-
-void gfxParser(const uint8_t* line, int spriteLineCount, Spritesheet* s) {
-    const int offset = spriteLineCount * 128;
-    for (uint8_t i = 0; i < 128; i++) {
-	    s->sprite_data[ i + offset] = parseChar(line[i]);
-    }
-}
-
 void noteParser(const uint8_t* line, uint8_t sfx_id, Note* notes) {
     for(uint8_t note=0; note<NOTES_PER_SFX; note++) {
         notes[note].key         = (parseChar(line[note*5+0]) << 4) | parseChar(line[note*5+1]);

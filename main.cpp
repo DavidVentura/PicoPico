@@ -100,10 +100,14 @@ int main( int argc, char* args[] )
     init_done = now();
     printf("initializing engine took %dms\n", init_done-bootup_time);
     bootup_time = now();
+
     printf("Parsing font \n");
-    rawSpriteParser(&fontsheet, artifacts_font_lua);
+    assert(artifacts_font_lua_len <= sizeof(fontsheet.sprite_data));
+    memcpy(fontsheet.sprite_data, artifacts_font_lua, artifacts_font_lua_len);
+
     printf("Parsing HUD \n");
-    rawSpriteParser(&hud_sprites, artifacts_hud_p8);
+    assert(artifacts_hud_p8_len <= sizeof(hud_sprites.sprite_data));
+    memcpy(hud_sprites.sprite_data, artifacts_hud_p8, artifacts_hud_p8_len);
 
     init_done = now();
     printf("initializing took %dms\n", init_done-bootup_time);

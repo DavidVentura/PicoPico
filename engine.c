@@ -93,21 +93,6 @@ void engine_init() {
     channels[3].sfx = NULL;
 }
 
-void rawSpriteParser(Spritesheet* sheet, const uint8_t* text) {
-    int spriteCount = 0;
-    uint8_t* rawbuf = (uint8_t*)malloc(130);
-    // 128 bytes per line of data
-    // 1 byte per line for \0
-
-    memset(rawbuf, 0, 129);
-    do {
-	    readLine(&text, rawbuf);
-	    gfxParser(rawbuf, spriteCount, sheet);
-	    spriteCount++;
-    } while (*text != 0);
-    free(rawbuf);
-}
-
 void cartParser(GameCart* parsingCart) {
 	assert(parsingCart->gfx_len <= sizeof(spritesheet.sprite_data));
 	memcpy(spritesheet.sprite_data, parsingCart->gfx, parsingCart->gfx_len);

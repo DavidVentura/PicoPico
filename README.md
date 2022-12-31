@@ -59,13 +59,13 @@ Memory requirements:
     * Can move to flash
 * Music patterns, 64x6 = 384B
     * Can move to flash
-* Front buffer 128x128 = 16KB (x/y position -> palette; could be 8KB if using only a nibble per pixel)
+* Front buffer 128x128/2 = 8KB (x/y position -> palette)
 * Back buffer 128x128x2 = 32KB (x/y position -> color, at 16bpp)
 * HUD buffer 16x128x2 = 4KB
     * Can squeeze to 8x64x2 = 1KB, or even 7 sprites (896b)
 * Dedicated "Game memory" = 32KB
 
-Totals ~138KB (of which 82KB for screen buffers and game memory have to stay).
+Totals ~130KB (of which 76KB for screen buffers and game memory have to stay).
 
 And **most importantly** 2MB for game RAM (Lua memory). This varies based on each game, but on the PICO the 264KB ran out pretty fast. There's [this thing](https://github.com/yocto-8/yocto-8/blob/main/doc/extmem.md) to use _very slow, very cursed_ external RAM. _Some_ games 
 

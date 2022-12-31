@@ -7,8 +7,7 @@ static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 static uint8_t map_data[64 * 128];
 static uint32_t bootup_time;
-// FIXME: should be W*H/2
-static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
+static palidx_t frontbuffer[SCREEN_WIDTH/2*SCREEN_HEIGHT];
 
 static color_t palette[] = {
     to_rgb565(0, 0, 0),         //	black
@@ -31,9 +30,16 @@ static color_t palette[] = {
 
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
 static inline void put_pixel(uint8_t x, uint8_t y, palidx_t p){
-    frontbuffer[(y*SCREEN_WIDTH+x)  ] = palette[p];
+    if (x&0x1) {
+        frontbuffer[(y*SCREEN_WIDTH/2+x/2)] &= 0x0f;
+        frontbuffer[(y*SCREEN_WIDTH/2+x/2)] |= (p << 4);
+    } else {
+        frontbuffer[(y*SCREEN_WIDTH/2+x/2)] &= 0xf0;
+        frontbuffer[(y*SCREEN_WIDTH/2+x/2)] |= p;
+    }
 
 }
+
 void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, palidx_t p){
     uint16_t r_sq = radius * radius;
     if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
@@ -89,7 +95,7 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, palidx_t color
     }
 }
 void gfx_cls(palidx_t c) {
-    memset(frontbuffer, c, sizeof(frontbuffer));
+    memset(frontbuffer, ((c & 0xf) << 4) | (c & 0xf), sizeof(frontbuffer));
 }
 
 void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const palidx_t color) {
@@ -119,9 +125,12 @@ void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const pali
 }
 
 
-inline uint16_t get_pixel(uint8_t x, uint8_t y) {
-	// FIXME: this is incredibly broken
-	return frontbuffer[x+y*SCREEN_WIDTH];
+inline palidx_t get_pixel(uint8_t x, uint8_t y) {
+    if (x&0x1) {
+        return (frontbuffer[(y*SCREEN_WIDTH/2+x/2)] & 0xf0) >> 4;
+    } else {
+        return (frontbuffer[(y*SCREEN_WIDTH/2+x/2)] & 0x0f);
+    }
 }
 
 

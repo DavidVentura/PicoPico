@@ -75,7 +75,8 @@ void draw_hud() {
 void gfx_flip() {
     for(uint8_t y=0; y<SCREEN_HEIGHT; y++)
         for(uint8_t x=0; x<SCREEN_WIDTH; x++){
-            uint16_t color = frontbuffer[x+y*SCREEN_HEIGHT];
+            palidx_t idx = get_pixel(x, y);
+	    color_t color = palette[idx];
             // uint16_t color = 0xffff;
             SDL_SetRenderDrawColor(gRenderer, (color >> 11) << 3, ((color >> 5) & 0x3f) << 2, (color & 0x1f) << 3, 0xFF );
             SDL_RenderDrawPoint(gRenderer, x, y + HUD_HEIGHT);

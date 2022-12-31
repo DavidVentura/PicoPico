@@ -89,6 +89,17 @@ In ESP32:
 
 Celeste takes about 9ms / frame (rendering happens on the second core), including SFX
 
+# Goals
+
+1. Make `celeste` fully playable (without music // complete SFX)
+    * Hair not turning blue?
+1. Make `rockets` fully playable (without music // complete SFX)
+    * Points go up too fast
+1. Make `valdi` fully playable (without music // complete SFX)
+    * Renders offset when looking to the left
+1. Make `awake` fully playable (without music // complete SFX)
+    * Colors are super glitched, level2 is also glitched
+
 # TODO
 
 Immediate:
@@ -115,7 +126,6 @@ Immediate:
 * Lua error: bad argument #1 to 'split' (string expected, got nil)
 * Lua error: bad argument #1 to 'btn' (number expected, got nil)
     * z8lua considers literal circle (🅾️) to be `nil` but not ❎
-* `pal` segfaults the demo
 
 Later:
 

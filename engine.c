@@ -91,6 +91,14 @@ void engine_init() {
     channels[1].sfx = NULL;
     channels[2].sfx = NULL;
     channels[3].sfx = NULL;
+
+    printf("Parsing font \n");
+    assert(artifacts_font_lua_len <= sizeof(fontsheet.sprite_data));
+    memcpy(fontsheet.sprite_data, artifacts_font_lua, artifacts_font_lua_len);
+
+    printf("Parsing HUD \n");
+    assert(artifacts_hud_p8_len <= sizeof(hud_sprites.sprite_data));
+    memcpy(hud_sprites.sprite_data, artifacts_hud_p8, artifacts_hud_p8_len);
 }
 
 void cartParser(GameCart* parsingCart) {

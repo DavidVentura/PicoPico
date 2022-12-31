@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 if(NOT DEFINED BACKEND)
-	message(FATAL_ERROR "You must define the variable BACKEND (to either PICO, ESP32 or PC)" )
+	message(FATAL_ERROR "You must define the variable BACKEND (to either PICO, ESP32, PC or TEST)" )
 endif()
 
 if(BACKEND STREQUAL "PICO")
@@ -14,6 +14,8 @@ set(COMPONENTS "esp")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 elseif(BACKEND STREQUAL "PC")
 add_definitions(-DSDL_BACKEND)
+elseif(BACKEND STREQUAL "TEST")
+add_definitions(-DTEST_BACKEND)
 endif()
 
 project(my_project C CXX ASM)
@@ -50,7 +52,7 @@ if(BACKEND STREQUAL "PICO")
 	pico_sdk_init()
 	
 	add_executable(hello_pico
-	    main.cpp
+	    entrypoint.cpp
 	    static_game_data.h
 	    ${lua_src}
 	    ${st_src}
@@ -88,7 +90,7 @@ if(BACKEND STREQUAL "PICO")
 elseif(BACKEND STREQUAL "PC")
 	add_executable(pc_pico
 		static_game_data.h
-		main.cpp
+		entrypoint.cpp
 		${lua_src}
 		)
 	add_subdirectory(SDL_mixer)
@@ -119,4 +121,37 @@ elseif(BACKEND STREQUAL "PC")
 		)
 
 elseif(BACKEND STREQUAL "ESP32")
+	# some day i'll figure out how to merge the 2 projects
+elseif(BACKEND STREQUAL "TEST")
+	add_custom_target(
+	bin_to_bmp
+	COMMAND python3 buf_to_bmp.py --in-file data/hud.bin --out-file data/hud.bmp --width 128 --height 12
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/
+	)
+	add_executable(run_tests
+		static_game_data.h
+		tests/run_tests.cpp
+		${lua_src}
+		)
+	add_subdirectory(lua)
+
+	# Add pico_stdlib library which aggregates commonly used features
+	target_link_libraries(run_tests
+		my_lua_lib
+		)
+
+	target_include_directories(run_tests PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}
+		lua
+		)
+
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
+        target_compile_options(run_tests PRIVATE -TEST_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
+	add_compile_options(
+		-g3
+		-fsingle-precision-constant
+		)
+
 endif()

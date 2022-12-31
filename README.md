@@ -104,6 +104,7 @@ Celeste takes about 9ms / frame (rendering happens on the second core), includin
     * ~Super slow after a few resets?~ (`gfx_line` was missing a bounds check, overwriting the delay between frames)
 1. Make `awake` fully playable (without music // complete SFX)
     * Colors are super glitched, level2 is also glitched
+1. Create some basic automated testing
 
 # TODO
 

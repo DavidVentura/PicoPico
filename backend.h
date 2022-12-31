@@ -14,5 +14,6 @@ bool init_platform();
 uint8_t current_hour();
 uint8_t current_minute();
 uint8_t wifi_strength();
+uint8_t battery_left();
 
 #endif

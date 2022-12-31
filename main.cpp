@@ -8,13 +8,15 @@
 #include "sdl_backend.c"
 #elif defined(PICO_BACKEND)
 #include "pico_backend.c"
+#elif defined(TEST_BACKEND)
+#include "test_backend.c"
 #elif defined(ESP_BACKEND)
 //#include "esp/backend.c"
 #endif
 
 
 void drawHud() {
-    memset(hud_buffer, 0, sizeof(hud_buffer));
+    memset(hud_buffer, 0x00, sizeof(hud_buffer));
     _draw_hud_sprite(&hud_sprites, 3 - battery_left(), 0, 18*13, 0); // bat
     _draw_hud_sprite(&hud_sprites, 3 - wifi_strength(), 1, 18*12, 0); // wifi
 
@@ -79,8 +81,7 @@ int16_t drawMenu() {
     return -1;
 }
 
-int main( int argc, char* args[] )
-{
+int pico8() {
     bootup_time = now();
     if( !init_video() )
     {
@@ -101,13 +102,6 @@ int main( int argc, char* args[] )
     printf("initializing engine took %dms\n", init_done-bootup_time);
     bootup_time = now();
 
-    printf("Parsing font \n");
-    assert(artifacts_font_lua_len <= sizeof(fontsheet.sprite_data));
-    memcpy(fontsheet.sprite_data, artifacts_font_lua, artifacts_font_lua_len);
-
-    printf("Parsing HUD \n");
-    assert(artifacts_hud_p8_len <= sizeof(hud_sprites.sprite_data));
-    memcpy(hud_sprites.sprite_data, artifacts_hud_p8, artifacts_hud_p8_len);
 
     init_done = now();
     printf("initializing took %dms\n", init_done-bootup_time);
@@ -185,4 +179,5 @@ int main( int argc, char* args[] )
 
     lua_close(L);
     video_close();
+    return 0;
 }

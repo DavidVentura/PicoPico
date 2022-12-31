@@ -548,7 +548,7 @@ int _lua_pset(lua_State* L) {
 }
 
 int _lua_time(lua_State* L) {
-    float delta = (float)(now() - bootup_time);
+    float delta = (float)(now() - bootup_time)/1000.0f;
     lua_pushnumber(L, delta);
     return 1;
 }

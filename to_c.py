@@ -59,10 +59,10 @@ def process_cart(name: str, data: bytes) -> GameCart:
 
     return GameCart(name=name,
                     code=sections.get(LUA_HEADER, b''),
-                    gfx=b''.join(sections.get(b'__gfx__', [])),
+                    gfx=to_char_value(b''.join(sections.get(b'__gfx__', []))),
                     gff=hex_digits_to_bytes(b''.join(sections.get(b'__gff__', []))),
                     label=to_char_value(b''.join(sections.get(LABEL_HEADER, []))),
-                    map=b''.join(sections.get(b'__map__', [])),
+                    map=hex_digits_to_bytes(b''.join(sections.get(b'__map__', []))),
                     sfx=b''.join(sections.get(b'__sfx__', [])),
                     music=b'\n'.join(sections.get(b'__music__', []))
                     )
@@ -87,11 +87,7 @@ def to_char_value(data: bytes) -> bytes:
     """
     0-f -> 0-15
     """
-    ret = []
-    for b in data:
-        n = _to_char(b)
-        ret.append(n)
-    return bytes(ret)
+    return bytes(map(_to_char, data))
 
 def path_to_identifier(p: Path) -> str:
     pname = os.path.dirname(p).replace('.', '_').replace('-', '_')

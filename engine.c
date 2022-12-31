@@ -109,17 +109,19 @@ void rawSpriteParser(Spritesheet* sheet, const uint8_t* text) {
 }
 
 void cartParser(GameCart* parsingCart) {
-        for(uint8_t i=0; i<(parsingCart->gfx_len/128); i++) {
-                gfxParser(parsingCart->gfx+(i*128), i, &spritesheet);
-        }
-	assert(parsingCart->gff_len <= 256);
+	assert(parsingCart->gfx_len <= sizeof(spritesheet.sprite_data));
+	memcpy(spritesheet.sprite_data, parsingCart->gfx, parsingCart->gfx_len);
+
+	assert(parsingCart->gff_len <= sizeof(spritesheet.flags));
 	memcpy(spritesheet.flags, parsingCart->gff, parsingCart->gff_len);
-        for(uint8_t i=0; i<(parsingCart->map_len/256); i++) {
-                mapParser(parsingCart->map+(i*256), i, map_data, true);
-        }
+
+	assert(parsingCart->map_len <= sizeof(map_data));
+	memcpy(map_data, parsingCart->map, parsingCart->map_len);
+
         if (parsingCart->gfx_len > (64*128)) { // 64 half-sized lines (128bytes) == 32 256 lines
+                                               // these are LSB and have to be flipped
             for(uint16_t i=32; i<(parsingCart->gfx_len/256); i++) {
-                mapParser(parsingCart->gfx+(i*256), i, map_data, false);
+                mapParser(parsingCart->gfx+(i*256), i, map_data);
             }
         }
         for(uint8_t i=0; i<(parsingCart->sfx_len/168); i++) {

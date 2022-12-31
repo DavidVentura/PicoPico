@@ -214,14 +214,14 @@ void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const palidx_t col
     }
 }
 int _lua_print(lua_State* L) {
-    int16_t textLen = 0;
+    size_t textLen = 0;
     const char* text = luaL_checklstring(L, 1, (size_t*)&textLen);
     const int16_t x = luaL_checkinteger(L, 2);
     const int16_t y = luaL_checkinteger(L, 3);
     const int16_t paletteIdx = luaL_optinteger(L, 4, drawstate.pen_color);
 
-    _print(text, textLen, x, y, paletteIdx);
-    lua_pushnumber(L, x + textLen * 4);
+    _print(text, (uint8_t)textLen, x, y, paletteIdx);
+    lua_pushnumber(L, x + ((uint8_t)textLen) * 4);
     return 1;
 }
 

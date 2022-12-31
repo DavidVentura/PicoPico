@@ -94,7 +94,8 @@ Celeste takes about 9ms / frame (rendering happens on the second core), includin
 1. Make `hello_world` work without regressions )).
     * ~All letters are white~ (lazy palette evaluation was missing a palette indirection (screen vs draw))
 1. Make `celeste` fully playable (without music // complete SFX)
-    * Hair not turning blue?
+    * ~Clouds suddenly appear~ (bad rectfill types, took uint instead of int)
+    * Sometimes 2 celestes appear?? mostly on level crossings
 1. Make `rockets` fully playable (without music // complete SFX)
     * ~Points go up too fast~ (`time()` was returning millis)
 1. Make `valdi` fully playable (without music // complete SFX)

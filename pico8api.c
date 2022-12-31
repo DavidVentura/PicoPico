@@ -112,15 +112,15 @@ void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const palidx_t
                 put_pixel(x, y, color);
 }
 
-void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const palidx_t color) {
+void gfx_rectfill(int16_t x0, int16_t y0, int16_t x2, int16_t y2, const palidx_t color) {
     // this is _inclusive_
-    x0 = MIN(x0, SCREEN_WIDTH-1);
+    x0 = MAX(0, MIN(x0, SCREEN_WIDTH-1));
     x2 = MIN(x2, SCREEN_WIDTH-1);
-    y0 = MIN(y0, SCREEN_HEIGHT-1);
+    y0 = MAX(0, MIN(y0, SCREEN_HEIGHT-1));
     y2 = MIN(y2, SCREEN_HEIGHT-1);
 
-    for(uint16_t y=y0; y<=y2; y++) {
-        for(uint16_t x=x0; x<=x2; x++) {
+    for(uint8_t y=y0; y<=y2; y++) {
+        for(uint8_t x=x0; x<=x2; x++) {
             put_pixel(x, y, color);
         }
     }
@@ -372,10 +372,10 @@ int _lua_rect(lua_State* L) {
 }
 
 int _lua_rectfill(lua_State* L) {
-    int8_t x = luaL_checkinteger(L, 1);
-    int8_t y = luaL_checkinteger(L, 2);
-    int8_t x2 = luaL_checkinteger(L, 3);
-    int8_t y2 = luaL_checkinteger(L, 4);
+    int16_t x = luaL_checkinteger(L, 1);
+    int16_t y = luaL_checkinteger(L, 2);
+    int16_t x2 = luaL_checkinteger(L, 3);
+    int16_t y2 = luaL_checkinteger(L, 4);
     int col = luaL_optinteger(L, 5, drawstate.pen_color);
     drawstate.pen_color = col;
 

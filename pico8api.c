@@ -502,16 +502,20 @@ int _lua_fget(lua_State* L) {
 }
 
 int _lua_mset(lua_State* L) {
-    uint8_t x = luaL_checkinteger(L, 1);
-    uint8_t y = luaL_checkinteger(L, 2);
+    uint16_t x = luaL_checkinteger(L, 1);
+    uint16_t y = luaL_checkinteger(L, 2);
     uint8_t n = luaL_checkinteger(L, 3);
     map_data[y*128+x] = n;
     return 0;
 }
 
 int _lua_mget(lua_State* L) {
-    uint8_t x = luaL_checkinteger(L, 1);
-    uint8_t y = luaL_checkinteger(L, 2);
+    int16_t x = luaL_checkinteger(L, 1);
+    int16_t y = luaL_checkinteger(L, 2);
+    if (x<0 || y<0) {
+    	lua_pushinteger(L, 0);
+    	return 1;
+    }
     uint16_t p = map_data[y*128+x];
     lua_pushinteger(L, p);
     return 1;

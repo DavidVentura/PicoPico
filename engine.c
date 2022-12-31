@@ -234,9 +234,11 @@ void flip() {
     gfx_flip();
     wants_to_quit = handle_input();
     uint32_t n = now();
+
     if (n < frame_end_time) {
          delay(frame_end_time - n);
     }
+
     frame_start_time = now();
     frame_end_time = frame_start_time + ms_delay;
 }

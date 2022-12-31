@@ -205,9 +205,13 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 }
 
 void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const palidx_t color) {
-    for(uint16_t y=y0; y<=y1; y++)
-        for(uint16_t x=x0; x<=x1; x++)
+    for(uint16_t y=y0; y<=y1; y++) {
+	if(y>=SCREEN_HEIGHT) return;
+        for(uint16_t x=x0; x<=x1; x++) {
+	    if(x>=SCREEN_WIDTH) break;
             put_pixel(x, y, color);
+	}
+    }
 }
 int _lua_print(lua_State* L) {
     int16_t textLen = 0;

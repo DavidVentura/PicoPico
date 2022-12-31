@@ -101,6 +101,7 @@ Celeste takes about 9ms / frame (rendering happens on the second core), includin
 1. Make `valdi` fully playable (without music // complete SFX)
     * ~Renders offset when looking to the left~ (wasn't calculating the sprite width accordingly in `spr()`)
     * `fillp` not implemented (bacgrkound)
+    * ~Super slow after a few resets?~ (`gfx_line` was missing a bounds check, overwriting the delay between frames)
 1. Make `awake` fully playable (without music // complete SFX)
     * Colors are super glitched, level2 is also glitched
 

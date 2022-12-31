@@ -105,15 +105,16 @@ Immediate:
 * ~Measure and output the correct number of samples out of the audio buffer, currently it's a (badly) guessed number.~
 * ~Get reasonable audio quality out of SFX~
 * Deal with warnings when building for ESP
-    * Figure out why they don't show up when building with SDL backend
+    * ~Figure out why they don't show up when building with SDL backend~
 * Move hardcoded pin for ESP32 to sdkconfig
     * Extract current values for docs
 * Implement more complete SFX
 * Generate board captures automatically
-* Add support for short-hand print ('?"x"' == print("x"))
+* ~Add support for short-hand print ('?"x"' == print("x"))~
 * Implement fillp https://pico-8.fandom.com/wiki/Fillp
 * Lua error: bad argument #1 to 'split' (string expected, got nil)
 * Lua error: bad argument #1 to 'btn' (number expected, got nil)
+    * z8lua considers literal circle (🅾️) to be `nil` but not ❎
 * `pal` segfaults the demo
 
 Later:

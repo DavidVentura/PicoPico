@@ -150,6 +150,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "circ");
     lua_pushcfunction(L, _lua_circfill);
     lua_setglobal(L, "circfill");
+    lua_pushcfunction(L, _lua_ovalfill);
+    lua_setglobal(L, "ovalfill");
     lua_pushcfunction(L, _lua_btn);
     lua_setglobal(L, "btn");
     lua_pushcfunction(L, _lua_btnp);
@@ -202,6 +204,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "flip");
     lua_pushcfunction(L, _lua_fillp);
     lua_setglobal(L, "fillp");
+    lua_pushcfunction(L, _lua_reload);
+    lua_setglobal(L, "reload");
 }
 
 bool _lua_fn_exists(const char* fn) {

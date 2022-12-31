@@ -386,6 +386,19 @@ int _lua_circ(lua_State* L) {
     return 0;
 }
 
+int _lua_ovalfill(lua_State* L) {
+    // FIXME  this is just a circle..
+    int x0 = luaL_checkinteger(L, 1);
+    int y0 = luaL_checkinteger(L, 2);
+    int x1 = luaL_checkinteger(L, 3);
+    int y1 = luaL_checkinteger(L, 4);
+    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+    drawstate.pen_color = col;
+
+    gfx_circlefill(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-x0, col);
+    return 0;
+}
+
 int _lua_circfill(lua_State* L) {
     int x = luaL_checkinteger(L, 1);
     int y = luaL_checkinteger(L, 2);
@@ -420,7 +433,6 @@ uint8_t btn(lua_State* L, uint8_t* _buttons) {
     	return bitfield;
     } else if (argcount == 1) {
     	int idx = luaL_optinteger(L, 1, -1);
-	printf("%d\n", idx);
 	if(idx==-1) return 0;
     	return _buttons[idx];
     } else {
@@ -703,6 +715,14 @@ int _lua_fillp(lua_State* L) {
         return 0;
     }
     uint16_t addr = luaL_checkinteger(L, 1);
+    return 0;
+}
+int _lua_reload(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+    // TODO: implement reload
+    if (argcount==0) {
+        return 0;
+    }
     return 0;
 }
 

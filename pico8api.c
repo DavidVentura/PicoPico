@@ -824,7 +824,13 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
         if (screen_y >= SCREEN_HEIGHT) return;
 
         for (uint16_t x=xmin; x<xmax; x++) {
-            uint16_t screen_x = x0+x-drawstate.camera_x;
+            uint16_t screen_x;
+            if(flip_x) {
+                screen_x = x0+drawstate.camera_x-x+8*width;
+	    } else {
+	        screen_x = x0+x-drawstate.camera_x;
+	    }
+
             if (screen_x >= SCREEN_WIDTH) break;
             val = s->sprite_data[(sy+y)*128 + x + sx];
             if (drawstate.transparent[val] != 0) {
@@ -837,11 +843,7 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
                 p = val;
             }
 
-            if(flip_x) {
-                put_pixel(screen_x+8-2*x, screen_y, p);
-            } else {
-                put_pixel(screen_x, screen_y, p);
-            }
+            put_pixel(screen_x, screen_y, p);
 
         }
     }

@@ -94,9 +94,10 @@ Celeste takes about 9ms / frame (rendering happens on the second core), includin
 1. Make `celeste` fully playable (without music // complete SFX)
     * Hair not turning blue?
 1. Make `rockets` fully playable (without music // complete SFX)
-    * Points go up too fast
+    * ~Points go up too fast~ (`time()` was returning millis)
 1. Make `valdi` fully playable (without music // complete SFX)
-    * Renders offset when looking to the left
+    * ~Renders offset when looking to the left~ (wasn't calculating the sprite width accordingly in `spr()`)
+    * `fillp` not implemented (bacgrkound)
 1. Make `awake` fully playable (without music // complete SFX)
     * Colors are super glitched, level2 is also glitched
 

@@ -200,6 +200,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "color");
     lua_pushcfunction(L, _lua_poke);
     lua_setglobal(L, "poke");
+    lua_pushcfunction(L, _lua_poke4);
+    lua_setglobal(L, "poke4");
     lua_pushcfunction(L, _lua_flip);
     lua_setglobal(L, "flip");
     lua_pushcfunction(L, _lua_fillp);

@@ -739,6 +739,36 @@ int _lua_reload(lua_State* L) {
     return 0;
 }
 
+int _lua_poke4(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+    if (argcount==0) {
+        return 0;
+    }
+    uint16_t addr = luaL_checkinteger(L, 1);
+    if (addr >= 0x6000 && addr <= 0x7fff) {
+        printf("poke4 on %x\n", addr);
+	addr = (addr - 0x6000) / 2;
+        for(uint8_t arg=0; arg<argcount-1; arg++){
+	    uint32_t value = luaL_checkinteger(L, 2+arg);
+            printf("fb[%lx] = %d, sizeof(fb) = %lx\n", addr+arg*sizeof(uint8_t), value, sizeof(frontbuffer));
+            frontbuffer[addr+arg*sizeof(uint8_t)+0] = (value & 0x000f) >> 0;
+            frontbuffer[addr+arg*sizeof(uint8_t)+1] = (value & 0x00f0) >> 8;
+            frontbuffer[addr+arg*sizeof(uint8_t)+2] = (value & 0x0f00) >> 16;
+            frontbuffer[addr+arg*sizeof(uint8_t)+3] = (value & 0xf000) >> 24;
+	}
+	return 0;
+    }
+    for(uint8_t arg=0; arg<argcount-1; arg++){
+	uint32_t value = luaL_checkinteger(L, 2+arg);
+	printf("-Writing %d to %x\n", value, addr+arg);
+	fflush(stdout);
+	ram[addr+arg*sizeof(uint32_t)+0] = (value & 0x000f) >>  0;
+	ram[addr+arg*sizeof(uint32_t)+1] = (value & 0x00f0) >>  8;
+	ram[addr+arg*sizeof(uint32_t)+2] = (value & 0x0f00) >> 16;
+	ram[addr+arg*sizeof(uint32_t)+3] = (value & 0xf000) >> 24;
+    }
+    return 0;
+}
 inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
     uint16_t val;
 

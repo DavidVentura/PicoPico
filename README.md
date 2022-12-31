@@ -91,6 +91,8 @@ Celeste takes about 9ms / frame (rendering happens on the second core), includin
 
 # Goals
 
+1. Make `hello_world` work without regressions )).
+    * ~All letters are white~ (lazy palette evaluation was missing a palette indirection (screen vs draw))
 1. Make `celeste` fully playable (without music // complete SFX)
     * Hair not turning blue?
 1. Make `rockets` fully playable (without music // complete SFX)

@@ -28,14 +28,16 @@ static color_t palette[] = {
     to_rgb565(255, 204, 170),   //	light-peach 
 };
 
+static uint8_t pal_map[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+const static uint8_t orig_pal_map[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
 static inline void put_pixel(uint8_t x, uint8_t y, palidx_t p){
     if (x&0x1) {
         frontbuffer[(y*SCREEN_WIDTH/2+x/2)] &= 0x0f;
-        frontbuffer[(y*SCREEN_WIDTH/2+x/2)] |= (p << 4);
+        frontbuffer[(y*SCREEN_WIDTH/2+x/2)] |= (pal_map[p] << 4);
     } else {
         frontbuffer[(y*SCREEN_WIDTH/2+x/2)] &= 0xf0;
-        frontbuffer[(y*SCREEN_WIDTH/2+x/2)] |= p;
+        frontbuffer[(y*SCREEN_WIDTH/2+x/2)] |= pal_map[p];
     }
 
 }
@@ -273,7 +275,7 @@ int _lua_pal(lua_State* L) {
     // https://pico-8.fandom.com/wiki/Pal
     uint8_t argcount = lua_gettop(L);
     if (argcount == 0) {
-        memcpy(palette, original_palette, sizeof(original_palette));
+        memcpy(pal_map, orig_pal_map, sizeof(orig_pal_map));
         reset_transparency();
         return 0;
     }
@@ -283,12 +285,9 @@ int _lua_pal(lua_State* L) {
         return 0;
     }
 
-    int origIdx = luaL_checkinteger(L, 1);
-    int newIdx = luaL_checkinteger(L, 2);
-    const color_t origColor = palette[origIdx];
-    const color_t newColor = original_palette[newIdx];
-
-    palette[origIdx] = newColor;
+    const uint8_t origIdx = luaL_checkinteger(L, 1);
+    const uint8_t newIdx = luaL_checkinteger(L, 2);
+    pal_map[origIdx] = newIdx;
     return 0;
 }
 

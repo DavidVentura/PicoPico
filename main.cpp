@@ -167,10 +167,6 @@ int main( int argc, char* args[] )
         else
             skip_next_render = false;
 
-        frame_end_time = now();
-        int delta = ms_delay - (frame_end_time - frame_start_time);
-        if(delta > 0) delay(delta);
-
         // lua_gc(L, LUA_GCSTEP, 0);
 
         // printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);

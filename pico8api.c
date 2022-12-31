@@ -7,6 +7,7 @@ static Spritesheet spritesheet;
 static Spritesheet fontsheet;
 static uint8_t map_data[64 * 128];
 static uint32_t bootup_time;
+// FIXME: should be W*H/2
 static color_t frontbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 
 static color_t palette[] = {
@@ -29,11 +30,11 @@ static color_t palette[] = {
 };
 
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
-static inline void put_pixel(uint8_t x, uint8_t y, const color_t c){
-    frontbuffer[(y*SCREEN_WIDTH+x)  ] = c;
+static inline void put_pixel(uint8_t x, uint8_t y, palidx_t p){
+    frontbuffer[(y*SCREEN_WIDTH+x)  ] = palette[p];
 
 }
-void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, color_t color){
+void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, palidx_t p){
     uint16_t r_sq = radius * radius;
     if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
     for (int w = 0; w <= radius * 2; w++) {
@@ -46,12 +47,12 @@ void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, color_t color){
             if((y + dy) >= SCREEN_HEIGHT) break;
             if((y + dy) < 0) continue;
             if ((dx_sq + dy*dy) <= r_sq) {
-                put_pixel(x + dx, y + dy, color);
+                put_pixel(x + dx, y + dy, p);
             }
         }
     }
 }
-void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, color_t color){
+void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, palidx_t color){
     const int32_t diameter = (radius * 2);
 
     int32_t x = (radius - 1);
@@ -87,11 +88,11 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, color_t color)
         }
     }
 }
-void gfx_cls(color_t c) {
+void gfx_cls(palidx_t c) {
     memset(frontbuffer, c, sizeof(frontbuffer));
 }
 
-void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const color_t color) {
+void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const palidx_t color) {
     x0 = MIN(x0, SCREEN_WIDTH-1);
     x2 = MIN(x2, SCREEN_WIDTH-1);
     y0 = MIN(y0, SCREEN_HEIGHT-1);
@@ -103,7 +104,7 @@ void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const color_t 
                 put_pixel(x, y, color);
 }
 
-void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const color_t color) {
+void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const palidx_t color) {
     // this is _inclusive_
     x0 = MIN(x0, SCREEN_WIDTH-1);
     x2 = MIN(x2, SCREEN_WIDTH-1);
@@ -111,9 +112,8 @@ void gfx_rectfill(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const colo
     y2 = MIN(y2, SCREEN_HEIGHT-1);
 
     for(uint16_t y=y0; y<=y2; y++) {
-        uint16_t yoff = y*SCREEN_WIDTH;
         for(uint16_t x=x0; x<=x2; x++) {
-            frontbuffer[(yoff+x)  ] = color;
+            put_pixel(x, y, color);
         }
     }
 }
@@ -164,7 +164,7 @@ void render_text(Spritesheet* s, uint16_t sprite, uint8_t x0, uint8_t y0) {
             if ((x+x0) >= SCREEN_WIDTH) break;
             val = s->sprite_data[y*128 + x + xIndex*8 + yIndex*8*128];
             if (val!=0) {
-                put_pixel(x0+x, y0+y, palette[drawstate.pen_color]);
+                put_pixel(x0+x, y0+y, drawstate.pen_color);
             }
         }
     }
@@ -193,7 +193,7 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 
 }
 
-void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const color_t color) {
+void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const palidx_t color) {
     for(uint16_t y=y0; y<y1-y0; y++)
         for(uint16_t x=x0; x<x1-x0; x++)
             put_pixel(x, y, color);
@@ -238,7 +238,7 @@ void _replace_palette(uint8_t palIdx, lua_State* L) {
     // Push another reference to the table on top of the stack (so we know
     // where it is, and this function can work for negative, positive and
     // pseudo indices
-    lua_pushvalue(L, -1);
+    lua_pushvalue(L, 1);
     // stack now contains: -1 => table
     lua_pushnil(L);
     // stack now contains: -1 => nil; -2 => table
@@ -284,8 +284,7 @@ int _lua_pal(lua_State* L) {
 }
 
 inline void cls(uint8_t palIdx = 0) {
-    color_t color = palette[palIdx];
-    gfx_cls(color);
+    gfx_cls(palIdx);
 }
 int _lua_cls(lua_State* L) {
     uint8_t palIdx = luaL_optinteger(L, 1, 0);
@@ -348,7 +347,7 @@ int _lua_line(lua_State* L) {
     drawstate.pen_color = col;
     drawstate.line_x = x1;
     drawstate.line_y = y1;
-    gfx_line(x0, y0, x1, y1, palette[col]);
+    gfx_line(x0, y0, x1, y1, col);
     return 0;
 }
 
@@ -360,7 +359,7 @@ int _lua_rect(lua_State* L) {
     int col = luaL_optinteger(L, 5, drawstate.pen_color);
     drawstate.pen_color = col;
 	    
-    gfx_rect(x, y, x2, y2, palette[col]);
+    gfx_rect(x, y, x2, y2, col);
     return 0;
 }
 
@@ -372,7 +371,7 @@ int _lua_rectfill(lua_State* L) {
     int col = luaL_optinteger(L, 5, drawstate.pen_color);
     drawstate.pen_color = col;
 
-    gfx_rectfill(x, y, x2, y2, palette[col]);
+    gfx_rectfill(x, y, x2, y2, col);
     return 0;
 }
 
@@ -383,7 +382,7 @@ int _lua_circ(lua_State* L) {
     int col = luaL_optinteger(L, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 
-    gfx_circle(x-drawstate.camera_x, y-drawstate.camera_y, r, palette[col]);
+    gfx_circle(x-drawstate.camera_x, y-drawstate.camera_y, r, col);
     return 0;
 }
 
@@ -394,7 +393,7 @@ int _lua_circfill(lua_State* L) {
     int col = luaL_optinteger(L, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 
-    gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, palette[col]);
+    gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, col);
     return 0;
 }
 
@@ -512,7 +511,7 @@ inline void _pset(int16_t x, int16_t y, int16_t idx) {
     int16_t tx = x-drawstate.camera_x;
     int16_t ty = y-drawstate.camera_y;
     if (tx < 0 || tx >= SCREEN_WIDTH || ty < 0 || ty  >= SCREEN_HEIGHT) return;
-    put_pixel(tx, ty, palette[idx]);
+    put_pixel(tx, ty, idx);
 }
 
 int _lua_pset(lua_State* L) {
@@ -732,15 +731,14 @@ inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, i
             // if (screen_x >= SCREEN_WIDTH) break;
             val = s->sprite_data[(sy+y)*128 + x + sx];
             if (drawstate.transparent[val] == 0) {
-                const color_t p = palette[val];
-                put_pixel(screen_x, screen_y, p);
+                put_pixel(screen_x, screen_y, val);
             }
         }
     }
 }
 
 void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
-    color_t p;
+    palidx_t p;
     uint16_t val;
 
     int16_t ymin = MAX(0, -(y0-drawstate.camera_y));
@@ -771,9 +769,9 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
             }
 
             if (paletteIdx != -1) {
-                p = palette[paletteIdx];
+                p = paletteIdx;
             } else {
-                p = palette[val];
+                p = val;
             }
 
             if(flip_x) {
@@ -818,8 +816,7 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
         for (uint16_t x=0; x<dw; x++) {
             uint8_t val = s->sprite_data[yoff + ((x*ratio_x) >> 16)+sx];
             if (drawstate.transparent[val] == 0){
-                const color_t p = palette[val];
-                put_pixel(dx+x-drawstate.camera_x, screen_y, p);
+                put_pixel(dx+x-drawstate.camera_x, screen_y, val);
             }
         }
     }

@@ -5,6 +5,7 @@
 // The memory used by Lua is entirely separate from the PICO-8 memory and is limited to 2 MiB. 
 // this does not include the "General use / extended map" 32KB chunk
 static uint8_t ram[0x5DFF - 0x4300]; // 7KB
+typedef uint8_t  palidx_t;
 typedef uint16_t color_t;
 struct GameCart {
     const uint8_t  name_len;

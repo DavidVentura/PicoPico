@@ -19,7 +19,7 @@ bool init_platform() {
 
 bool init_video()
 {
-	memset(frontbuffer, 0, sizeof(frontbuffer));
+    memset(frontbuffer, 0, sizeof(frontbuffer));
 
     //Initialize SDL
     if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 )

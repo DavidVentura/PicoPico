@@ -42,6 +42,25 @@ https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-9
 * MAX98357 I2S audio amplifier
 * 1.77" SPI ST7735 128x160 Display (128x128 used for game, 16px for UI, 16px padding)
 
+# Goals
+
+1. ✅ Make `hello_world` work without regressions )).
+    * ~All letters are white~ (lazy palette evaluation was missing a palette indirection (screen vs draw))
+1. ✅ Make `rockets` fully playable (without music // complete SFX).
+    * ~Points go up too fast~ (`time()` was returning millis)
+1. ✅ Create some basic automated testing.
+    * Tests are at `tests/`, they run one (or a few) frames and get output.
+    * Need to integrate better into the project; exclusive `ifdef` for header selection
+1. Make `celeste` fully playable (without music // complete SFX)
+    * ~Clouds suddenly appear~ (bad rectfill types, took uint instead of int)
+    * Sometimes 2 celestes appear?? mostly on level crossings
+1. Make `valdi` fully playable (without music // complete SFX)
+    * ~Renders offset when looking to the left~ (wasn't calculating the sprite width accordingly in `spr()`)
+    * `fillp` not implemented (background)
+    * ~Super slow after a few resets?~ (`gfx_line` was missing a bounds check, overwriting the delay between frames)
+1. Make `awake` fully playable (without music // complete SFX)
+    * Colors are super glitched, level2 is also glitched
+
 
 # Basic analysis / feasibility:
 
@@ -88,23 +107,6 @@ Running `hello_world.lua`:
 In ESP32:
 
 Celeste takes about 9ms / frame (rendering happens on the second core), including SFX
-
-# Goals
-
-1. Make `hello_world` work without regressions )).
-    * ~All letters are white~ (lazy palette evaluation was missing a palette indirection (screen vs draw))
-1. Make `celeste` fully playable (without music // complete SFX)
-    * ~Clouds suddenly appear~ (bad rectfill types, took uint instead of int)
-    * Sometimes 2 celestes appear?? mostly on level crossings
-1. Make `rockets` fully playable (without music // complete SFX)
-    * ~Points go up too fast~ (`time()` was returning millis)
-1. Make `valdi` fully playable (without music // complete SFX)
-    * ~Renders offset when looking to the left~ (wasn't calculating the sprite width accordingly in `spr()`)
-    * `fillp` not implemented (bacgrkound)
-    * ~Super slow after a few resets?~ (`gfx_line` was missing a bounds check, overwriting the delay between frames)
-1. Make `awake` fully playable (without music // complete SFX)
-    * Colors are super glitched, level2 is also glitched
-1. Create some basic automated testing
 
 # TODO
 

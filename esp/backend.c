@@ -26,9 +26,9 @@ static const i2s_config_t i2s_config = {
     .tx_desc_auto_clear = false,
 };
 static const i2s_pin_config_t i2s_pin_config = {
-    .bck_io_num = 27, // BCLK "Bit clock line"
-    .ws_io_num = 26, // LRC also "LRCLK" or WS
-    .data_out_num = 25, // DIN !! not SD (which is SHUTDOWN)
+    .bck_io_num = CONFIG_GPIO_AUDIO_BCLK, // BCLK "Bit clock line"
+    .ws_io_num = CONFIG_GPIO_AUDIO_WS, // LRC also "LRCLK" or WS
+    .data_out_num = CONFIG_GPIO_AUDIO_DATA_OUT, // DIN !! not SD (which is SHUTDOWN)
     .data_in_num = I2S_PIN_NO_CHANGE
 };
 
@@ -39,12 +39,6 @@ uint8_t FLAG = 1;
 uint32_t bytesTX = 0;
 // static uint16_t backbuffer[SCREEN_WIDTH*SCREEN_HEIGHT];
 
-//GPIO34-39 can only be set as input mode and do not have software-enabled pullup or pulldown functions.
-const gpio_num_t GPIO_LEFT  = (gpio_num_t)13;
-const gpio_num_t GPIO_RIGHT = (gpio_num_t)12;
-const gpio_num_t GPIO_UP    = (gpio_num_t)34;
-const gpio_num_t GPIO_A     = (gpio_num_t)32;
-const gpio_num_t GPIO_B     = (gpio_num_t)33;
 uint8_t buttons_prev[6] =  {0, 0, 0, 0, 0, 0};
 
 //static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
@@ -125,7 +119,7 @@ bool init_video() {
     lcdInit(&dev, 0x7735, CONFIG_WIDTH, CONFIG_HEIGHT, 0, 0);
 
     gpio_config_t c = {
-        .pin_bit_mask = (1ULL << GPIO_LEFT) | (1ULL << GPIO_RIGHT) | (1ULL << GPIO_A) | (1ULL << GPIO_B) | (1ULL << GPIO_UP),
+        .pin_bit_mask = (1ULL << CONFIG_GPIO_LEFT) | (1ULL << CONFIG_GPIO_RIGHT) | (1ULL << CONFIG_GPIO_A) | (1ULL << CONFIG_GPIO_B) | (1ULL << CONFIG_GPIO_UP),
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_ENABLE,
@@ -137,11 +131,11 @@ bool init_video() {
 }
 
 bool handle_input() {
-    int up = gpio_get_level(GPIO_UP);
-    int left = gpio_get_level(GPIO_LEFT);
-    int right = gpio_get_level(GPIO_RIGHT);
-    int a = gpio_get_level(GPIO_A);
-    int b = gpio_get_level(GPIO_B);
+    int up = gpio_get_level((gpio_num_t)CONFIG_GPIO_UP);
+    int left = gpio_get_level((gpio_num_t)CONFIG_GPIO_LEFT);
+    int right = gpio_get_level((gpio_num_t)CONFIG_GPIO_RIGHT);
+    int a = gpio_get_level((gpio_num_t)CONFIG_GPIO_A);
+    int b = gpio_get_level((gpio_num_t)CONFIG_GPIO_B);
     // printf("left %d, right %d, a %d\n", left, right, a);
 
     buttons_prev[0] = buttons[0];

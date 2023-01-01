@@ -134,11 +134,35 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
-# ST7789 Configuration
+# PicoPico Configuration
 #
-CONFIG_GPIO_RANGE_MAX=33
 CONFIG_WIDTH=128
 CONFIG_HEIGHT=128
+
+#
+# Controller configuration
+#
+CONFIG_GPIO_LEFT=13
+CONFIG_GPIO_RIGHT=12
+CONFIG_GPIO_UP=34
+CONFIG_GPIO_DOWN=0
+CONFIG_GPIO_A=32
+CONFIG_GPIO_B=33
+CONFIG_GPIO_SELECT=0
+CONFIG_GPIO_START=0
+# end of Controller configuration
+
+#
+# I2S Audio Configuration
+#
+CONFIG_GPIO_AUDIO_BCLK=27
+CONFIG_GPIO_AUDIO_WS=26
+CONFIG_GPIO_AUDIO_DATA_OUT=25
+# end of I2S Audio Configuration
+
+#
+# ST7789 Configuration
+#
 CONFIG_OFFSETX=0
 CONFIG_OFFSETY=0
 CONFIG_MOSI_GPIO=22
@@ -149,6 +173,7 @@ CONFIG_RESET_GPIO=21
 CONFIG_BL_GPIO=5
 # CONFIG_INVERSION is not set
 # end of ST7789 Configuration
+# end of PicoPico Configuration
 
 #
 # Compiler options

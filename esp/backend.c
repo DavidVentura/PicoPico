@@ -61,7 +61,7 @@ void gfx_flip() {
     for(uint8_t y=0; y<SCREEN_HEIGHT; y++)
         for(uint8_t x=0; x<SCREEN_WIDTH; x++) {
             palidx_t p = get_pixel(x, y);
-	    color_t c = palette[p];
+            color_t c = palette[p];
             backbuffer[y*SCREEN_WIDTH*2+x*2  ] = (c >> 8);
             backbuffer[y*SCREEN_WIDTH*2+x*2+1] = c & 0xFF;
         }

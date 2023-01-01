@@ -45,6 +45,7 @@ const gpio_num_t GPIO_RIGHT = (gpio_num_t)12;
 const gpio_num_t GPIO_UP    = (gpio_num_t)34;
 const gpio_num_t GPIO_A     = (gpio_num_t)32;
 const gpio_num_t GPIO_B     = (gpio_num_t)33;
+uint8_t buttons_prev[6] =  {0, 0, 0, 0, 0, 0};
 
 //static inline void put_pixel(uint8_t x, uint8_t y, const uint8_t* p);
 void put_buffer();
@@ -142,12 +143,27 @@ bool handle_input() {
     int a = gpio_get_level(GPIO_A);
     int b = gpio_get_level(GPIO_B);
     // printf("left %d, right %d, a %d\n", left, right, a);
+
+    buttons_prev[0] = buttons[0];
+    buttons_prev[1] = buttons[1];
+    buttons_prev[2] = buttons[2];
+    buttons_prev[3] = buttons[3];
+    buttons_prev[4] = buttons[4];
+    buttons_prev[5] = buttons[5];
+
     buttons[0] = left == 1;
     buttons[1] = right == 1;
     buttons[2] = up == 1;
     buttons[3] = 0; // FIXME no down connected
     buttons[4] = a == 1;
     buttons[5] = b == 1;
+
+    buttons_frame[0] = (buttons[0] == 1) && (buttons_prev[0] == 0);
+    buttons_frame[1] = (buttons[1] == 1) && (buttons_prev[1] == 0);
+    buttons_frame[2] = (buttons[2] == 1) && (buttons_prev[2] == 0);
+    buttons_frame[3] = (0)               && (buttons_prev[3] == 0); // FIXME no down connected
+    buttons_frame[4] = (buttons[4] == 1) && (buttons_prev[4] == 0);
+    buttons_frame[5] = (buttons[5] == 1) && (buttons_prev[5] == 0);
 
     // TODO
     return false;

@@ -752,8 +752,8 @@ int _lua_poke4(lua_State* L) {
         printf("poke4 on %x\n", addr);
 	addr = (addr - 0x6000) / 2;
         for(uint8_t arg=0; arg<argcount-1; arg++){
-	    uint32_t value = luaL_checkinteger(L, 2+arg);
-            printf("fb[%lx] = %d, sizeof(fb) = %lx\n", addr+arg*sizeof(uint8_t), value, sizeof(frontbuffer));
+	        uint32_t value = luaL_checkinteger(L, 2+arg);
+            // printf("fb[%lx] = %d, sizeof(fb) = %lx\n", addr+arg*sizeof(uint8_t), value, sizeof(frontbuffer));
             frontbuffer[addr+arg*sizeof(uint8_t)+0] = (value & 0x000f) >> 0;
             frontbuffer[addr+arg*sizeof(uint8_t)+1] = (value & 0x00f0) >> 8;
             frontbuffer[addr+arg*sizeof(uint8_t)+2] = (value & 0x0f00) >> 16;

@@ -40,7 +40,7 @@ TFT_t dev;
 #include "main.cpp"
 
 void _main(void *pvParameters) {
-    main(0, NULL);
+    pico8();
 }
 void app_main(void)
 {

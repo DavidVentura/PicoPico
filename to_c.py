@@ -20,6 +20,9 @@ class GameCart:
     sfx: bytes
     music: bytes
 
+    def size(self) -> int:
+        return len(self.code) + len(self.gfx) + len(self.gff) + len(self.label) + len(self.map) + len(self.sfx) + len(self.music)
+
 class ProcessType(enum.Enum):
     COMPILE = enum.auto()
     RAW = enum.auto()
@@ -57,15 +60,16 @@ def process_cart(name: str, data: bytes) -> GameCart:
 
     sections[LUA_HEADER] = compile_lua_to_bytecode(b'\n'.join(sections[LUA_HEADER]))
 
-    return GameCart(name=name,
-                    code=sections.get(LUA_HEADER, b''),
-                    gfx=to_char_value(b''.join(sections.get(b'__gfx__', []))),
-                    gff=hex_digits_to_bytes(b''.join(sections.get(b'__gff__', []))),
-                    label=to_char_value(b''.join(sections.get(LABEL_HEADER, []))),
-                    map=hex_digits_to_bytes(b''.join(sections.get(b'__map__', []))),
-                    sfx=b''.join(sections.get(b'__sfx__', [])),
-                    music=b'\n'.join(sections.get(b'__music__', []))
-                    )
+    gc = GameCart(name=name,
+                  code=sections.get(LUA_HEADER, b''),
+                  gfx=to_char_value(b''.join(sections.get(b'__gfx__', []))),
+                  gff=hex_digits_to_bytes(b''.join(sections.get(b'__gff__', []))),
+                  label=to_char_value(b''.join(sections.get(LABEL_HEADER, []))),
+                  map=hex_digits_to_bytes(b''.join(sections.get(b'__map__', []))),
+                  sfx=b''.join(sections.get(b'__sfx__', [])),
+                  music=b'\n'.join(sections.get(b'__music__', []))
+                  )
+    return gc
 
 def hex_digits_to_bytes(data: bytes) -> bytes:
     """

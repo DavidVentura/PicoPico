@@ -2,13 +2,13 @@
 
 bool compare_buffer(const char* in_file, uint8_t* buf, uint16_t buf_len, bool dump_values) {
     if (dump_values) {
-        FILE *fw = fopen(in_file, "w");
+        FILE *fw = fopen(in_file, "wb");
         fwrite(buf, sizeof(uint8_t), buf_len, fw);
         fclose(fw);
         printf("[WARN] Overriding values for %s\n", in_file);
     }
 
-    FILE *f = fopen(in_file, "r");
+    FILE *f = fopen(in_file, "rb");
     fseek(f, 0, SEEK_END);
     uint16_t bytes_read = ftell(f);
     fseek(f, 0, SEEK_SET);

@@ -3,6 +3,8 @@ import sexpdata
 from pathlib import Path
 from kconfiglib import Kconfig, Symbol
 
+THIS_DIR = Path(__file__).parent.resolve()
+
 SCHEM_TO_KCONFIG = {
     "UNDEF":    "UNDEF",
     "SW_T":     "TOP",
@@ -43,7 +45,7 @@ PIN_MAPPING = {
     15: "GND",
     16: "VBAT",
     17: "GND",
-    18: "3.3v",
+    18: "3v3",
     19: "VIN",
     20: "5V",
     21: "GND",
@@ -62,10 +64,12 @@ PIN_MAPPING = {
     34: "GND",
 }
 
+PIN_NAME_TO_NUMBER = {v: k for k, v in PIN_MAPPING.items()}
+
 
 def main():
-    from_schem = parse_netlist(Path("./picopico.orcad.net"))
-    from_kconfig = parse_kconfig(Path("../../esp/Kconfig.projbuild"))
+    from_schem = parse_netlist(THIS_DIR / "./picopico.orcad.net")
+    from_kconfig = parse_kconfig(THIS_DIR / "../../esp/Kconfig.projbuild")
     bad = print_comparison_table(from_kconfig, from_schem)
     if bad:
         exit(1)
@@ -87,8 +91,8 @@ def parse_netlist(p: Path):
                     assert isinstance(i, list)
                     if len(i) == 2:
                         pin, sym = i
-                        pin_name = PIN_MAPPING[pin]
-                        from_schem[pin_name] = sym.value()
+                        from_schem[pin] = sym.value()
+
     return from_schem
 
 
@@ -100,11 +104,15 @@ def parse_kconfig(p: Path):
 
 
 def parse_kconf(node, kconfig):
+    """
+    returns Pin NAME -> Kconfig symbol
+    """
     while node:
         if isinstance(node.item, Symbol):
             if 'GPIO' in node.item.name:
                 name = node.item.name.replace('_GPIO', '').replace('GPIO_', '')
-                kconfig[node.item.str_value] = name
+                pin_num = PIN_NAME_TO_NUMBER[node.item.str_value] # name here may be "0" which maps to the pin#24
+                kconfig[pin_num] = name
 
         if node.list:
             parse_kconf(node.list, kconfig)
@@ -115,15 +123,22 @@ def parse_kconf(node, kconfig):
 
 def print_comparison_table(from_kconfig, from_schem):
     bad = False
-    print(f'GPIO\t{"kconfig":15}\t{"schem":10}\tmatching')
+    print(f'{"GPIO":10}\t{"kconfig":15}\t{"schem":10}\tmatching')
 
-    for k in PIN_MAPPING.keys():
-        kc = from_kconfig.get(str(k), "UNDEF")
-        schem = from_schem.get(str(k), "UNDEF").replace('/', '').replace('{slash}', '/')
-        matching = kc == SCHEM_TO_KCONFIG[schem]
+    for k, gpio_name in PIN_MAPPING.items():
+        kc = from_kconfig.get(k, "UNDEF")
+        schem = from_schem.get(k, "UNDEF").replace('/', '').replace('{slash}', '/')
+        matching = kc == SCHEM_TO_KCONFIG.get(schem, schem)
+        name_col = f'{k:02d} ({gpio_name})'
+
+        if gpio_name == "3v3" and schem == "+3V3" and kc == "UNDEF":
+            continue
+        if gpio_name == "GND" and schem == "GND" and kc == "UNDEF":
+            continue
+
         if not matching:
             bad = True
-        print(f'{k:02d}\t{kc:15}\t{schem:10}\t{matching}')
+            print(f'{name_col:10}\t{kc:15}\t{schem:10}\t{matching}')
 
     return bad
 

@@ -18,49 +18,49 @@ menu "PicoPico Configuration"
 		config GPIO_LEFT
 			int "GPIO number for controller LEFT"
 			range 0 40
-			default 13
+			default 4
 			help
 				GPIO number (IOxx) to LEFT.
 		config GPIO_RIGHT
 			int "GPIO number for controller RIGHT"
 			range 0 40
-			default 12
+			default 15
 			help
 				GPIO number (IOxx) to RIGHT.
 		config GPIO_UP
 			int "GPIO number for controller UP"
 			range 0 40
-			default 34
+			default 0
 			help
 				GPIO number (IOxx) to UP.
 		config GPIO_DOWN
 			int "GPIO number for controller DOWN"
 			range 0 40
-			default 0
+			default 2
 			help
 				GPIO number (IOxx) to DOWN.
 		config GPIO_A
 			int "GPIO number for controller A"
 			range 0 40
-			default 32
+			default 14
 			help
 				GPIO number (IOxx) to A.
 		config GPIO_B
 			int "GPIO number for controller B"
 			range 0 40
-			default 33
+			default 13
 			help
 				GPIO number (IOxx) to B.
 		config GPIO_SELECT
 			int "GPIO number for controller SELECT"
 			range 0 40
-			default 35
+			default 34
 			help
 				GPIO number (IOxx) to SELECT.
 		config GPIO_START
 			int "GPIO number for controller START"
 			range 0 40
-			default 32
+			default 35
 			help
 				GPIO number (IOxx) to START.
 	endmenu
@@ -69,19 +69,19 @@ menu "PicoPico Configuration"
 		config GPIO_AUDIO_BCLK
 			int "GPIO number for BCLK"
 			range 0 40
-			default 27
+			default 26
 			help
 				GPIO number (IOxx) to BCLK, also called BCK or "bit clock line".
 		config GPIO_AUDIO_WS
 			int "GPIO number for WS/LRCLK"
 			range 0 40
-			default 26
+			default 25
 			help
 				GPIO number (IOxx) to WS/LRCLK.
 		config GPIO_AUDIO_DATA_OUT
 			int "GPIO number for DATA OUT"
 			range 0 40
-			default 25
+			default 27
 			help
 				GPIO number (IOxx) for DATA OUT. Connects to the Audio board on DATA IN. Not on SD, which means SHUTDOWN.
 	endmenu
@@ -105,7 +105,7 @@ menu "PicoPico Configuration"
 		config MOSI_GPIO
 			int "MOSI GPIO number"
 			range 0 40
-			default 22
+			default 18
 			help
 				GPIO number (IOxx) to SPI MOSI.
 				Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to MOSI.
@@ -115,7 +115,7 @@ menu "PicoPico Configuration"
 		config SCLK_GPIO
 			int "SCLK GPIO number"
 			range 0 40
-			default 23
+			default 5
 			help
 				GPIO number (IOxx) to SPI SCLK.
 				Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to SCLK.
@@ -125,7 +125,7 @@ menu "PicoPico Configuration"
 		config CS_GPIO
 			int "CS GPIO number"
 			range -1 40
-			default 18
+			default 22
 			help
 				GPIO number (IOxx) to SPI CS.
 				When it is -1, CS isn't performed.
@@ -136,7 +136,7 @@ menu "PicoPico Configuration"
 		config DC_GPIO
 			int "DC GPIO number"
 			range 0 40
-			default 19
+			default 21
 			help
 				GPIO number (IOxx) to SPI DC.
 				Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to DC.
@@ -146,7 +146,7 @@ menu "PicoPico Configuration"
 		config RESET_GPIO
 			int "RESET GPIO number"
 			range 0 40
-			default 21
+			default 19
 			help
 				GPIO number (IOxx) to RESET.
 				Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to RESET.
@@ -156,7 +156,7 @@ menu "PicoPico Configuration"
 		config BL_GPIO
 			int "BACKLIGHT GPIO number"
 			range -1 40
-			default 5
+			default 23
 			help
 				GPIO number (IOxx) to BACKLIGHT.
 				When it is -1, BACKLIGHT isn't performed.

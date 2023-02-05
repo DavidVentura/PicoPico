@@ -7,7 +7,7 @@ THIS_DIR = Path(__file__).parent.resolve()
 
 SCHEM_TO_KCONFIG = {
     "UNDEF":    "UNDEF",
-    "SW_T":     "TOP",
+    "SW_T":     "UP",
     "SW_L":     "LEFT",
     "SW_R":     "RIGHT",
     "SW_U":     "UP",
@@ -15,13 +15,13 @@ SCHEM_TO_KCONFIG = {
     "SW_A":     "A",
     "SW_B":     "B",
     "SW_START": "START",
-    "SW_SEL":   "SEL",
+    "SW_SEL":   "SELECT",
     "LED/BL":   "BL",
     "DIN":      "AUDIO_DATA_OUT",
     "CS":       "CS",
     "DC/RS":    "DC",
     "RESET":    "RESET",
-    "SDA":      "SDA",
+    "SDA":      "MOSI",
     "SCK":      "SCLK",
     "LRC":      "AUDIO_WS",
     "BCLK":     "AUDIO_BCLK",
@@ -131,7 +131,7 @@ def print_comparison_table(from_kconfig, from_schem):
         matching = kc == SCHEM_TO_KCONFIG.get(schem, schem)
         name_col = f'{k:02d} ({gpio_name})'
 
-        if gpio_name == "3v3" and schem == "+3V3" and kc == "UNDEF":
+        if gpio_name == "3v3" and schem in ("+3V3", "+3.3V") and kc == "UNDEF":
             continue
         if gpio_name == "GND" and schem == "GND" and kc == "UNDEF":
             continue

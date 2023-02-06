@@ -1,4 +1,5 @@
 import sexpdata
+import re
 
 from pathlib import Path
 from kconfiglib import Kconfig, Symbol
@@ -74,11 +75,29 @@ def main():
     if bad:
         exit(1)
 
+def remove_orcad_netlist_crap(data: str) -> str:
+    ret = []
+    for line in data.splitlines():
+        line = line.strip()
+        if 'EESchema' in line:
+            # ( { EESchema Netlist Version 1.1 created  ma 06 feb 2023 12:04:30 CET }
+            # ->
+            # (
+            line = re.sub('{ EESchema Netlist.*?}', '', line)
+        if line == '*':
+            # last line is '*'
+            continue
+        ret.append(line)
+    return '\n'.join(ret)
+
 def parse_netlist(p: Path):
     from_schem = {}
 
     with p.open() as f:
-        data = sexpdata.loads(f.read())
+        raw_data = f.read()
+
+    processed_data = remove_orcad_netlist_crap(raw_data)
+    data = sexpdata.loads(processed_data)
 
     for item in data:
         is_next = False

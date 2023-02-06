@@ -1,4 +1,4 @@
-20115381313374320
+20118732621799267
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -85610,6 +85610,13 @@ picopico
 8
 8
 picopico
+23mm speaker
+
+
+0
+2
+2
+picopico
 DollaTecESP32
 
 
@@ -85621,5 +85628,12 @@ audio
 
 
 0
-7
-7
+9
+9
+picopico
+volume wheel
+
+
+0
+3
+3

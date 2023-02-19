@@ -5,3 +5,6 @@ board/picopico/picopico-backups/*
 tests-build/
 venv
 *zip
+*.bak
+*~
+fp-info-cache

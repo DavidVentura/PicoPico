@@ -38,9 +38,15 @@ https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-9
 
 ## Hardware
 
-* ESP32 "Wrover" with 4MB PSRAM
-* MAX98357 I2S audio amplifier
-* 1.77" SPI ST7735 128x160 Display (128x128 used for game, 16px for UI, 16px padding)
+### BOM
+
+* 1x THT Power switch [TME](https://www.tme.eu/nl/en/details/os102011ma1qn1/slide-switches/c-k/) [PDF](https://www.tme.eu/Document/b47a7178f6dd5c46f052ff087f56764e/OS_series_DTE.pdf)
+* 8x SMD button [TME](https://www.tme.eu/nl/en/details/evqq2202w/microswitches-tact/panasonic/) [PDF](https://www.tme.eu/Document/7162409d248aba412c7389d402f46025/EVQQ2series.pdf)
+* 1x 10k horixontal potentiometer [TME](https://www.tme.eu/nl/en/details/r0141-2-10k/single-turn-tht-trimmers/sr-passives/) [PDF](https://www.tme.eu/Document/48eb4fb11c5e0c9b1cd467745dfbcb98/R0141-2.pdf)
+* 8x SMD 10k resistor
+* MAX98357 I2S audio amplifier [ALI](https://www.aliexpress.com/item/1005004280540810.html?spm=a2g0o.order_list.order_list_main.11.5b1c18020Z9uMr)
+* ESP32 "Wrover" with 4MB PSRAM [Amazon](https://www.amazon.de/gp/product/B07RWHK65X/ref=ppx_yo_dt_b_asin_title_o08_s00?ie=UTF8&psc=1)
+* 1.77" SPI ST7735 128x160 Display (128x128 used for game, 16px for UI, 16px padding) [ALI](https://www.aliexpress.com/item/1005003797803015.html?spm=a2g0o.order_list.order_list_main.23.5b1c18020Z9uMr)
 
 # Goals
 
@@ -277,3 +283,4 @@ you can press `r` on it to reboot into mass-storage mode; which will trigger the
 * [Getting started on basic Pico8 Gamedev](https://lukemerrett.com/getting-started-with-pico-8/)
 * [GameTiger, another Pico-based console](https://github.com/codetiger/GameTiger-Console)
 * [Espressif docs](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html)
+* [Importing custom 3D models into kicad](https://happyrobotlabs.com/posts/tutorials/tutorial-3d-kicad-parts-using-openscad-and-wings3d/)

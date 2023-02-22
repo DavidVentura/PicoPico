@@ -10,12 +10,27 @@
 #include "esp_wifi.h"
 #include <time.h>
 
+#undef BUILTIN_DAC
+#ifdef BUILTIN_DAC
+const i2s_mode_t _mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN);
+const i2s_comm_format_t fmt = I2S_COMM_FORMAT_STAND_MSB;
+#else
+const i2s_mode_t _mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
+const i2s_comm_format_t fmt = I2S_COMM_FORMAT_STAND_I2S;
+static const i2s_pin_config_t i2s_pin_config = {
+    .bck_io_num = CONFIG_GPIO_AUDIO_BCLK, // BCLK "Bit clock line"
+    .ws_io_num = CONFIG_GPIO_AUDIO_WS, // LRC also "LRCLK" or WS
+    .data_out_num = CONFIG_GPIO_AUDIO_DATA_OUT, // DIN !! not SD (which is SHUTDOWN)
+    .data_in_num = I2S_PIN_NO_CHANGE
+};
+#endif
+
 static const i2s_config_t i2s_config = {
-    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
+    .mode = _mode,
     .sample_rate = SAMPLE_RATE>>1,
     .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT, /* the DAC module will only take the 8bits from MSB */
     .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-    .communication_format = I2S_COMM_FORMAT_STAND_I2S,//(i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
+    .communication_format = fmt,
     .intr_alloc_flags = 0, // default interrupt priority
     .dma_buf_count = SAMPLES_PER_BUFFER, // always want >1; having only one means interruptions in audio
     // changed on the newer sdk version
@@ -24,12 +39,6 @@ static const i2s_config_t i2s_config = {
     .dma_buf_len = SAMPLES_PER_DURATION, // length at most = 1024
     .use_apll = false, // > 16MHz
     .tx_desc_auto_clear = false,
-};
-static const i2s_pin_config_t i2s_pin_config = {
-    .bck_io_num = CONFIG_GPIO_AUDIO_BCLK, // BCLK "Bit clock line"
-    .ws_io_num = CONFIG_GPIO_AUDIO_WS, // LRC also "LRCLK" or WS
-    .data_out_num = CONFIG_GPIO_AUDIO_DATA_OUT, // DIN !! not SD (which is SHUTDOWN)
-    .data_in_num = I2S_PIN_NO_CHANGE
 };
 
 static uint8_t backbuffer[CONFIG_WIDTH*CONFIG_HEIGHT*2];
@@ -100,7 +109,11 @@ bool init_audio() {
     i2s_driver_install(I2S_NUM_0, &i2s_config, 4, &i2s_event_queue);   //install and start i2s driver
     i2s_zero_dma_buffer(I2S_NUM_0);
 
+#ifdef BUILTIN_DAC
+    i2s_set_dac_mode(I2S_DAC_CHANNEL_RIGHT_EN);
+#else
     i2s_set_pin(I2S_NUM_0, &i2s_pin_config); //for internal DAC, this will enable both of the internal channels
+#endif
 
     i2s_zero_dma_buffer(I2S_NUM_0);
     xTaskCreatePinnedToCore(i2sTask, "I2Sout", 4096, NULL, 1 /* prio */, NULL, 1 /* core id */);

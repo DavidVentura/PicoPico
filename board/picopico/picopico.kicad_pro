@@ -350,7 +350,9 @@
     }
   },
   "libraries": {
-    "pinned_footprint_libs": [],
+    "pinned_footprint_libs": [
+      "picopico"
+    ],
     "pinned_symbol_libs": []
   },
   "meta": {

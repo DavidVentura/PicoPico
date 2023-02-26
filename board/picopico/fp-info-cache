@@ -1,4 +1,4 @@
-20172410487787641
+20175767143346261
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -85846,6 +85846,20 @@ evqq2_compact
 
 0
 4
+2
+picopico
+pad
+
+
+0
+1
+1
+picopico
+speaker
+
+
+0
+2
 2
 picopico
 switch_slide_OS102011MA1QN1

@@ -1,6 +1,6 @@
 {
   "board": {
-    "active_layer": 50,
+    "active_layer": 31,
     "active_layer_preset": "",
     "auto_track_width": true,
     "hidden_nets": [],
@@ -37,6 +37,7 @@
       9,
       10,
       11,
+      12,
       13,
       14,
       15,
@@ -61,8 +62,8 @@
       35,
       36
     ],
-    "visible_layers": "7ffffff_80000001",
-    "zone_display_mode": 0
+    "visible_layers": "7fbffff_80000001",
+    "zone_display_mode": 1
   },
   "meta": {
     "filename": "picopico.kicad_prl",

@@ -1,4 +1,4 @@
-20175767166661206
+20177445287905816
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -85833,6 +85833,13 @@ DollaTecESP32
 0
 34
 34
+picopico
+SM02B-SRSS-TB
+http://www.jst-mfg.com/product/pdf/eng/eSH.pdf
+JST SH
+0
+4
+2
 picopico
 audio
 

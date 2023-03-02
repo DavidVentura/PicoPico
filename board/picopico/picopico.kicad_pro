@@ -17,7 +17,7 @@
           "extension_offset": 500000,
           "keep_text_aligned": true,
           "suppress_zeroes": false,
-          "text_position": 0,
+          "text_position": 1,
           "units_format": 1
         },
         "fab_line_width": 0.09999999999999999,
@@ -39,9 +39,9 @@
         },
         "silk_line_width": 0.15,
         "silk_text_italic": false,
-        "silk_text_size_h": 1.0,
-        "silk_text_size_v": 1.0,
-        "silk_text_thickness": 0.15,
+        "silk_text_size_h": 0.6,
+        "silk_text_size_v": 0.6,
+        "silk_text_thickness": 0.09999999999999999,
         "silk_text_upright": false,
         "zones": {
           "45_degree_only": false,

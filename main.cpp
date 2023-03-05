@@ -146,8 +146,7 @@ int pico8() {
     if (call_update) {
 	fps = 30;
 	ms_delay = 1000 / fps;
-    }
-    if (call_update60) {
+    } else if (call_update60) {
 	fps = 60;
 	ms_delay = 1000 / fps;
     } else {

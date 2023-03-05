@@ -139,8 +139,21 @@ int pico8() {
     if (_lua_fn_exists("_init")) _to_lua_call("_init");
 
     bool call_update = _lua_fn_exists("_update");
+    bool call_update60 = _lua_fn_exists("_update60");
     bool call_draw = _lua_fn_exists("_draw");
 
+
+    if (call_update) {
+	fps = 30;
+	ms_delay = 1000 / fps;
+    }
+    if (call_update60) {
+	fps = 60;
+	ms_delay = 1000 / fps;
+    } else {
+	fps = 0;
+	ms_delay = 0;
+    }
     uint32_t update_start_time;
     uint32_t draw_start_time;
 
@@ -154,6 +167,7 @@ int pico8() {
         (void)update_start_time;
         (void)update_end_time; // logging is conditional, this makes the unused warning go away
         if (call_update) _to_lua_call("_update");
+        if (call_update60) _to_lua_call("_update60");
         update_end_time = now();
 
         draw_start_time = now();

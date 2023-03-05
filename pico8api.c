@@ -462,6 +462,11 @@ int _lua_btn(lua_State* L) {
     return 1;
 }
 
+int _lua_srand(lua_State* L) {
+    int16_t x = luaL_checkinteger(L, 1);
+    srand(x);
+    return 0;
+}
 int _lua_rnd(lua_State* L) {
     if(lua_istable(L, 1)) {
         lua_len(L, 1);  // table len in top of stack
@@ -739,6 +744,13 @@ int _lua_reload(lua_State* L) {
     if (argcount==0) {
         return 0;
     }
+    return 0;
+}
+
+int _extcmd(lua_State* L) {
+    const char* val = luaL_checkstring(L, 1);
+    // TODO: implement
+    printf("Got extcmd: %s, ignoring\n", val);
     return 0;
 }
 

@@ -152,6 +152,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "btnp");
     lua_pushcfunction(L, _lua_map);
     lua_setglobal(L, "map");
+    lua_pushcfunction(L, _lua_srand);
+    lua_setglobal(L, "srand");
     lua_pushcfunction(L, _lua_rnd);
     lua_setglobal(L, "rnd");
     lua_pushcfunction(L, _lua_pset);
@@ -202,6 +204,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "fillp");
     lua_pushcfunction(L, _lua_reload);
     lua_setglobal(L, "reload");
+    lua_pushcfunction(L, _extcmd);
+    lua_setglobal(L, "extcmd");
 }
 
 bool _lua_fn_exists(const char* fn) {

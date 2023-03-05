@@ -453,6 +453,11 @@ uint8_t btn(lua_State* L, uint8_t* _buttons) {
     }
 }
 int _lua_btnp(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+    if (argcount == 0) {
+        lua_pushinteger(L, btn(L, buttons_frame));
+        return 1;
+    }
     lua_pushboolean(L, btn(L, buttons_frame));
     return 1;
 }

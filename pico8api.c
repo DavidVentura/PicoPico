@@ -39,7 +39,12 @@ static inline void put_pixel(uint8_t x, uint8_t y, palidx_t p){
         frontbuffer[(y*SCREEN_WIDTH/2+x/2)] &= 0xf0;
         frontbuffer[(y*SCREEN_WIDTH/2+x/2)] |= pal_map[p];
     }
+}
 
+void guarded_put_pixel(uint8_t x, uint8_t y, palidx_t p){
+	if(x<SCREEN_WIDTH && y<SCREEN_HEIGHT) {
+		put_pixel(x, y, p);
+	}
 }
 
 void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, palidx_t p){
@@ -72,24 +77,22 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, palidx_t color
     while (x >= y)
     {
         //  Each of the following renders an octant of the circle
-        put_pixel(centreX + x, centreY - y, color);
-        put_pixel(centreX + x, centreY + y, color);
-        put_pixel(centreX - x, centreY - y, color);
-        put_pixel(centreX - x, centreY + y, color);
-        put_pixel(centreX + y, centreY - x, color);
-        put_pixel(centreX + y, centreY + x, color);
-        put_pixel(centreX - y, centreY - x, color);
-        put_pixel(centreX - y, centreY + x, color);
+        guarded_put_pixel(centreX + x, centreY - y, color);
+        guarded_put_pixel(centreX + x, centreY + y, color);
+        guarded_put_pixel(centreX - x, centreY - y, color);
+        guarded_put_pixel(centreX - x, centreY + y, color);
+        guarded_put_pixel(centreX + y, centreY - x, color);
+        guarded_put_pixel(centreX + y, centreY + x, color);
+        guarded_put_pixel(centreX - y, centreY - x, color);
+        guarded_put_pixel(centreX - y, centreY + x, color);
 
-        if (error <= 0)
-        {
+        if (error <= 0) {
             ++y;
             error += ty;
             ty += 2;
         }
 
-        if (error > 0)
-        {
+        if (error > 0) {
             --x;
             tx += 2;
             error += (tx - diameter);

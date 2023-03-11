@@ -423,6 +423,10 @@ int _lua_circfill(lua_State* L) {
 }
 
 int _lua_map(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+    if (argcount == 0) {
+        return 0;
+    }
     int mapX = luaL_checkinteger(L, 1);
     int mapY = luaL_checkinteger(L, 2);
     int screenX = luaL_checkinteger(L, 3);

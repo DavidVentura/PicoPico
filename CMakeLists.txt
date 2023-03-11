@@ -33,7 +33,7 @@ add_compile_options(
 file(GLOB ALL_RESOURCE_FILES stdlib/stdlib.lua artifacts/font.lua examples/* to_c.py)
 add_custom_command(
 	OUTPUT ${CMAKE_SOURCE_DIR}/static_game_data.h
-	COMMAND python3 to_c.py > ${CMAKE_SOURCE_DIR}/static_game_data.h
+	COMMAND python3 to_c.py --emit-stdlib examples/ > ${CMAKE_SOURCE_DIR}/static_game_data.h
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	DEPENDS ${ALL_RESOURCE_FILES}
 	)
@@ -130,6 +130,14 @@ elseif(BACKEND STREQUAL "TEST")
 	COMMAND python3 buf_to_png.py --in-file data/hello_world.bin --out-file data/hello_world.png --width 128 --height 128 --palette
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/
 	)
+
+	file(GLOB ALL_REGRESSION_FILES tests/regression/*.p8 to_c.py)
+	add_custom_command(
+	OUTPUT ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h
+	COMMAND python3 to_c.py --cart-prefix regression tests/regression > ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	DEPENDS ${ALL_REGRESSION_FILES}
+	)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
@@ -154,6 +162,12 @@ elseif(BACKEND STREQUAL "TEST")
 	target_link_libraries(test_hello_world my_lua_lib)
 	add_test(NAME test_hello_world COMMAND test_hello_world)
 	target_compile_options(test_hello_world PRIVATE ${test_compile_options})
+
+	# test regression
+	add_executable(test_regression static_game_data.h tests/regression_static_game_data.h tests/test_lua_regression.cpp ${lua_src})
+	target_link_libraries(test_regression my_lua_lib)
+	add_test(NAME test_regression COMMAND test_regression)
+	target_compile_options(test_regression PRIVATE ${test_compile_options})
 
 	include_directories(${CMAKE_CURRENT_SOURCE_DIR} lua)
 

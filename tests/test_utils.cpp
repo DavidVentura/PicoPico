@@ -27,3 +27,35 @@ bool compare_buffer(const char* in_file, uint8_t* buf, uint16_t buf_len, bool du
     free(golden_data);
     return true;
 }
+
+const char** iterate_globals(lua_State* _L, bool (filter)(lua_State*, const char*, int) ) {
+	uint8_t found = 0;
+	const char** global_funcs = (const char**)malloc(sizeof(char*) * 255);
+	lua_pushglobaltable(L);       // Get global table
+	lua_pushnil(L);               // put a nil key on stack
+	while (lua_next(L,-2) != 0) { // key(-1) is replaced by the next key(-1) in table(-2)
+		const char* name = lua_tostring(L,-2);  // Get key(-2) name
+		if (filter(L, name, -1)) {
+			global_funcs[found] = name;
+			found++;
+		}
+		lua_pop(L,1);               // remove value(-1), now key on top at(-1)
+		if (found == 254) {
+				assert(0); // can't handle it
+		}
+	}
+	lua_pop(L,1);                 // remove global table(-1)
+	global_funcs[found] = 0;
+	return global_funcs;
+}
+
+void unsafe_lua_call(const char* fn) {
+	lua_getglobal(L, fn);
+	if (lua_pcall(L, 0, 1, 0) == LUA_OK) {
+		lua_pop(L, lua_gettop(L));
+	} else {
+		printf("Lua error: %s\n", lua_tostring(L, lua_gettop(L)));
+		lua_pop(L, lua_gettop(L));
+		exit(1);
+	}
+}

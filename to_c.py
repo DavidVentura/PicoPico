@@ -1,3 +1,4 @@
+import argparse
 import enum
 import os
 import subprocess
@@ -58,7 +59,7 @@ def process_cart(name: str, data: bytes) -> GameCart:
             continue
         sections[section].append(bytes(line))
 
-    sections[LUA_HEADER] = compile_lua_to_bytecode(b'\n'.join(sections[LUA_HEADER]))
+    sections[LUA_HEADER] = compile_lua_to_bytecode(b'\n'.join(sections.get(LUA_HEADER, b'')))
 
     gc = GameCart(name=name,
                   code=sections.get(LUA_HEADER, b''),
@@ -94,7 +95,7 @@ def to_char_value(data: bytes) -> bytes:
     return bytes(map(_to_char, data))
 
 def path_to_identifier(p: Path) -> str:
-    pname = os.path.dirname(p).replace('.', '_').replace('-', '_')
+    pname = os.path.dirname(p).replace('.', '_').replace('-', '_').replace('/', '_')
     bname = os.path.basename(p).replace('.', '_').replace('-', '_')
     return f'{pname}_{bname}'
 
@@ -192,18 +193,27 @@ def parse(fname: Path, process_as: ProcessType, debug: bool=False):
         print(f'[{bname}] {initial_len=} {new_len=}', file=sys.stderr)
     return '\n'.join(output)
 
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument('--emit-stdlib', action='store_true')
+    p.add_argument('--cart-prefix', required=False, default='')
+    p.add_argument('directory')
+    return p.parse_args()
+
 def main():
+    args = parse_args()
     debug = True
-    print(parse(Path('stdlib/stdlib.lua'), ProcessType.COMPILE, debug))
-    print(parse(Path('artifacts/font.lua'), ProcessType.RAW, debug))
-    print(parse(Path('artifacts/hud.p8'), ProcessType.RAW, debug))
+    if args.emit_stdlib:
+        print(parse(Path('stdlib/stdlib.lua'), ProcessType.COMPILE, debug))
+        print(parse(Path('artifacts/font.lua'), ProcessType.RAW, debug))
+        print(parse(Path('artifacts/hud.p8'), ProcessType.RAW, debug))
 
     games = []
-    for f in Path('examples/').glob('*'):
+    for f in Path(args.directory).glob('*.p8'):
         games.append(path_to_identifier(f))
         print(parse_cart(f, debug))
 
-    print('GameCart carts[] = {')
+    print(f'GameCart {args.cart_prefix}carts[] = {{')
     for game in games:
         game_name = game.replace('examples_', '')
         print(f'cart_{game_name},')

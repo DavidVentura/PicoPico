@@ -10,7 +10,7 @@ bool handle_input() {
 void test_hello_world() {
     uint8_t hello_world = 255;
     uint8_t cart_count = sizeof(carts)/sizeof(GameCart);
-    const char cartname[] = "hello_world_lua";
+    const char cartname[] = "hello_world_p8";
     for(uint8_t i=0; i<cart_count; i++) {
         if(strncmp(carts[i].name, cartname, MIN(carts[i].name_len, sizeof(cartname))) == 0) {
             hello_world = i;

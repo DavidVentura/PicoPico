@@ -217,13 +217,15 @@ bool _lua_fn_exists(const char* fn) {
 	    return false;
     }
 }
-void _to_lua_call(const char* fn) {
+uint8_t _to_lua_call(const char* fn) {
 	lua_getglobal(L, fn);
 	if (lua_pcall(L, 0, 1, 0) == LUA_OK) {
 		lua_pop(L, lua_gettop(L));
+		return 0;
 	} else {
 		printf("Lua error: %s\n", lua_tostring(L, lua_gettop(L)));
 		lua_pop(L, lua_gettop(L));
+		return 1;
 	}
 }
 

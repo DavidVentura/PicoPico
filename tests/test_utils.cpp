@@ -48,14 +48,3 @@ const char** iterate_globals(lua_State* _L, bool (filter)(lua_State*, const char
 	global_funcs[found] = 0;
 	return global_funcs;
 }
-
-void unsafe_lua_call(const char* fn) {
-	lua_getglobal(L, fn);
-	if (lua_pcall(L, 0, 1, 0) == LUA_OK) {
-		lua_pop(L, lua_gettop(L));
-	} else {
-		printf("Lua error: %s\n", lua_tostring(L, lua_gettop(L)));
-		lua_pop(L, lua_gettop(L));
-		exit(1);
-	}
-}

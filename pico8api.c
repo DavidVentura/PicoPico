@@ -892,7 +892,8 @@ inline void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int pal
 
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy,
 		      uint16_t dw, uint16_t dh) {
-    if(dw == sw && dh == sh) return _render(s, sx, sy, dx, dy, -1, false, false, 1, 1);
+
+    if(dw == sw && dh == sh) return _render(s, sx, sy, dx, dy, -1, false, false, z8::fix32(dw)/8, z8::fix32(dh)/8);
     if(dx >= SCREEN_WIDTH) return;
     if(dy >= SCREEN_HEIGHT) return;
 

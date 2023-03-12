@@ -48,3 +48,4 @@ const char** iterate_globals(lua_State* _L, bool (filter)(lua_State*, const char
 	global_funcs[found] = 0;
 	return global_funcs;
 }
+

@@ -95,7 +95,7 @@ def to_char_value(data: bytes) -> bytes:
     return bytes(map(_to_char, data))
 
 def path_to_identifier(p: Path) -> str:
-    pname = os.path.dirname(p).replace('.', '_').replace('-', '_').replace('/', '_')
+    pname = os.path.basename(os.path.dirname(p)).replace('.', '_').replace('-', '_').replace('/', '_')
     bname = os.path.basename(p).replace('.', '_').replace('-', '_')
     return f'{pname}_{bname}'
 

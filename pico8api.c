@@ -196,6 +196,7 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 
 	uint8_t i = 0;
 	while (i<textLen) {
+		bool printed_double_wide = false;
 		uint8_t c = text[i];
 		switch(c) {
 			case 6: // \^ change rendering modes
@@ -223,13 +224,48 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 				i++;
 				c = text[i];
 				break;
-			case 0xe2: // ❎ = 0xe2 0x9d 0x8e
-				c = 151; // X in font
-				i += 2;
+			case 0xe2: 
+				i++;
+				c = text[i];
+				printf("--char is %c %x\n", c, c);
+				switch(c) {
+					case 0x9d:// ❎ = 0xe2 0x9d 0x8e
+						printed_double_wide = true;
+						c = 151; // X in font
+						i += 1;
+						break;
+					case 0xac:// U/L/D
+						i++;
+						c = text[i];
+						switch (c) {
+							case 0x86: // U
+								printed_double_wide = true;
+								c = 9*16+4; // UP
+								i += 3;
+								break;
+							case 0x85: // L
+								printed_double_wide = true;
+								c = 8*16+11; // L
+								i += 3;
+								break;
+							case 0x87: // D
+								printed_double_wide = true;
+								c = 8*16+3; // D
+								i += 3;
+								break;
+						}
+						break;
+					case 0x9e: // RIGHT = 0xe2 0x9e +4
+						printed_double_wide = true;
+						c = 9*16+1; // RIGHT
+						i += 4;
+						break;
+				}
 				break;
 			case 0xf0: // 🅾  = 0xf0 0x9f 0x85 0xbe
+				printed_double_wide = true;
 				c = 142; // "circle" in font (square)
-				i += 3;
+				i += 6;
 				break;
 		}
 		if (c != 6) { // FIXME: this covers \^w\^t (many specials in a row)
@@ -237,6 +273,8 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 			print_x_offset += (char_width * print_width_ratio);
 			i++;
 		}
+		if (printed_double_wide)
+			print_x_offset += (char_width * print_width_ratio);
 	}
 
 }

@@ -223,7 +223,7 @@ int _lua_print(lua_State* L) {
     const int16_t y = luaL_checkinteger(L, 3);
     const int16_t paletteIdx = luaL_optinteger(L, 4, drawstate.pen_color);
 
-    _print(text, (uint8_t)textLen, x, y, paletteIdx);
+    _print(text, (uint8_t)textLen, x-drawstate.camera_x, y-drawstate.camera_y, paletteIdx);
     lua_pushnumber(L, x + ((uint8_t)textLen) * 4);
     return 1;
 }

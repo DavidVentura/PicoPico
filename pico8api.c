@@ -164,23 +164,24 @@ static void map(int16_t mapX, int16_t mapY, int16_t screenX, int16_t screenY, ui
     }
 }
 
-void render_text(Spritesheet* s, uint16_t sprite, uint8_t x0, uint8_t y0) {
+void render_text(Spritesheet* s, uint16_t sprite, uint8_t x0, uint8_t y0, uint8_t width_ratio, uint8_t height_ratio) {
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = sprite % sprite_count;
     const uint8_t yIndex = sprite / sprite_count;
     uint8_t val;
 
-    for (uint8_t y=0; y<8; y++) {
+    for (uint8_t y=0; y<8*height_ratio; y++) {
         if ((y+y0) >= SCREEN_HEIGHT) return;
         // TODO: memcpy if far from edges
-        for (uint8_t x=0; x<8; x++) {
+        for (uint8_t x=0; x<8*width_ratio; x++) {
             if ((x+x0) >= SCREEN_WIDTH) break;
-            val = s->sprite_data[y*128 + x + xIndex*8 + yIndex*8*128];
+            val = s->sprite_data[y/height_ratio*128 + x/width_ratio + xIndex*8 + yIndex*8*128];
             if (val!=0) {
                 put_pixel(x0+x, y0+y, drawstate.pen_color);
             }
         }
     }
+
 }
 
 void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16_t paletteIdx) {
@@ -189,31 +190,54 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
     drawstate.pen_color = paletteIdx;
 
     int16_t print_x_offset = x;
-    int16_t print_x_width = 4;
+	uint8_t char_width = 4;
+    int16_t print_width_ratio = 1;
+    int16_t print_height_ratio = 1;
 
-    for (int i = 0; i<textLen; i++) {
-			uint8_t c = text[i];
-			switch(c) {
-					case '\f':
-							// TODO: 10-16 (two-digit) colors
-							if (i==textLen-1) break; // text ends in \f; probably illegal
-							i++;
-							drawstate.pen_color = text[i] - '0'; // ascii numbers are offset by '0'
-							i++;
-							c = text[i];
-							break;
-					case 0xe2: // ❎ = 0xe2 0x9d 0x8e
-							c = 151; // X in font
-							i += 2;
-							break;
-					case 0xf0: // 🅾  = 0xf0 0x9f 0x85 0xbe
-							c = 142; // "circle" in font (square)
-							i += 3;
-							break;
-			}
-			render_text(&fontsheet, c, print_x_offset, y);
-			print_x_offset += print_x_width;
-    }
+	uint8_t i = 0;
+	while (i<textLen) {
+		uint8_t c = text[i];
+		switch(c) {
+			case 6: // \^ change rendering modes
+				if (i==textLen-1) return; // text ends in \^; probably illegal
+				i++;
+				if (i==textLen-1) return; // text ends in \^<MODE>; pointless
+				c = text[i];
+				switch(c) {
+					case 'w':
+						print_width_ratio = 2; // FIXME, maybe *= 2?
+						break;
+					case 't':
+						print_height_ratio = 2;
+						break;
+				}
+				i++;
+				c = text[i];
+				break;
+			case '\f':
+				// TODO: 10-16 (two-digit) colors
+				if (i==textLen-1) return; // text ends in \f; probably illegal
+				i++;
+				drawstate.pen_color = text[i] - '0'; // ascii numbers are offset by '0'
+				if (i==textLen-1) return; // text ends in \f<COLOR>; pointless
+				i++;
+				c = text[i];
+				break;
+			case 0xe2: // ❎ = 0xe2 0x9d 0x8e
+				c = 151; // X in font
+				i += 2;
+				break;
+			case 0xf0: // 🅾  = 0xf0 0x9f 0x85 0xbe
+				c = 142; // "circle" in font (square)
+				i += 3;
+				break;
+		}
+		if (c != 6) { // FIXME: this covers \^w\^t (many specials in a row)
+			render_text(&fontsheet, c, print_x_offset, y, print_width_ratio, print_height_ratio);
+			print_x_offset += (char_width * print_width_ratio);
+			i++;
+		}
+	}
 
 }
 

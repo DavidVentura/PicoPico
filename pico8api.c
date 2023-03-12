@@ -41,7 +41,7 @@ static inline void put_pixel(uint8_t x, uint8_t y, palidx_t p){
     }
 }
 
-void guarded_put_pixel(uint8_t x, uint8_t y, palidx_t p){
+void guarded_put_pixel(int16_t x, int16_t y, palidx_t p){
 	if(x<SCREEN_WIDTH && y<SCREEN_HEIGHT) {
 		put_pixel(x, y, p);
 	}
@@ -98,20 +98,67 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, palidx_t color
         }
     }
 }
+
+
+// Indicates the point lies outside of the ellipse.
+#define PS_OUTSIDE  (0)
+// Indicates the point lies exactly on the perimeter of the ellipse.
+#define PS_ONPERIM  (1)
+// Indicates the point lies inside of the ellipse.
+#define PS_INSIDE   (2)
+
+short isPointOnEllipse(int cx, int cy, int rx, int ry, int x, int y)
+{
+    double m = (x - cx) * ((double) ry) / ((double) rx);
+    double n = y - cy;
+    double h = sqrt(m * m + n * n);
+
+    if (h < ry)
+        return PS_INSIDE;
+    if (h == ry)
+        return PS_ONPERIM;
+    else
+        return PS_OUTSIDE;
+}
+
+void gfx_ellipse(int x0, int y0, int width, int height, palidx_t color, bool fill) {
+    // So the ellipse shall be stretched to the whole matrix
+    // with a one-pixel margin.
+    int16_t cx = width / 2;
+    int16_t cy = height / 2;
+    int16_t rx = cx - 1;
+    int16_t ry = cy - 1;
+
+    uint8_t x, y;
+    uint8_t pointStatus;
+    if(x0<0 ||y0<0) return;
+    for (x = 0;x < width;x++) {
+	if(x0+x>=SCREEN_WIDTH) return;
+        for (y = 0;y < height;y++) {
+	    if(y0+y>=SCREEN_HEIGHT) break;
+            pointStatus = isPointOnEllipse(cx, cy, rx, ry, x, y);
+	    if((pointStatus == PS_ONPERIM) || ((pointStatus == PS_INSIDE) && fill)) {
+                put_pixel(x0+x, y0+y, color);
+	    }
+        }
+    }
+}
+
+
 void gfx_cls(palidx_t c) {
     memset(frontbuffer, ((c & 0xf) << 4) | (c & 0xf), sizeof(frontbuffer));
 }
 
-void gfx_rect(uint16_t x0, uint16_t y0, uint16_t x2, uint16_t y2, const palidx_t color) {
-    x0 = MIN(x0, SCREEN_WIDTH-1);
+void gfx_rect(int16_t x0, int16_t y0, int16_t x2, int16_t y2, const palidx_t color) {
+    x0 = MAX(0, MIN(x0, SCREEN_WIDTH-1));
     x2 = MIN(x2, SCREEN_WIDTH-1);
-    y0 = MIN(y0, SCREEN_HEIGHT-1);
+    y0 = MAX(0, MIN(y0, SCREEN_HEIGHT-1));
     y2 = MIN(y2, SCREEN_HEIGHT-1);
 
-    for(uint16_t y=y0; y<=y2; y++)
-        for(uint8_t x=x0; x<=x2; x++)
+    for(int16_t y=y0; y<=y2; y++)
+        for(int16_t x=x0; x<=x2; x++)
             if ((y==y0) || (y==y2) || (x==x0) || (x==x2))
-                put_pixel(x, y, color);
+                guarded_put_pixel(x, y, color);
 }
 
 void gfx_rectfill(int16_t x0, int16_t y0, int16_t x2, int16_t y2, const palidx_t color) {
@@ -121,9 +168,9 @@ void gfx_rectfill(int16_t x0, int16_t y0, int16_t x2, int16_t y2, const palidx_t
     y0 = MAX(0, MIN(y0, SCREEN_HEIGHT-1));
     y2 = MIN(y2, SCREEN_HEIGHT-1);
 
-    for(uint8_t y=y0; y<=y2; y++) {
-        for(uint8_t x=x0; x<=x2; x++) {
-            put_pixel(x, y, color);
+    for(int16_t y=y0; y<=y2; y++) {
+        for(int16_t x=x0; x<=x2; x++) {
+            guarded_put_pixel(x, y, color);
         }
     }
 }
@@ -452,14 +499,14 @@ int _lua_line(lua_State* L) {
 }
 
 int _lua_rect(lua_State* L) {
-    uint8_t x = luaL_checkinteger(L, 1);
-    uint8_t y = luaL_checkinteger(L, 2);
-    uint8_t x2 = luaL_checkinteger(L, 3);
-    uint8_t y2 = luaL_checkinteger(L, 4);
+    int16_t x = luaL_checkinteger(L, 1);
+    int16_t y = luaL_checkinteger(L, 2);
+    int16_t x2 = luaL_checkinteger(L, 3);
+    int16_t y2 = luaL_checkinteger(L, 4);
     int col = luaL_optinteger(L, 5, drawstate.pen_color);
     drawstate.pen_color = col;
 	    
-    gfx_rect(x, y, x2, y2, col);
+    gfx_rect(x-drawstate.camera_x, y-drawstate.camera_y, x2-drawstate.camera_x, y2-drawstate.camera_y, col);
     return 0;
 }
 
@@ -471,7 +518,7 @@ int _lua_rectfill(lua_State* L) {
     int col = luaL_optinteger(L, 5, drawstate.pen_color);
     drawstate.pen_color = col;
 
-    gfx_rectfill(x, y, x2, y2, col);
+    gfx_rectfill(x-drawstate.camera_x, y-drawstate.camera_y, x2-drawstate.camera_x, y2-drawstate.camera_y, col);
     return 0;
 }
 

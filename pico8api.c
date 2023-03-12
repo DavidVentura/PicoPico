@@ -188,20 +188,31 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
     // FIXME: this should crop, and return the "cropped" number
     drawstate.pen_color = paletteIdx;
 
+    int16_t print_x_offset = x;
+    int16_t print_x_width = 4;
+
     for (int i = 0; i<textLen; i++) {
-        uint8_t c = text[i];
-        if (c == 0xe2) { // ❎ = 0xe2 0x9d 0x8e
-            c = 151; // X in font
-            render_text(&fontsheet, c, x + i * 4 + 2, y);
-            i += 2;
-        }
-        else if (c == 0xf0) { // 🅾  = 0xf0 0x9f 0x85 0xbe
-            c = 142; // "circle" in font (square)
-            render_text(&fontsheet, c, x + i * 4 + 2, y);
-            i += 3;
-        } else {
-            render_text(&fontsheet, c, x + i * 4, y);
-        }
+			uint8_t c = text[i];
+			switch(c) {
+					case '\f':
+							// TODO: 10-16 (two-digit) colors
+							if (i==textLen-1) break; // text ends in \f; probably illegal
+							i++;
+							drawstate.pen_color = text[i] - '0'; // ascii numbers are offset by '0'
+							i++;
+							c = text[i];
+							break;
+					case 0xe2: // ❎ = 0xe2 0x9d 0x8e
+							c = 151; // X in font
+							i += 2;
+							break;
+					case 0xf0: // 🅾  = 0xf0 0x9f 0x85 0xbe
+							c = 142; // "circle" in font (square)
+							i += 3;
+							break;
+			}
+			render_text(&fontsheet, c, print_x_offset, y);
+			print_x_offset += print_x_width;
     }
 
 }

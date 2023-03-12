@@ -178,7 +178,11 @@ void render_text(Spritesheet* s, uint16_t sprite, uint8_t x0, uint8_t y0, uint8_
             val = s->sprite_data[y/height_ratio*128 + x/width_ratio + xIndex*8 + yIndex*8*128];
             if (val!=0) {
                 put_pixel(x0+x, y0+y, drawstate.pen_color);
-            }
+            } else {
+				if (drawstate.bg_color) {
+                	put_pixel(x0+x, y0+y, drawstate.bg_color);
+				}
+			}
         }
     }
 
@@ -216,11 +220,21 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 				c = text[i];
 				break;
 			case '\f':
-				// TODO: 10-16 (two-digit) colors
+				// TODO: hex colors (a-f)
 				if (i==textLen-1) return; // text ends in \f; probably illegal
 				i++;
 				drawstate.pen_color = text[i] - '0'; // ascii numbers are offset by '0'
 				if (i==textLen-1) return; // text ends in \f<COLOR>; pointless
+				i++;
+				c = text[i];
+				break;
+			case 0x2: // \#
+				// TODO: hex colors (a-f)
+				if (i==textLen-1) return; // text ends in \#; probably illegal
+				i++;
+				drawstate.bg_color = text[i] - '0'; // ascii numbers are offset by '0'
+				printf("color is now %d\n", drawstate.bg_color);
+				if (i==textLen-1) return; // text ends in \#<COLOR>; pointless
 				i++;
 				c = text[i];
 				break;
@@ -268,7 +282,7 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 				i += 6;
 				break;
 		}
-		if (c != 6) { // FIXME: this covers \^w\^t (many specials in a row)
+		if (c != 6 && c != 2) { // FIXME: this covers \^w\^t (many specials in a row)
 			render_text(&fontsheet, c, print_x_offset, y, print_width_ratio, print_height_ratio);
 			print_x_offset += (char_width * print_width_ratio);
 			i++;
@@ -276,6 +290,7 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 		if (printed_double_wide)
 			print_x_offset += (char_width * print_width_ratio);
 	}
+	drawstate.bg_color = 0;
 
 }
 

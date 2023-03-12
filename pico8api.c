@@ -47,20 +47,19 @@ void guarded_put_pixel(uint8_t x, uint8_t y, palidx_t p){
 	}
 }
 
-void gfx_circlefill(uint16_t x, uint16_t y, uint16_t radius, palidx_t p){
+void gfx_circlefill(int16_t x, int16_t y, uint16_t radius, palidx_t p){
     uint16_t r_sq = radius * radius;
-    if(x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
     for (int w = 0; w <= radius * 2; w++) {
         int dx = radius - w; // horizontal offset
         uint16_t dx_sq = dx * dx;
         if((x + dx) < 0) continue;
-        if((x + dx) >= SCREEN_WIDTH) break;
+        if((x + dx) >= SCREEN_WIDTH) continue;
         for (int h = 0; h <= radius * 2; h++) {
             int dy = radius - h; // vertical offset
-            if((y + dy) >= SCREEN_HEIGHT) break;
+            if((y + dy) >= SCREEN_HEIGHT) continue;
             if((y + dy) < 0) continue;
             if ((dx_sq + dy*dy) <= r_sq) {
-                put_pixel(x + dx, y + dy, p);
+                guarded_put_pixel(x + dx, y + dy, p);
             }
         }
     }

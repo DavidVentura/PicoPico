@@ -30,7 +30,7 @@ add_compile_options(
         -Wno-unused-variable
 )
 
-file(GLOB ALL_RESOURCE_FILES stdlib/stdlib.lua artifacts/font.lua examples/* to_c.py)
+file(GLOB ALL_RESOURCE_FILES CONFIGURE_DEPENDS stdlib/stdlib.lua artifacts/font.lua examples/* to_c.py)
 add_custom_command(
 	OUTPUT ${CMAKE_SOURCE_DIR}/static_game_data.h
 	COMMAND python3 to_c.py --emit-stdlib examples/ > ${CMAKE_SOURCE_DIR}/static_game_data.h
@@ -38,7 +38,7 @@ add_custom_command(
 	DEPENDS ${ALL_RESOURCE_FILES}
 	)
 
-file(GLOB ALL_SOURCE_FILES *.c *.h esp/*.c esp/*.h)
+file(GLOB ALL_SOURCE_FILES CONFIGURE_DEPENDS *.c *.h esp/*.c esp/*.h)
 add_custom_target(
 	cppcheck
 	COMMAND /usr/bin/cppcheck
@@ -48,7 +48,7 @@ add_custom_target(
 )
 if(BACKEND STREQUAL "PICO")
 	# initialize the Raspberry Pi Pico SDK
-	file (GLOB st_src CONFIGURE_DEPENDS "/home/david/git/pico_st7735_80x160/st7735_80x160/*")
+	file (GLOB st_src CONFIGURE_DEPENDS CONFIGURE_DEPENDS "/home/david/git/pico_st7735_80x160/st7735_80x160/*")
 	pico_sdk_init()
 	
 	add_executable(hello_pico
@@ -131,7 +131,7 @@ elseif(BACKEND STREQUAL "TEST")
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/
 	)
 
-	file(GLOB ALL_REGRESSION_FILES tests/regression/*.p8 to_c.py)
+	file(GLOB ALL_REGRESSION_FILES CONFIGURE_DEPENDS tests/regression/*.p8 to_c.py)
 	add_custom_command(
 	OUTPUT ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h
 	COMMAND python3 to_c.py --cart-prefix regression tests/regression > ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h

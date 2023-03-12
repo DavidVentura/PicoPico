@@ -48,6 +48,7 @@ typedef struct Spritesheet Spritesheet;
 
 struct DrawState {
 	uint8_t     pen_color   = 7;
+	uint8_t     bg_color    = 0;
 	uint8_t     clip_x      = 0;
 	uint8_t     clip_y      = 0;
 	uint8_t     clip_w      = SCREEN_WIDTH;

@@ -233,7 +233,6 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 				if (i==textLen-1) return; // text ends in \#; probably illegal
 				i++;
 				drawstate.bg_color = text[i] - '0'; // ascii numbers are offset by '0'
-				printf("color is now %d\n", drawstate.bg_color);
 				if (i==textLen-1) return; // text ends in \#<COLOR>; pointless
 				i++;
 				c = text[i];
@@ -241,7 +240,6 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 			case 0xe2: 
 				i++;
 				c = text[i];
-				printf("--char is %c %x\n", c, c);
 				switch(c) {
 					case 0x9d:// ❎ = 0xe2 0x9d 0x8e
 						printed_double_wide = true;

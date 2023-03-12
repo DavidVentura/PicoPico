@@ -455,7 +455,7 @@ int _lua_sspr(lua_State* L) {
 }
 
 inline void spr(uint16_t n, z8::fix32 x, z8::fix32 y, z8::fix32 w = z8::fix32(1.0f), z8::fix32 h = z8::fix32(1.0f), bool flip_x = false, bool flip_y = false) {
-    render_many(&spritesheet, n, (int8_t)x, (int8_t)y, -1, flip_x==1, flip_y==1, w, h);
+    render_many(&spritesheet, n, (int8_t)x, (int8_t)y, -1, flip_x, flip_y, w, h);
 }
 
 int _lua_spr(lua_State* L) {
@@ -977,35 +977,35 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
 
     if(xmin>=xmax) return;
 
-    for (uint16_t y=ymin; y<ymax; y++) {
-        int16_t screen_y = y0+y-drawstate.camera_y;
-        //if (screen_y < 0) continue;
-        if (screen_y >= SCREEN_HEIGHT) return;
+	for (uint16_t y=ymin; y<ymax; y++) {
+		int16_t screen_y = y0+y-drawstate.camera_y;
+		//if (screen_y < 0) continue;
+		if (screen_y >= SCREEN_HEIGHT) return;
 
-        for (uint16_t x=xmin; x<xmax; x++) {
-            uint16_t screen_x;
-            if(flip_x) {
-                screen_x = x0+drawstate.camera_x-x+8*width;
-	    } else {
-	        screen_x = x0+x-drawstate.camera_x;
-	    }
+		for (uint16_t x=xmin; x<xmax; x++) {
+			uint16_t screen_x;
+			if(flip_x) {
+				screen_x = x0-drawstate.camera_x-x+8*width;
+			} else {
+				screen_x = x0+x-drawstate.camera_x;
+			}
 
-            if (screen_x >= SCREEN_WIDTH) break;
-            val = s->sprite_data[(sy+y)*128 + x + sx];
-            if (drawstate.transparent[val] != 0) {
-                continue;
-            }
+			if (screen_x >= SCREEN_WIDTH) break;
+			val = s->sprite_data[(sy+y)*128 + x + sx];
+			if (drawstate.transparent[val] != 0) {
+				continue;
+			}
 
-            if (paletteIdx != -1) {
-                p = paletteIdx;
-            } else {
-                p = val;
-            }
+			if (paletteIdx != -1) {
+				p = paletteIdx;
+			} else {
+				p = val;
+			}
 
-            put_pixel(screen_x, screen_y, p);
+			put_pixel(screen_x, screen_y, p);
 
-        }
-    }
+		}
+	}
 }
 
 inline void render_many(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {

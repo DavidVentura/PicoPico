@@ -15,6 +15,7 @@ bool is_test_func(lua_State* _L, const char* name, int idx) {
 }
 
 int test_regression(GameCart c) {
+	cartParser(&c);
 	bool lua_ok = init_lua(c.code, c.code_len);
 	assert(lua_ok);
 	const char** globals = iterate_globals(L, is_test_func);

@@ -42,7 +42,7 @@ static inline void put_pixel(uint8_t x, uint8_t y, palidx_t p){
 }
 
 void guarded_put_pixel(int16_t x, int16_t y, palidx_t p){
-	if(x<SCREEN_WIDTH && y<SCREEN_HEIGHT) {
+	if(x>0&&x<SCREEN_WIDTH && y<SCREEN_HEIGHT&&y>0) {
 		put_pixel(x, y, p);
 	}
 }
@@ -59,7 +59,7 @@ void gfx_circlefill(int16_t x, int16_t y, int16_t radius, palidx_t p){
             if((y + dy) >= SCREEN_HEIGHT) continue;
             if((y + dy) < 0) continue;
             if ((dx_sq + dy*dy) <= r_sq) {
-                put_pixel(x + dx, y + dy, p);
+                guarded_put_pixel(x + dx, y + dy, p);
             }
         }
     }
@@ -73,8 +73,7 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, palidx_t color
     int32_t ty = 1;
     int32_t error = (tx - diameter);
 
-    while (x >= y)
-    {
+    while (x >= y) {
         //  Each of the following renders an octant of the circle
         guarded_put_pixel(centreX + x, centreY - y, color);
         guarded_put_pixel(centreX + x, centreY + y, color);

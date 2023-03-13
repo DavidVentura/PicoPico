@@ -245,14 +245,17 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
     drawstate.pen_color = paletteIdx;
 
     int16_t print_x_offset = x;
+    int16_t print_y_offset = y;
 	uint8_t char_width = 4;
     int16_t print_width_ratio = 1;
     int16_t print_height_ratio = 1;
+    int16_t old_pen;
 
 	uint8_t i = 0;
 	while (i<textLen) {
 		bool printed_double_wide = false;
 		uint8_t c = text[i];
+        // FIXME: have to handle all control chars in a row
 		switch(c) {
 			case 6: // \^ change rendering modes
 				if (i==textLen-1) return; // text ends in \^; probably illegal
@@ -266,13 +269,38 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 					case 't':
 						print_height_ratio = 2;
 						break;
+					case 'i': // inverted
+						old_pen = drawstate.pen_color;
+						drawstate.pen_color = drawstate.bg_color;
+						drawstate.bg_color = old_pen;
+						break;
+                    case 'g': // home
+                        print_x_offset = x;
+                        print_y_offset = y;
+                        break;
+                    case '-': // disable something
+                        if (i==textLen-1) return; // text ends in \^-; probably illegal
+                        i++;
+                        if (i==textLen-1) return; // text ends in \^-<MODE>; pointless
+                        c = text[i];
+                        switch(c) {
+                            case 'i': // inverted
+                                // FIXME probably not how it should be done
+                                old_pen = drawstate.pen_color;
+                                drawstate.pen_color = drawstate.bg_color;
+                                drawstate.bg_color = old_pen;
+                                break;
+                            default:
+                                printf("supposed to disable %c now\n", c);
+                        }
+                        break;
 				}
 				i++;
 				c = text[i];
 				break;
 			case '\n':
                 print_x_offset = x;
-                y += 6;
+                print_y_offset += 6;
 				if (i==textLen-1) return; // text ends in \n; pointless
 				i++;
 				c = text[i];
@@ -338,8 +366,8 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 				i += 6;
 				break;
 		}
-		if (c != 6 && c != 2) { // FIXME: this covers \^w\^t (many specials in a row)
-			render_text(&fontsheet, c, print_x_offset, y, print_width_ratio, print_height_ratio);
+		if (c > 15) { // FIXME: this covers \^w\^t (many specials in a row)
+			render_text(&fontsheet, c, print_x_offset, print_y_offset, print_width_ratio, print_height_ratio);
 			print_x_offset += (char_width * print_width_ratio);
 			i++;
 		}

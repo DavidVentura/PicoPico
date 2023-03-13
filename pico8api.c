@@ -219,7 +219,7 @@ void render_text(Spritesheet* s, uint16_t sprite, uint8_t x0, uint8_t y0, uint8_
     if (drawstate.bg_color) {
         for (uint8_t y=0; y<7*height_ratio; y++) {
             if ((y+y0-1) >= SCREEN_HEIGHT) return;
-            for (uint8_t x=0; x<5*width_ratio; x++) {
+            for (uint8_t x=0; x<9*width_ratio; x++) {
                 if ((x+x0-1) >= SCREEN_WIDTH) break;
                 put_pixel(x0+x-1, y0+y-1, drawstate.bg_color);
             }

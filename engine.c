@@ -99,9 +99,10 @@ void engine_init() {
     printf("Parsing HUD \n");
     assert(artifacts_hud_p8_len <= sizeof(hud_sprites.sprite_data));
     memcpy(hud_sprites.sprite_data, artifacts_hud_p8, artifacts_hud_p8_len);
+    init_pink_noise_gen(&osc);
 }
 
-void cartParser(GameCart* parsingCart) {
+void cartParser(const GameCart* parsingCart) {
 	assert(parsingCart->gfx_len <= sizeof(spritesheet.sprite_data));
 	memcpy(spritesheet.sprite_data, parsingCart->gfx, parsingCart->gfx_len);
 

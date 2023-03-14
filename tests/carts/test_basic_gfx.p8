@@ -13,8 +13,7 @@ function _draw()
 	line(10, 54, 28, 44, 6)
 
 
-	-- line(20, 0, 20, 100, 6)
-	ovalfill(2, 90, 36, 110, 9)
+	ovalfill(2, 60, 36, 80, 9)
 	oval    (2, 90, 36, 110, 8)
 
 	print("this is normal-sized", 		40, 2, 7)

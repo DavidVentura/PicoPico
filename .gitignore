@@ -2,6 +2,7 @@ emulator
 build
 static_game_data.h
 tests/regression_static_game_data.h
+tests/test_static_game_data.h
 board/picopico/picopico-backups/*
 tests-build/
 venv

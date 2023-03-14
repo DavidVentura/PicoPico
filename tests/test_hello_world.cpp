@@ -12,6 +12,7 @@ void test_hello_world() {
     uint8_t cart_count = sizeof(carts)/sizeof(GameCart);
     const char cartname[] = "hello_world_p8";
     for(uint8_t i=0; i<cart_count; i++) {
+		printf("%s\n", carts[i].name);
         if(strncmp(carts[i].name, cartname, MIN(carts[i].name_len, sizeof(cartname))) == 0) {
             hello_world = i;
             break;

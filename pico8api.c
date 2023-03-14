@@ -1085,13 +1085,14 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
 
     if(xmin>=xmax) return;
 
-	for (uint16_t y=ymin; y<ymax; y++) {
+	for (int16_t y=ymin; y<ymax; y++) {
 		int16_t screen_y = y0+y-drawstate.camera_y;
 		//if (screen_y < 0) continue;
 		if (screen_y >= SCREEN_HEIGHT) return;
+		if (sy >= 128) return; // TODO: these 128 are spritesheet height
 
-		for (uint16_t x=xmin; x<xmax; x++) {
-			uint16_t screen_x;
+		for (int16_t x=xmin; x<xmax; x++) {
+			int16_t screen_x;
 			if(flip_x) {
 				screen_x = x0-drawstate.camera_x-x+8*width;
 			} else {

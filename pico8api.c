@@ -42,7 +42,7 @@ static inline void put_pixel(uint8_t x, uint8_t y, palidx_t p){
 }
 
 void guarded_put_pixel(int16_t x, int16_t y, palidx_t p){
-	if(x>0&&x<SCREEN_WIDTH && y<SCREEN_HEIGHT&&y>0) {
+	if(x>=0&&x<SCREEN_WIDTH && y<SCREEN_HEIGHT&&y>=0) {
 		put_pixel(x, y, p);
 	}
 }

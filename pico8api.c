@@ -971,6 +971,25 @@ int _lua_fillp(lua_State* L) {
     uint16_t addr = luaL_checkinteger(L, 1);
     return 0;
 }
+int _lua_cursor(lua_State* L) {
+    const int16_t old_cursor_x = drawstate.cursor_x;
+    const int16_t old_cursor_y = drawstate.cursor_y;
+    const int16_t old_cursor_c = drawstate.pen_color;
+
+	const int16_t x = luaL_optinteger(L, 1, 0);
+    const int16_t y = luaL_optinteger(L, 2, 0);
+    const int16_t paletteIdx = luaL_optinteger(L, 3, drawstate.pen_color);
+
+	drawstate.cursor_x = x;
+	drawstate.cursor_y = y;
+	drawstate.pen_color = paletteIdx;
+
+    lua_pushnumber(L, old_cursor_x);
+    lua_pushnumber(L, old_cursor_y);
+    lua_pushnumber(L, old_cursor_c);
+
+    return 3;
+}
 int _lua_reload(lua_State* L) {
     uint8_t argcount = lua_gettop(L);
     // TODO: implement reload

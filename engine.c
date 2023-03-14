@@ -144,6 +144,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "circ");
     lua_pushcfunction(L, _lua_circfill);
     lua_setglobal(L, "circfill");
+    lua_pushcfunction(L, _lua_oval);
+    lua_setglobal(L, "oval");
     lua_pushcfunction(L, _lua_ovalfill);
     lua_setglobal(L, "ovalfill");
     lua_pushcfunction(L, _lua_btn);

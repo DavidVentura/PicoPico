@@ -30,6 +30,7 @@ static color_t palette[] = {
 
 static uint8_t pal_map[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 const static uint8_t orig_pal_map[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t color);
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
 static inline void put_pixel(uint8_t x, uint8_t y, palidx_t p){
     if (x&0x1) {
@@ -45,6 +46,78 @@ void guarded_put_pixel(int16_t x, int16_t y, palidx_t p){
 	if(x>=0&&x<SCREEN_WIDTH && y<SCREEN_HEIGHT&&y>=0) {
 		put_pixel(x, y, p);
 	}
+}
+
+void gfx_ovalfill(int16_t x0, int16_t y0, int16_t x1, int16_t y1, palidx_t p){
+    // FIXME: this is kinda broken
+    int16_t height = abs(y0 - y1)/2;
+    int16_t width = abs(x0 - x1)/2+1;
+    int16_t cx = MIN(x0, x1) + width;
+    int16_t cy = MIN(y0, y1) + height;
+    int hh = height * height;
+    int ww = width * width;
+    int hhww = hh * ww;
+    x0 = width;
+    int dx = 0;
+
+    // do the horizontal diameter
+    // <=
+    for (int x = -width; x < width-1; x++)
+        guarded_put_pixel(cx + x, cy, p);
+
+    // now do both halves at the same time, away from the diameter
+    for (int y = 1; y < height; y++) {
+        int x1 = x0 - (dx - 1);  // try slopes of dx - 1 or more
+        for ( ; x1 > 0; x1--)
+            if (x1*x1*hh + y*y*ww <= hhww)
+                break;
+        dx = x0 - x1;  // current approximation of the slope
+        x0 = x1;
+
+        for (int x = -x0; x < x0; x++) {
+            guarded_put_pixel(cx + x, cy - y, p);
+            guarded_put_pixel(cx + x, cy + y, p);
+        }
+    }
+}
+
+void gfx_oval(int16_t x0, int16_t y0, int16_t x1, int16_t y1, palidx_t p){
+   int a = abs (x1 - x0), b = abs (y1 - y0), b1 = b & 1; /* values of diameter */
+   long dx = 4 * (1 - a) * b * b, dy = 4 * (b1 + 1) * a * a; /* error increment */
+   long err = dx + dy + b1 * a * a, e2; /* error of 1.step */
+
+   if (x0 > x1) { x0 = x1; x1 += a; } /* if called with swapped points */
+   if (y0 > y1) y0 = y1; /* .. exchange them */
+   y0 += (b + 1) / 2;
+   y1 = y0-b1;   /* starting pixel */
+   a *= 8 * a; b1 = 8 * b * b;
+   do
+   {
+       guarded_put_pixel(x1, y0, p); /*   I. Quadrant */
+       guarded_put_pixel(x0, y0, p); /*  II. Quadrant */
+       guarded_put_pixel(x0, y1, p); /* III. Quadrant */
+       guarded_put_pixel(x1, y1, p); /*  IV. Quadrant */
+       e2 = 2 * err;
+       if (e2 >= dx)
+       {
+          x0++;
+          x1--;
+          err += dx += b1;
+       } /* x step */
+       if (e2 <= dy)
+       {
+          y0++;
+          y1--;
+          err += dy += a;
+       }  /* y step */
+   } while (x0 <= x1);
+   while (y0-y1 < b)
+   {  /* too early stop of flat ellipses a=1 */
+       guarded_put_pixel(x0-1, y0, p); /* -> finish tip of ellipse */
+       guarded_put_pixel(x1+1, y0++, p);
+       guarded_put_pixel(x0-1, y1, p);
+       guarded_put_pixel(x1+1, y1--, p);
+   }
 }
 
 void gfx_circlefill(int16_t x, int16_t y, int16_t radius, palidx_t p){
@@ -378,13 +451,19 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 
 }
 
-void gfx_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const palidx_t color) {
-    for(uint16_t y=y0; y<=y1; y++) {
-	if(y>=SCREEN_HEIGHT) return;
-        for(uint16_t x=x0; x<=x1; x++) {
-	    if(x>=SCREEN_WIDTH) break;
-            put_pixel(x, y, color);
-	}
+// Bresenham line algorithm
+// https://gist.github.com/bert/1085538
+void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t color) {
+    int16_t dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
+    int16_t dy = -abs (y1 - y0), sy = y0 < y1 ? 1 : -1; 
+    int16_t err = dx + dy, e2; /* error value e_xy */
+
+    for (;;){  /* loop */
+        guarded_put_pixel(x0,y0, color);
+        if (x0 == x1 && y0 == y1) break;
+        e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
+        if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
     }
 }
 int _lua_print(lua_State* L) {
@@ -572,8 +651,7 @@ int _lua_circ(lua_State* L) {
     return 0;
 }
 
-int _lua_ovalfill(lua_State* L) {
-    // FIXME  this is just a circle..
+int _lua_oval(lua_State* L) {
     int x0 = luaL_checkinteger(L, 1);
     int y0 = luaL_checkinteger(L, 2);
     int x1 = luaL_checkinteger(L, 3);
@@ -581,7 +659,18 @@ int _lua_ovalfill(lua_State* L) {
     int col = luaL_optinteger(L, 5, drawstate.pen_color);
     drawstate.pen_color = col;
 
-    gfx_circlefill(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-x0, col);
+    gfx_oval(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-drawstate.camera_x, y1-drawstate.camera_y, col);
+    return 0;
+}
+int _lua_ovalfill(lua_State* L) {
+    int x0 = luaL_checkinteger(L, 1);
+    int y0 = luaL_checkinteger(L, 2);
+    int x1 = luaL_checkinteger(L, 3);
+    int y1 = luaL_checkinteger(L, 4);
+    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+    drawstate.pen_color = col;
+
+    gfx_ovalfill(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-drawstate.camera_x, y1-drawstate.camera_y, col);
     return 0;
 }
 

@@ -49,36 +49,42 @@ void guarded_put_pixel(int16_t x, int16_t y, palidx_t p){
 }
 
 void gfx_ovalfill(int16_t x0, int16_t y0, int16_t x1, int16_t y1, palidx_t p){
-    // FIXME: this is kinda broken
-    int16_t height = abs(y0 - y1)/2;
-    int16_t width = abs(x0 - x1)/2+1;
-    int16_t cx = MIN(x0, x1) + width;
-    int16_t cy = MIN(y0, y1) + height;
-    int hh = height * height;
-    int ww = width * width;
-    int hhww = hh * ww;
-    x0 = width;
-    int dx = 0;
+   int a = abs (x1 - x0), b = abs (y1 - y0), b1 = b & 1; /* values of diameter */
+   long dx = 4 * (1 - a) * b * b, dy = 4 * (b1 + 1) * a * a; /* error increment */
+   long err = dx + dy + b1 * a * a, e2; /* error of 1.step */
 
-    // do the horizontal diameter
-    // <=
-    for (int x = -width; x < width-1; x++)
-        guarded_put_pixel(cx + x, cy, p);
-
-    // now do both halves at the same time, away from the diameter
-    for (int y = 1; y < height; y++) {
-        int x1 = x0 - (dx - 1);  // try slopes of dx - 1 or more
-        for ( ; x1 > 0; x1--)
-            if (x1*x1*hh + y*y*ww <= hhww)
-                break;
-        dx = x0 - x1;  // current approximation of the slope
-        x0 = x1;
-
-        for (int x = -x0; x < x0; x++) {
-            guarded_put_pixel(cx + x, cy - y, p);
-            guarded_put_pixel(cx + x, cy + y, p);
-        }
-    }
+   if (x0 > x1) { x0 = x1; x1 += a; } /* if called with swapped points */
+   if (y0 > y1) y0 = y1; /* .. exchange them */
+   y0 += (b + 1) / 2;
+   y1 = y0-b1;   /* starting pixel */
+   a *= 8 * a; b1 = 8 * b * b;
+   do
+   {
+	   for(int16_t y=y1; y<=y0; y++){
+		   guarded_put_pixel(x0, y, p);
+		   guarded_put_pixel(x1, y, p);
+	   }
+       e2 = 2 * err;
+       if (e2 >= dx)
+       {
+          x0++;
+          x1--;
+          err += dx += b1;
+       } /* x step */
+       if (e2 <= dy)
+       {
+          y0++;
+          y1--;
+          err += dy += a;
+       }  /* y step */
+   } while (x0 <= x1);
+   while (y0-y1 < b)
+   {  /* too early stop of flat ellipses a=1 */
+       guarded_put_pixel(x0-1, y0, p); /* -> finish tip of ellipse */
+       guarded_put_pixel(x1+1, y0++, p);
+       guarded_put_pixel(x0-1, y1, p);
+       guarded_put_pixel(x1+1, y1--, p);
+   }
 }
 
 void gfx_oval(int16_t x0, int16_t y0, int16_t x1, int16_t y1, palidx_t p){
@@ -167,51 +173,6 @@ void gfx_circle(int32_t centreX, int32_t centreY, int32_t radius, palidx_t color
             --x;
             tx += 2;
             error += (tx - diameter);
-        }
-    }
-}
-
-
-// Indicates the point lies outside of the ellipse.
-#define PS_OUTSIDE  (0)
-// Indicates the point lies exactly on the perimeter of the ellipse.
-#define PS_ONPERIM  (1)
-// Indicates the point lies inside of the ellipse.
-#define PS_INSIDE   (2)
-
-short isPointOnEllipse(int cx, int cy, int rx, int ry, int x, int y)
-{
-    double m = (x - cx) * ((double) ry) / ((double) rx);
-    double n = y - cy;
-    double h = sqrt(m * m + n * n);
-
-    if (h < ry)
-        return PS_INSIDE;
-    if (h == ry)
-        return PS_ONPERIM;
-    else
-        return PS_OUTSIDE;
-}
-
-void gfx_ellipse(int x0, int y0, int width, int height, palidx_t color, bool fill) {
-    // So the ellipse shall be stretched to the whole matrix
-    // with a one-pixel margin.
-    int16_t cx = width / 2;
-    int16_t cy = height / 2;
-    int16_t rx = cx - 1;
-    int16_t ry = cy - 1;
-
-    uint8_t x, y;
-    uint8_t pointStatus;
-    if(x0<0 ||y0<0) return;
-    for (x = 0;x < width;x++) {
-	if(x0+x>=SCREEN_WIDTH) return;
-        for (y = 0;y < height;y++) {
-	    if(y0+y>=SCREEN_HEIGHT) break;
-            pointStatus = isPointOnEllipse(cx, cy, rx, ry, x, y);
-	    if((pointStatus == PS_ONPERIM) || ((pointStatus == PS_INSIDE) && fill)) {
-                put_pixel(x0+x, y0+y, color);
-	    }
         }
     }
 }

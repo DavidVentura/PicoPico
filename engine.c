@@ -209,6 +209,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "reload");
     lua_pushcfunction(L, _extcmd);
     lua_setglobal(L, "extcmd");
+    lua_pushcfunction(L, _lua_cursor);
+    lua_setglobal(L, "cursor");
 }
 
 bool _lua_fn_exists(const char* fn) {

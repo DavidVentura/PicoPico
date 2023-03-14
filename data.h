@@ -57,6 +57,8 @@ struct DrawState {
 	int16_t     camera_y    = 0;
 	uint16_t    line_x      = 0;
 	uint16_t    line_y      = 0;
+	uint8_t     cursor_x    = 0;
+	uint8_t     cursor_y    = 0;
 	uint8_t     transparent[16];
 };
 

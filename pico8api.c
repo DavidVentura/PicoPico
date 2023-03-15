@@ -565,15 +565,15 @@ int _lua_spr(lua_State* L) {
 
 int _lua_line(lua_State* L) {
     //TODO: handle all cases https://pico-8.fandom.com/wiki/Line
-    uint8_t x0 = luaL_optinteger(L, 1, drawstate.line_x);
-    uint8_t y0 = luaL_optinteger(L, 2, drawstate.line_y);
-    uint8_t x1 = luaL_optinteger(L, 3, 0);
-    uint8_t y1 = luaL_optinteger(L, 4, 0);
+    int16_t x0 = luaL_optinteger(L, 1, drawstate.line_x);
+    int16_t y0 = luaL_optinteger(L, 2, drawstate.line_y);
+    int16_t x1 = luaL_optinteger(L, 3, 0);
+    int16_t y1 = luaL_optinteger(L, 4, 0);
     int col = luaL_optinteger(L, 5, drawstate.pen_color);
     drawstate.pen_color = col;
     drawstate.line_x = x1;
     drawstate.line_y = y1;
-    gfx_line(x0, y0, x1, y1, col);
+    gfx_line(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-drawstate.camera_x, y1-drawstate.camera_y, col);
     return 0;
 }
 

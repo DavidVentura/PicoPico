@@ -752,10 +752,10 @@ int _lua_fget(lua_State* L) {
 }
 
 int _lua_mset(lua_State* L) {
-    uint16_t x = luaL_checkinteger(L, 1);
-    uint16_t y = luaL_checkinteger(L, 2);
+    int16_t x = luaL_checkinteger(L, 1);
+    int16_t y = luaL_checkinteger(L, 2);
     uint8_t n = luaL_checkinteger(L, 3);
-    map_data[y*128+x] = n;
+    map_data[x+y*128] = n;
     return 0;
 }
 

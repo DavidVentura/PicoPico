@@ -171,6 +171,8 @@ void registerLuaFunctions() {
     lua_setglobal(L, "mget");
     lua_pushcfunction(L, _lua_sget);
     lua_setglobal(L, "sget");
+    lua_pushcfunction(L, _lua_sset);
+    lua_setglobal(L, "sset");
     lua_pushcfunction(L, _lua_time);
     lua_setglobal(L, "t");
     lua_pushcfunction(L, _lua_time);

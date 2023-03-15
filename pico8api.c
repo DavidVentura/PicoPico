@@ -720,6 +720,15 @@ inline uint8_t _sget(int16_t x, int16_t y) {
         return 0;
     return spritesheet.sprite_data[y*128+x];
 }
+int _lua_sset(lua_State* L) {
+    int16_t x = luaL_checkinteger(L, 1);
+    int16_t y = luaL_checkinteger(L, 2);
+    int16_t c = luaL_optinteger(L, 3, drawstate.pen_color);
+	if(x>=0 && x<128 && y>=0 && y<128) {
+		spritesheet.sprite_data[y*128+x] = c;
+	}
+    return 0;
+}
 int _lua_sget(lua_State* L) {
     int16_t x = luaL_checkinteger(L, 1);
     int16_t y = luaL_checkinteger(L, 2);

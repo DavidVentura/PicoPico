@@ -133,6 +133,11 @@ elseif(BACKEND STREQUAL "TEST")
 		COMMAND python3 buf_to_png.py --in-file data/test_basic_gfx.bin --out-file data/test_basic_gfx.png --width 128 --height 128 --palette
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/
 	)
+	add_custom_target(
+		tests_webserver
+		COMMAND python3 -m http.server
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/data
+	)
 
 	file(GLOB ALL_REGRESSION_FILES CONFIGURE_DEPENDS tests/regression/*.p8 to_c.py)
 	add_custom_command(

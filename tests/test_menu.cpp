@@ -10,7 +10,6 @@ bool handle_input() {
 	    // hold down for 1 frame
 	    buttons_frame[3] = 1;
 	    downCounter = 1;
-	    printf("down!");
     }
     return queryCounter++ == 5; // wants to quit
 }

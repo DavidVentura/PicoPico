@@ -1,7 +1,7 @@
 #include <cassert>
 
-bool compare_buffer(const char* in_file, uint8_t* buf, uint16_t buf_len, bool dump_values) {
-    if (dump_values) {
+bool compare_buffer(const char* in_file, uint8_t* buf, uint16_t buf_len) {
+    if(getenv("OVERWRITE_TEST_BUF")){
         FILE *fw = fopen(in_file, "wb");
         fwrite(buf, sizeof(uint8_t), buf_len, fw);
         fclose(fw);
@@ -21,6 +21,7 @@ bool compare_buffer(const char* in_file, uint8_t* buf, uint16_t buf_len, bool du
 
     for(uint16_t i=0; i<bytes_read; i++) {
         if(buf[i] != golden_data[i]) {
+            printf("Set the env var OVERWRITE_TEST_BUF to overwrite\n");
             return false;
         }
     }

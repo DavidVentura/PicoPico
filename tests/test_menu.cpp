@@ -17,7 +17,7 @@ bool handle_input() {
 
 void test_menu() {
     drawMenu();
-    assert(compare_buffer("../tests/data/menu.bin", frontbuffer, sizeof(frontbuffer), false));
+    assert(compare_buffer("../tests/data/menu.bin", frontbuffer, sizeof(frontbuffer)));
 }
 
 int main() {

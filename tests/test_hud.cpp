@@ -9,7 +9,7 @@ bool handle_input() {
 
 void test_menu() {
     drawMenu();
-    assert(compare_buffer("../tests/data/hud.bin", hud_buffer, sizeof(hud_buffer), false));
+    assert(compare_buffer("../tests/data/hud.bin", hud_buffer, sizeof(hud_buffer)));
 }
 
 int main() {

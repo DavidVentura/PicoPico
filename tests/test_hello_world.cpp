@@ -26,7 +26,7 @@ void test_hello_world() {
     if (_lua_fn_exists("_update")) _to_lua_call("_update");
     if (_lua_fn_exists("_draw")) _to_lua_call("_draw");
     flip();
-    assert(compare_buffer("../tests/data/hello_world.bin", frontbuffer, sizeof(frontbuffer), false));
+    assert(compare_buffer("../tests/data/hello_world.bin", frontbuffer, sizeof(frontbuffer)));
     lua_close(L);
 }
 

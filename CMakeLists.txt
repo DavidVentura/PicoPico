@@ -16,6 +16,8 @@ elseif(BACKEND STREQUAL "PC")
 add_definitions(-DSDL_BACKEND)
 elseif(BACKEND STREQUAL "TEST")
 add_definitions(-DTEST_BACKEND)
+else()
+message( SEND_ERROR "Invalid backend" )
 endif()
 
 project(my_project C CXX ASM)

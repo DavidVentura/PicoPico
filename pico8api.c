@@ -762,7 +762,7 @@ int _lua_mset(lua_State* L) {
 int _lua_mget(lua_State* L) {
     int16_t x = luaL_checkinteger(L, 1);
     int16_t y = luaL_checkinteger(L, 2);
-    if (x<0 || y<0) {
+    if (x<0 || y<0 || x>63 || y> 63) {
     	lua_pushinteger(L, 0);
     	return 1;
     }

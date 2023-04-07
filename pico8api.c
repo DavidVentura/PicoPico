@@ -772,9 +772,14 @@ int _lua_mget(lua_State* L) {
 }
 
 int _lua_pget(lua_State* L) {
-    uint8_t x = luaL_checkinteger(L, 1);
-    uint8_t y = luaL_checkinteger(L, 2);
-    uint16_t p = get_pixel(x, y);
+    uint16_t x = luaL_checkinteger(L, 1);
+    uint16_t y = luaL_checkinteger(L, 2);
+    uint16_t p;
+    if (x>127 || y>127) {
+        p = 0;
+    } else {
+        p = get_pixel(x, y);
+    }
     lua_pushinteger(L, p);
     return 1;
 }

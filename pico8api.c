@@ -659,6 +659,8 @@ int _lua_map(lua_State* L) {
     int cellH = luaL_checkinteger(L, 6);
     uint32_t layerFlags = luaL_optinteger(L, 7, 0x0);
 
+    cellW = MIN(cellW, 63);
+    cellH = MIN(cellH, 63);
     map(mapX, mapY, screenX, screenY, cellW, cellH, layerFlags);
     return 0;
 }

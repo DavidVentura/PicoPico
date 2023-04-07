@@ -178,8 +178,8 @@ from ~25ms to ~2ms on the ESP32.
 |camera         |✅         |                           |
 |circ           |✅         |                           |
 |circfill       |✅         |                           |
-|oval           |❌         |                           |
-|ovalfill       |❌         |                           |
+|oval           |✅         |                           |
+|ovalfill       |✅         |                           |
 |clip           |✅         |                           |
 |cls            |✅         |                           |
 |color          |✅         |                           |
@@ -187,7 +187,7 @@ from ~25ms to ~2ms on the ESP32.
 |fget           |✅         |                           |
 |fillp          |❌         |                           |
 |fset           |❌         |                           |
-|line           |❌         |                           |
+|line           |✅         |                           |
 |pal            |⚠️          |Only "draw palette" is implemented|
 |palt           |✅         |                           |
 |pget           |✅         |                           |
@@ -197,7 +197,7 @@ from ~25ms to ~2ms on the ESP32.
 |rectfill       |✅         |                           |
 |sget           |✅         |                           |
 |spr            |✅         |                           |
-|sset           |❌         |                           |
+|sset           |✅         |                           |
 |sspr           |⚠️          |                           |
 |tline          |❌         |                           |
 
@@ -230,6 +230,13 @@ All implemented (z8lua)
 
 ## Cartridge data
 
+|    Function   | Supported |                     Notes |
+|---------------|-----------|---------------------------|
+|cartdata       |⚠️          | Not persistent            |
+|dget           |⚠️          | Not persistent            |
+|dset           |⚠️          | Not persistent            |
+|cstore         |❌         |                           |
+|reload         |❌         |                           |
 cartdata/dget/dset are _technically_ implemented, there's no persistence layer though.
 
 cstore/reload are not implemented.
@@ -259,7 +266,7 @@ mkdir pc_pico && cd pc_pico
 cmake -DBACKEND=PC ..
 ```
 
-# Development (without a second Pico running OpenOCD)
+# Development on RP2040 (without a second Pico running OpenOCD)
 
 Add this block to a udev rule (adjust the paths to point to this repo)
 ```
@@ -273,6 +280,50 @@ sudo minicom -b 115200 -D /dev/ttyACM1
 ```
 
 you can press `r` on it to reboot into mass-storage mode; which will trigger the udev rules after a second or so.
+
+# Tests
+
+There's a CMake backend (TEST) that you can use with `cmake -DBACKEND=TEST`; in that backend, the command `make test` will run some tests.
+
+Some of the tests are for the internal APIs, and are written in C. Generally though, most tests should be written as p8 cartridges and placed in `tests/regression/*.p8`.
+
+Internal API tests usually compare the output with some expected, known-good frontbuffer values (a "screenshot").
+Whenever these need to change, the specific test can be re-run with the environment variable `OVERWRITE_TEST_BUF` set to any value.
+This will overwrite `tests/data/buf_*.bin`. To look at these buffers, you can use the command `bin_to_png`.
+
+```
+> make test
+Running tests...
+Test project /Users/tati/git/PicoPico/tests_build
+    Start 1: test_hello_world
+1/5 Test #1: test_hello_world .................   Passed    0.03 sec
+    Start 2: test_hud
+2/5 Test #2: test_hud .........................   Passed    0.03 sec
+    Start 3: test_menu
+3/5 Test #3: test_menu ........................   Passed    0.03 sec
+    Start 4: test_primitives
+4/5 Test #4: test_primitives ..................   Passed    0.03 sec
+    Start 5: test_regression
+5/5 Test #5: test_regression ..................   Passed    0.03 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   0.16 sec
+```
+
+```
+> ./test_regression
+Testing regression_api_p8
+  test_map_no_args                        [ OK]
+  test_print_p8scii_color                 [ OK]
+
+Testing regression_asan_p8
+  test_sspr_same_size_is_maintained       [ OK]
+  test_circ_top_left_edge                 [ OK]
+
+Testing regression_other_p8
+  test_nothing                            [ OK]
+```
 
 # Useful links
 

@@ -366,6 +366,11 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 						c = 151; // X in font
 						i += 1;
 						break;
+					case 0x99:// ❤️ = 0xe2 0x99 0xa5
+						printed_double_wide = true;
+						c = 135; // heart in font
+						i += 1;
+						break;
 					case 0xac:// U/L/D
 						i++;
 						c = text[i];

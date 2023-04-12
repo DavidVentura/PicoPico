@@ -122,6 +122,11 @@ elseif(BACKEND STREQUAL "PC")
 		-fsingle-precision-constant
 		)
 
+	if(APPLE)
+		add_custom_command(TARGET pc_pico POST_BUILD COMMAND codesign -s - ./pc_pico)
+	endif()
+
+
 elseif(BACKEND STREQUAL "ESP32")
 	# some day i'll figure out how to merge the 2 projects
 elseif(BACKEND STREQUAL "TEST")
@@ -174,6 +179,9 @@ elseif(BACKEND STREQUAL "TEST")
 		target_link_libraries(${EXECUTABLE_NAME} my_lua_lib)
 		add_test(NAME ${EXECUTABLE_NAME} COMMAND ${EXECUTABLE_NAME})
 		target_compile_options(${EXECUTABLE_NAME} PRIVATE ${test_compile_options})
+		if(APPLE)
+			add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD COMMAND codesign -s - ${EXECUTABLE_NAME})
+		endif()
 	endforeach(testfile ${TEST_SOURCES})
 
 	# test regression

@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name "picopico")(type "KiCad")(uri "${KIPRJMOD}/picopico.kicad_sym")(options "")(descr ""))
+  (lib (name "picopico2")(type "KiCad")(uri "${KIPRJMOD}/../kicad-libraries/libraries/USB4125-GF-A_REVA2.kicad_sym")(options "")(descr ""))
 )

@@ -358,7 +358,9 @@
     "pinned_footprint_libs": [
       "picopico"
     ],
-    "pinned_symbol_libs": []
+    "pinned_symbol_libs": [
+      "picopico"
+    ]
   },
   "meta": {
     "filename": "picopico.kicad_pro",

@@ -1,4 +1,4 @@
-20177445287905816
+20182493972846525
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -85834,6 +85834,13 @@ DollaTecESP32
 34
 34
 picopico
+GCT_USB4125-GF-A_REVA2
+
+
+0
+10
+10
+picopico
 SM02B-SRSS-TB
 http://www.jst-mfg.com/product/pdf/eng/eSH.pdf
 JST SH
@@ -85848,12 +85855,26 @@ audio
 9
 9
 picopico
+debugpad
+
+
+0
+2
+2
+picopico
 evqq2_compact
 
 
 0
 4
 2
+picopico
+lcd smd
+
+
+0
+14
+14
 picopico
 pad
 

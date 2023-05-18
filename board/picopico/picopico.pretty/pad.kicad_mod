@@ -1,6 +1,6 @@
 (footprint "pad" (version 20211014) (generator pcbnew)
   (layer "F.Cu")
-  (tedit 63FB87EE)
+  (tedit 643DB6D6)
   (attr smd)
   (fp_text reference "REF**" (at -0.254 -2.032 unlocked) (layer "F.SilkS") hide
     (effects (font (size 1 1) (thickness 0.15)))
@@ -14,5 +14,5 @@
     (effects (font (size 1 1) (thickness 0.15)))
     (tstamp c9b58a36-9aa7-41cf-b2cd-21299d6546f1)
   )
-  (pad "1" smd rect (at 0 0) (size 0.8 0.8) (layers "F.Cu" "F.Paste" "F.Mask") (tstamp a0c14e28-76a4-4d13-b287-79d031c07d50))
+  (pad "1" smd circle (at 0 0) (size 0.8 0.8) (layers "F.Cu" "F.Paste" "F.Mask") (tstamp a0c14e28-76a4-4d13-b287-79d031c07d50))
 )

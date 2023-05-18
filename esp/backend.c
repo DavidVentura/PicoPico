@@ -132,7 +132,7 @@ bool init_video() {
     lcdInit(&dev, 0x7735, CONFIG_WIDTH, CONFIG_HEIGHT, 0, 0);
 
     gpio_config_t c = {
-        .pin_bit_mask = (1ULL << CONFIG_GPIO_LEFT) | (1ULL << CONFIG_GPIO_RIGHT) | (1ULL << CONFIG_GPIO_A) | (1ULL << CONFIG_GPIO_B) | (1ULL << CONFIG_GPIO_UP),
+        .pin_bit_mask = (1ULL << CONFIG_GPIO_LEFT) | (1ULL << CONFIG_GPIO_RIGHT) | (1ULL << CONFIG_GPIO_A) | (1ULL << CONFIG_GPIO_B) | (1ULL << CONFIG_GPIO_UP) | (1ULL << CONFIG_GPIO_SELECT) | (1ULL << CONFIG_GPIO_START),
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_ENABLE,
@@ -150,6 +150,8 @@ bool handle_input() {
     int a = gpio_get_level((gpio_num_t)CONFIG_GPIO_A);
     int b = gpio_get_level((gpio_num_t)CONFIG_GPIO_B);
     // printf("left %d, right %d, a %d\n", left, right, a);
+    int start = gpio_get_level((gpio_num_t)CONFIG_GPIO_START);
+    int select = gpio_get_level((gpio_num_t)CONFIG_GPIO_SELECT);
 
     buttons_prev[0] = buttons[0];
     buttons_prev[1] = buttons[1];

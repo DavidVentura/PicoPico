@@ -1,0 +1,26 @@
+david@framework:~/git/PicoPico/esp-build$ make size
+Total sizes:
+Used static DRAM:  136472 bytes (  44264 remain, 75.5% used)
+      .data size:   12128 bytes
+      .bss  size:  124344 bytes
+Used static IRAM:   71542 bytes (  59530 remain, 54.6% used)
+      .text size:   70515 bytes
+   .vectors size:    1027 bytes
+Used Flash size : 1279395 bytes
+      .text     :  237915 bytes
+      .rodata   : 1041224 bytes
+Total image size: 1363065 bytes (.bin may be padded larger)
+Built target size
+david@framework:~/git/PicoPico/esp-build$ make size-components
+Total sizes:
+Used static DRAM:  136472 bytes (  44264 remain, 75.5% used)
+      .data size:   12128 bytes
+      .bss  size:  124344 bytes
+Used static IRAM:   71542 bytes (  59530 remain, 54.6% used)
+      .text size:   70515 bytes
+   .vectors size:    1027 bytes
+Used Flash size : 1279395 bytes
+      .text     :  237915 bytes
+      .rodata   : 1041224 bytes
+Total image size: 1363065 bytes (.bin may be padded larger)
+

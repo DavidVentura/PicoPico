@@ -243,7 +243,8 @@ void flip() {
     uint32_t n = now();
 
     if (n < frame_end_time) {
-         delay(frame_end_time - n);
+		//printf("delaying for %u\n", frame_end_time - n);
+        delay(frame_end_time - n);
     }
 
     frame_start_time = now();

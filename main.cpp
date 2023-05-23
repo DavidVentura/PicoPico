@@ -44,7 +44,6 @@ int16_t drawMenu() {
     while(!wants_to_quit) {
 
         if (buttons_frame[3]) { // DOWN
-			printf("DOWN FROM MENU!\n");
             highlighted = (highlighted + 1) % cartCount;
             changed = true;
         }

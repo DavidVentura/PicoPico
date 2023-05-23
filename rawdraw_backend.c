@@ -27,8 +27,9 @@
 #endif
 #include "data.h"
 
-const uint8_t UPSCALE_FACTOR = 4;
+const uint8_t UPSCALE_FACTOR = 8;
 uint32_t* _rgb32_buf;
+unsigned int tex;
 
 typedef struct {
 	uint16_t x;
@@ -36,17 +37,29 @@ typedef struct {
 } coords;
 
 const coords button_coords[] = {
-	[BTN_IDX_UP] =   	{250, 800}, 
-	[BTN_IDX_LEFT] = 	{100, 950}, 
-	[BTN_IDX_RIGHT] = 	{400, 950}, 
-	[BTN_IDX_DOWN] = 	{250, 1100}, 
+	[BTN_IDX_UP] =   	{  0, 1000}, 
+	[BTN_IDX_LEFT] = 	{  0, 1000}, 
+	[BTN_IDX_RIGHT] = 	{300, 1000}, 
+	[BTN_IDX_DOWN] = 	{  0, 1300}, 
 
-	[BTN_IDX_A] = 		{700, 1000}, 
-	[BTN_IDX_B] = 		{850, 850}, 
+	[BTN_IDX_A] = 		{650, 1200}, 
+	[BTN_IDX_B] = 		{800, 1050}, 
 };
 
-const uint16_t BTN_WIDTH = 160;
-const uint16_t BTN_HEIGHT = 160;
+const coords button_sizes[] = {
+	[BTN_IDX_UP] =   	{500, 200}, 
+	[BTN_IDX_LEFT] = 	{200, 500}, 
+	[BTN_IDX_RIGHT] = 	{200, 500}, 
+	[BTN_IDX_DOWN] = 	{500, 200}, 
+
+	[BTN_IDX_A] = 		{250, 250}, 
+	[BTN_IDX_B] = 		{250, 250}, 
+};
+
+short screenx, screeny;
+unsigned frames = 0;
+double ThisTime;
+double LastFPSTime;
 
 bool init_platform() {
     return true;
@@ -61,6 +74,10 @@ bool init_video()
 	//CNFGSetup("PicoPico", W_SCREEN_WIDTH, W_SCREEN_HEIGHT);
 	CNFGSetupFullscreen( "PicoPico", 0 );
 	_rgb32_buf = (uint32_t*)malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t) * UPSCALE_FACTOR*UPSCALE_FACTOR);
+	tex = CNFGTexImage(_rgb32_buf, SCREEN_WIDTH*UPSCALE_FACTOR, SCREEN_HEIGHT * UPSCALE_FACTOR);
+	CNFGGetDimensions(&screenx, &screeny );
+	glBindTexture( GL_TEXTURE_2D, tex );
+	LastFPSTime = OGGetAbsoluteTime();
 	return true;
 }
 
@@ -70,15 +87,21 @@ void video_close()
 }
 
 void gfx_flip() {
+
+	for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(coords); i++) {
+		buttons_frame[i] = buttons[i] > 0 && (buttons_frame[i] == 0);
+	}
 	CNFGClearFrame();
 	uint8_t r,g,b,a;
 	a = 0xff ;
-    for(uint16_t y=0; y<SCREEN_HEIGHT*UPSCALE_FACTOR; y++)
-        for(uint16_t x=0; x<SCREEN_WIDTH*UPSCALE_FACTOR; x++){
+
+	// 51% (from 63%), at 8x without loop
+	for(uint16_t y=0; y<SCREEN_HEIGHT*UPSCALE_FACTOR; y++) {
+		for(uint16_t x=0; x<SCREEN_WIDTH*UPSCALE_FACTOR; x++){
 			uint8_t sx = x/UPSCALE_FACTOR;
 			uint8_t sy = y/UPSCALE_FACTOR;
 
-            palidx_t idx = get_pixel(sx, sy);
+			palidx_t idx = get_pixel(sx, sy);
 			color_t color = palette[idx];
 
 			r = (color >> 11) << 3;
@@ -87,14 +110,23 @@ void gfx_flip() {
 
 			// android R....
 			_rgb32_buf[y*SCREEN_WIDTH*UPSCALE_FACTOR+x] = (r << 24) | (g << 16) | (b << 8) | a;
-			// ARGB
-			//_rgb32_buf[y*SCREEN_WIDTH*UPSCALE_FACTOR+x] = (a << 24) | (r << 16) | (g << 8) | b;
-			//_rgb32_buf[y*SCREEN_WIDTH*UPSCALE_FACTOR+x] = (a << 24) | (r << 16) | (g << 8) | b;
+		}
+	}
 
-        }
-	CNFGBlitImage(_rgb32_buf, 0, 0, SCREEN_WIDTH * UPSCALE_FACTOR, SCREEN_HEIGHT*UPSCALE_FACTOR);
-    draw_hud();
+
+	glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH * UPSCALE_FACTOR, SCREEN_HEIGHT*UPSCALE_FACTOR, GL_RGBA, GL_UNSIGNED_BYTE, _rgb32_buf);
+	CNFGBlitTex(tex, (screenx - SCREEN_WIDTH * UPSCALE_FACTOR)/2, 0, SCREEN_WIDTH * UPSCALE_FACTOR, SCREEN_HEIGHT*UPSCALE_FACTOR);
+	draw_hud();
+	frames++;
 	CNFGSwapBuffers();
+
+	ThisTime = OGGetAbsoluteTime();
+	if( ThisTime > LastFPSTime + 1 )
+	{
+		printf( "FPS: %d\n", frames );
+		frames = 0;
+		LastFPSTime+=1;
+	}
 }
 
 void draw_hud() {
@@ -102,12 +134,11 @@ void draw_hud() {
 		buttons[i] ? CNFGColor( 0xFFFFFF88 ) : CNFGColor( 0xFFFFFF44 );
 		CNFGTackRectangle(button_coords[i].x,
 						  button_coords[i].y,
-						  button_coords[i].x + BTN_WIDTH,
-						  button_coords[i].y + BTN_HEIGHT);
+						  button_coords[i].x + button_sizes[i].x,
+						  button_coords[i].y + button_sizes[i].y);
 	}
 }
 void delay(uint16_t ms) {
-	// TODO
 	OGUSleep(ms*1000);
 }
 bool handle_input() {
@@ -115,7 +146,13 @@ bool handle_input() {
 	return !CNFGHandleInput();
 }
 uint32_t now() {
-	return 0;
+	double milliseconds = OGGetAbsoluteTime() * 1000.0;
+    double integerPart, decimalPart;
+    
+    decimalPart = modf(milliseconds, &integerPart);
+    
+    integerPart = fmod(integerPart, UINT32_MAX - 1000);
+    return integerPart + decimalPart; 
 }
 uint8_t current_hour() {
 	return 0;
@@ -170,18 +207,46 @@ void HandleKey( int keycode, int bDown ) {
 	fflush(stdout);
 }
 void HandleButton( int x, int y, int button, int bDown ) {
+	printf("down %d,%d b:%d down:%d\n", x,y,button,bDown);
+
 	if(!bDown) {
-		memset(buttons, sizeof(buttons), 0);
+		for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(coords); i++) {
+			buttons[i] &= ~(1 << button);
+		}
+	} else {
+		for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(coords); i++) {
+			if (x>=button_coords[i].x && x<=button_coords[i].x+button_sizes[i].x && y>=button_coords[i].y && y<=button_coords[i].y+button_sizes[i].y) {
+				//buttons_frame[i] = bDown && !buttons[i];
+				buttons[i] |= (1 << button);
+				printf("%d is pressed\n", i);
+			}
+		}
 	}
 	for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(coords); i++) {
-		if (x>=button_coords[i].x && x<=button_coords[i].x+BTN_WIDTH && y>=button_coords[i].y && y<=button_coords[i].y+BTN_HEIGHT) {
-			buttons_frame[i] = bDown && !buttons[i];
-			buttons[i] = bDown;
+		printf("%x ", buttons[i]);
+	}
+	printf("\n");
+}
+
+void HandleMotion( int x, int y, int button ) { 
+	printf("moved on x %d y %d mask %d\n", x, y, button);
+	for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(coords); i++) {
+		if (x>=button_coords[i].x && x<=button_coords[i].x+button_sizes[i].x && y>=button_coords[i].y && y<=button_coords[i].y+button_sizes[i].y) {
+			//buttons_frame[i] = bDown && !buttons[i];
+			buttons[i] |= (1 << button);
+		} else {
+			buttons[i] &= ~(1 << button);
 		}
 	}
 }
-
-void HandleMotion( int x, int y, int mask ) { }
 void HandleDestroy() {
 	exit(0);
+}
+
+void HandleSuspend()
+{
+}
+
+void HandleResume()
+{
 }

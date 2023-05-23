@@ -16,6 +16,9 @@ elseif(BACKEND STREQUAL "PC")
 add_definitions(-DSDL_BACKEND)
 elseif(BACKEND STREQUAL "RAWDRAW")
 add_definitions(-DRAWDRAW_BACKEND)
+elseif(BACKEND STREQUAL "ANDROID")
+add_definitions(-DANDROID_BACKEND)
+add_definitions(-DRAWDRAW_BACKEND)
 elseif(BACKEND STREQUAL "TEST")
 add_definitions(-DTEST_BACKEND)
 else()
@@ -131,6 +134,33 @@ elseif(BACKEND STREQUAL "PC")
 
 elseif(BACKEND STREQUAL "ESP32")
 	# some day i'll figure out how to merge the 2 projects
+
+elseif(BACKEND STREQUAL "ANDROID")
+	add_executable(android_pico
+		static_game_data.h
+		entrypoint.cpp
+		${lua_src}
+		)
+	add_subdirectory(lua)
+
+	# Add pico_stdlib library which aggregates commonly used features
+	target_link_libraries(android_pico
+		my_lua_lib
+		)
+
+	target_include_directories(android_pico PUBLIC
+		lua
+		rawdrawandroid
+		)
+
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg ")
+	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg ")
+	target_compile_options(android_pico PRIVATE -DRAWDRAW_BACKEND=1 -DANDROID_BACKEND=1 -DLUA_USE_LINUX=1 -DW_SCREEN_HEIGHT=512 -DW_SCREEN_WIDTH=512 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
+	add_compile_options(
+		-g3
+		-fsingle-precision-constant
+		)
 
 elseif(BACKEND STREQUAL "RAWDRAW")
 	add_executable(rawdraw_pico

@@ -13,3 +13,6 @@
 [submodule "rawdraw"]
 	path = rawdraw
 	url = git@github.com:cntools/rawdraw.git
+[submodule "rawdrawandroid"]
+	path = rawdrawandroid
+	url = git@github.com:cnlohr/rawdrawandroid.git

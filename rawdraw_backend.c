@@ -42,16 +42,16 @@ typedef struct {
 } button_coords_t;
 
 const button_coords_t button_coords[] = {
-    { 1 << BTN_IDX_UP,    {200, 1200}, {195, 195}, 0xFF000088},
-    { 1 << BTN_IDX_LEFT,  {  0, 1400}, {195, 195}, 0xFFFFFF88},
-    { 1 << BTN_IDX_RIGHT, {400, 1400}, {195, 195}, 0x0000FF88},
-    { 1 << BTN_IDX_DOWN,  {200, 1600}, {195, 195}, 0x00FF0088},
+    { 1 << BTN_IDX_UP,    {200, 1200}, {195, 195}, 0x00000000},
+    { 1 << BTN_IDX_LEFT,  {  0, 1400}, {195, 195}, 0x00000000},
+    { 1 << BTN_IDX_RIGHT, {400, 1400}, {195, 195}, 0x00000000},
+    { 1 << BTN_IDX_DOWN,  {200, 1600}, {195, 195}, 0x00000000},
 
     // diagonals
-    { (1 << BTN_IDX_UP)   | (1 << BTN_IDX_LEFT),    {  0, 1200}, {195, 195}, 0xFF888888},
-    { (1 << BTN_IDX_DOWN) | (1 << BTN_IDX_LEFT),    {  0, 1600}, {195, 195}, 0x88FF8888},
-    { (1 << BTN_IDX_UP)   | (1 << BTN_IDX_RIGHT),   {400, 1200}, {195, 195}, 0xFF00FF88},
-    { (1 << BTN_IDX_DOWN) | (1 << BTN_IDX_RIGHT),   {400, 1600}, {195, 195}, 0x00FFFF88},
+    { (1 << BTN_IDX_UP)   | (1 << BTN_IDX_LEFT),    {  0, 1200}, {195, 195}, 0x00000000},
+    { (1 << BTN_IDX_DOWN) | (1 << BTN_IDX_LEFT),    {  0, 1600}, {195, 195}, 0x00000000},
+    { (1 << BTN_IDX_UP)   | (1 << BTN_IDX_RIGHT),   {400, 1200}, {195, 195}, 0x00000000},
+    { (1 << BTN_IDX_DOWN) | (1 << BTN_IDX_RIGHT),   {400, 1600}, {195, 195}, 0x00000000},
 
     { 1 << BTN_IDX_A,  {650, 1400}, {250, 250}, 0xFFFFFF44},
     { 1 << BTN_IDX_B,  {800, 1250}, {250, 250}, 0xFFFFFF44},
@@ -93,7 +93,6 @@ void gfx_flip() {
     for(uint8_t i = 0; i<sizeof(buttons_frame)/ sizeof(buttons_frame[0]); i++) {
         buttons_frame[i] = buttons[i] > 0 && (buttons_frame[i] == 0);
     }
-    CNFGClearFrame();
     uint8_t r,g,b,a;
     a = 0xff ;
 
@@ -115,10 +114,46 @@ void gfx_flip() {
     }
 
 
+    CNFGClearFrame();
     glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH * UPSCALE_FACTOR, SCREEN_HEIGHT*UPSCALE_FACTOR, GL_RGBA, GL_UNSIGNED_BYTE, _rgb32_buf);
     CNFGBlitTex(tex, (screenx - SCREEN_WIDTH * UPSCALE_FACTOR)/2, 0, SCREEN_WIDTH * UPSCALE_FACTOR, SCREEN_HEIGHT*UPSCALE_FACTOR);
-    draw_hud();
     frames++;
+	CNFGColor( 0x444444FF );
+
+	const float radius = 300.f;
+	const int numSegments = 36;  // Number of line segments
+	const float angleIncrement = 4*M_PI / (2.0f * numSegments);  // Angle increment
+
+	// Calculate and draw quads for a filled circle
+    for (int i = 0; i < numSegments; ++i) {
+        float angle1 = 2.0f * M_PI * (static_cast<float>(i) / numSegments);
+        float angle2 = 2.0f * M_PI * (static_cast<float>(i + 1) / numSegments);
+        
+        float x1 = radius * cos(angle1) + 300;
+        float y1 = radius * sin(angle1) + 1500;
+        float x2 = radius * cos(angle2) + 300;
+        float y2 = radius * sin(angle2) + 1500;
+        // good EmitQuad(0.0f, 0.0f, x1, y1, x2, y2, 0.0f, 0.0f);
+		// bad EmitQuad(x1, y1, x2, y2, x2, y2, x1, y1);
+		EmitQuad( 300,1500,x1,y1,x2,y2,x2,1500 ); // idk reqct
+											 // lmao circle made of rects
+	}
+
+	/*
+	for (int i = 0; i <= numSegments; ++i) {
+        float angle = i * angleIncrement + M_PI;
+        float x1 = radius * cos(angle)  + 300;
+        float y1 = radius * sin(angle)  + 1500;
+        float x2 = radius * cos(angle + angleIncrement)  + 300;
+        float y2 = radius * sin(angle + angleIncrement)  + 1500;
+		//printf("at %f,%f -> %f, %f\n", x1, y1, x2, y2);
+		CNFGTackSegment(x1, y1, x2, y2);
+		CNFGTackSegment(x1+1, y1+1, x2+1, y2+1); // double width
+		CNFGTackSegment(x1-1, y1-1, x2-1, y2-1); // double width
+    }
+	*/
+    draw_hud();
+
     CNFGSwapBuffers();
 
     ThisTime = OGGetAbsoluteTime();
@@ -132,6 +167,7 @@ void gfx_flip() {
 
 void draw_hud() {
     for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(button_coords_t); i++) {
+		if(button_coords[i].color == 0) continue;
         bool set = true;
         int bitIndex = 0;
         int mask = button_coords[i].buttonMask; // this is something like (1 << UP) | (1 << LEFT)
@@ -149,6 +185,17 @@ void draw_hud() {
                           button_coords[i].coords.x + button_coords[i].size.x,
                           button_coords[i].coords.y + button_coords[i].size.y);
     }
+	CNFGColor( 0x000000FF );
+	CNFGTackSegment(200, 1200, 200, 1800); // first vertical
+	CNFGTackSegment(400, 1200, 400, 1800); // second vertical
+	CNFGTackSegment(201, 1200, 201, 1800); // first vertical
+	CNFGTackSegment(401, 1200, 401, 1800); // second vertical
+	CNFGTackSegment(199, 1200, 199, 1800); // first vertical
+	CNFGTackSegment(399, 1200, 399, 1800); // second vertical
+
+	CNFGTackSegment(  0, 1400, 600, 1400); // first horizontal
+	CNFGTackSegment(  0, 1600, 600, 1600); // second horizontal
+
 }
 void delay(uint16_t ms) {
     OGUSleep(ms*1000);

@@ -78,7 +78,7 @@ int16_t drawMenu() {
             return highlighted;
         }
 
-	flip();
+		flip();
     }
     return -1;
 }

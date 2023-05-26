@@ -8,6 +8,8 @@
 #include "sdl_backend.c"
 #elif defined(PICO_BACKEND)
 #include "pico_backend.c"
+#elif defined(RAWDRAW_BACKEND)
+#include "rawdraw_backend.c"
 #elif defined(TEST_BACKEND)
 #include "test_backend.c"
 #elif defined(ESP_BACKEND)
@@ -76,7 +78,7 @@ int16_t drawMenu() {
             return highlighted;
         }
 
-	flip();
+		flip();
     }
     return -1;
 }
@@ -124,14 +126,14 @@ int pico8() {
     printf("init lua \n");
     bool lua_ok = init_lua(carts[game].code, carts[game].code_len);
     printf("init done \n");
-    if ( !lua_ok ) {
-        printf( "Failed to initialize LUA!\n" );
-	return 1;
-        while (!wants_to_quit) {
-	    flip();
-        }
-        return 1;
-    }
+	if ( !lua_ok ) {
+		printf( "Failed to initialize LUA!\n" );
+		return 1;
+		while (!wants_to_quit) {
+			flip();
+		}
+		return 1;
+	}
     init_done = now();
     printf("Parsing took %dms\n", init_done-bootup_time);
 

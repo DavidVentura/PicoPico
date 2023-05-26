@@ -10,3 +10,9 @@
 [submodule "board/modules/kicad-libraries"]
 	path = board/modules/esp32
 	url = git@github.com:espressif/kicad-libraries.git
+[submodule "rawdraw"]
+	path = rawdraw
+	url = git@github.com:cntools/rawdraw.git
+[submodule "rawdrawandroid"]
+	path = rawdrawandroid
+	url = git@github.com:cnlohr/rawdrawandroid.git

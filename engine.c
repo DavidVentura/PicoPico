@@ -99,7 +99,7 @@ void engine_init() {
     printf("Parsing HUD \n");
     assert(artifacts_hud_p8_len <= sizeof(hud_sprites.sprite_data));
     memcpy(hud_sprites.sprite_data, artifacts_hud_p8, artifacts_hud_p8_len);
-    init_pink_noise_gen(&osc);
+//    init_pink_noise_gen(&osc);
 }
 
 void cartParser(const GameCart* parsingCart) {
@@ -243,7 +243,8 @@ void flip() {
     uint32_t n = now();
 
     if (n < frame_end_time) {
-         delay(frame_end_time - n);
+		//printf("delaying for %u\n", frame_end_time - n);
+        delay(frame_end_time - n);
     }
 
     frame_start_time = now();

@@ -29,65 +29,10 @@ const GPU_TEXCOLOR texColor = GPU_RGB565;
 
 #define CLEAR_COLOR 0xFF000000
 #define BYTES_PER_PIXEL 2
-#define NIBBLE_BUFFER_SIZE 8192
-uint8_t nibblePixelBuffer[NIBBLE_BUFFER_SIZE];
 
-size_t pixel_buffer_size = 128*128*BYTES_PER_PIXEL;
+size_t pixel_buffer_size = SCREEN_WIDTH*SCREEN_HEIGHT*BYTES_PER_PIXEL;
 size_t pixIdx = 0;
 
-uint8_t nds_to_pico_button_idx[32] = {
-	/* 00 */ 0,
-	/* 01 */ 0,
-	/* 02 */ 0,
-	/* 03 */ 0,
-	/* 04 */ 0,
-	/* 05 */ 0,
-	/* 06 */ 0,
-	/* 07 */ 0,
-	/* 08 */ 0,
-	/* 09 */ 0,
-	/* 10 */ 4,
-	/* 11 */ 5,
-	/* 12 */ 0,
-	/* 13 */ 0,
-	/* 14 */ 0,
-	/* 15 */ 0,
-	/* 16 */ 0,
-	/* 17 */ 0,
-	/* 18 */ 0,
-	/* 19 */ 0,
-	/* 20 */ 0,
-	/* 21 */ 0,
-	/* 22 */ 0,
-	/* 23 */ 0,
-	/* 24 */ 0,
-	/* 25 */ 0,
-	/* 26 */ 0,
-	/* 27 */ 0,
-	/* 28 */ 1, // right 1
-	/* 29 */ 0, // left 0
-	/* 30 */ 2, // UP arrwo
-	/* 31 */ 3, // DOWN arrow
-};
-
-
-
-#define COLOR_00 0x0021
-#define COLOR_01 0x194A
-#define COLOR_02 0x792A
-#define COLOR_03 0x042A
-#define COLOR_04 0xAA86
-#define COLOR_05 0x5AA9
-#define COLOR_06 0xC618
-#define COLOR_07 0x9F9D
-#define COLOR_08 0xF809
-#define COLOR_09 0xFD01
-#define COLOR_10 0xFF64
-#define COLOR_11 0x0726
-#define COLOR_12 0x2D7F
-#define COLOR_13 0x83B3
-#define COLOR_14 0xFBB5
-#define COLOR_15 0xFE75
 
 
 uint8_t getPixelNibble(const int x, const int y, uint8_t* targetBuffer) {
@@ -132,7 +77,7 @@ bool init_video() {
 
 	// Init libs
 	gfxInitDefault();
-	consoleInit(GFX_BOTTOM, NULL);
+	//consoleInit(GFX_BOTTOM, NULL);
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
@@ -162,16 +107,16 @@ bool init_video() {
 
 	pico_pixel_buffer = (u16*)linearAlloc(pixel_buffer_size);
 
-	memset(nibblePixelBuffer, 17, NIBBLE_BUFFER_SIZE);
 	return true;
 }
 //---------------------------------------------------------------------------------
 
 void gfx_flip() {
-	memset(nibblePixelBuffer, 0, NIBBLE_BUFFER_SIZE);
+	// 1.5-1.8ms menu frame
+	// 1.0-1.3ms menu without copying the pix buffer
+	// 1.44-1,74ms menu frame no TargetClear
 
 	//write pixel data to to texture
-	// TODO maybe write the frontbuffer directly??
     for(uint8_t y=0; y<SCREEN_HEIGHT; y++) {
         for(uint8_t x=0; x<SCREEN_WIDTH; x++){
             palidx_t idx = get_pixel(x, y);
@@ -192,15 +137,17 @@ void gfx_flip() {
 
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
-	C2D_TargetClear(topTarget, CLEAR_COLOR);
+	//C2D_TargetClear(topTarget, CLEAR_COLOR);
 	C2D_SceneBegin(topTarget);
 
+	/*
 	pico_subtex->width = 128;
 	pico_subtex->height = 128;
 	pico_subtex->left = 0.0f;
 	pico_subtex->top = 1.0f;
 	pico_subtex->right = 1.0f;
 	pico_subtex->bottom = 0.0f;
+	*/
 
 	C2D_DrawImageAtRotated(
 			pico_image,
@@ -209,15 +156,16 @@ void gfx_flip() {
 			.5,
 			0,
 			NULL,
-			1,
-			1);
+			//1.5f,
+			//1.5f);
+			2.f,
+			2.f); // losing 16px
 	C2D_Flush();
 	C3D_FrameEnd(0);
 }
 
 uint32_t now() {
-	// FIXME will maake FPS slow
-	return svcGetSystemTick()/CPU_TICKS_PER_MSEC;
+	return (svcGetSystemTick()/CPU_TICKS_PER_MSEC);
 }
 uint8_t battery_left() {
 	return 0;
@@ -256,15 +204,23 @@ bool handle_input() {
 	uint32_t current_down = kDown | kHeld;
     memset(buttons, 0, sizeof(buttons));
     memset(buttons_frame, 0, sizeof(buttons_frame));
-	for (uint8_t i = 0; i<sizeof(nds_to_pico_button_idx); i++) {
-		uint32_t mask = (1 << i);
-		if (mask & current_down) {
-			buttons[nds_to_pico_button_idx[i]] = 1;
-		}
-		if (mask & kDown) {
-			buttons_frame[nds_to_pico_button_idx[i]] = 1;
-		}
-	}
+
+	if (current_down & KEY_START) return true;
+
+	if (current_down & KEY_LEFT) 		buttons[BTN_IDX_LEFT] 	= 1;
+	if (current_down & KEY_RIGHT) 		buttons[BTN_IDX_RIGHT] 	= 1;
+	if (current_down & KEY_UP) 			buttons[BTN_IDX_UP] 	= 1;
+	if (current_down & KEY_DOWN) 		buttons[BTN_IDX_DOWN] 	= 1;
+	if (current_down & (KEY_A | KEY_X)) buttons[BTN_IDX_A] 		= 1;
+	if (current_down & (KEY_B | KEY_Y)) buttons[BTN_IDX_B] 		= 1;
+
+	if (kDown & KEY_LEFT) 			buttons_frame[BTN_IDX_LEFT] 	= 1;
+	if (kDown & KEY_RIGHT) 			buttons_frame[BTN_IDX_RIGHT] 	= 1;
+	if (kDown & KEY_UP) 			buttons_frame[BTN_IDX_UP] 		= 1;
+	if (kDown & KEY_DOWN) 			buttons_frame[BTN_IDX_DOWN] 	= 1;
+	if (kDown & (KEY_A | KEY_X)) 	buttons_frame[BTN_IDX_A] 		= 1;
+	if (kDown & (KEY_B | KEY_Y)) 	buttons_frame[BTN_IDX_B] 		= 1;
+
 	printf("\x1b[6;1H"); //Move the cursor to the fourth row because on the third one we'll write the circle pad position
 	printf("Input %8lx\r", current_down);
 	return false;

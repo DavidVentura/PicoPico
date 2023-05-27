@@ -61,9 +61,6 @@ const button_coords_t button_coords[] = {
 };
 
 short screenx, screeny;
-unsigned frames = 0;
-double ThisTime;
-double LastFPSTime;
 
 bool init_platform() {
     return true;
@@ -84,7 +81,6 @@ bool init_video()
     tex = CNFGTexImage(_rgb32_buf, SCREEN_WIDTH*UPSCALE_FACTOR, SCREEN_HEIGHT * UPSCALE_FACTOR);
     CNFGGetDimensions(&screenx, &screeny );
     glBindTexture( GL_TEXTURE_2D, tex );
-    LastFPSTime = OGGetAbsoluteTime();
     return true;
 }
 
@@ -123,11 +119,18 @@ void gfx_flip() {
     CNFGClearFrame();
     glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH * UPSCALE_FACTOR, SCREEN_HEIGHT*UPSCALE_FACTOR, GL_RGBA, GL_UNSIGNED_BYTE, _rgb32_buf);
     CNFGBlitTex(tex, (screenx - SCREEN_WIDTH * UPSCALE_FACTOR)/2, 0, SCREEN_WIDTH * UPSCALE_FACTOR, SCREEN_HEIGHT*UPSCALE_FACTOR);
-    frames++;
+
+    draw_hud();
+
+    CNFGSwapBuffers();
+
+}
+
+void draw_onscreen_controls() {
 	CNFGColor( 0x444444FF );
 
-	const float radius = 300.f;
-	const int numSegments = 36;  // Number of line segments
+	const float radius = 290.f;
+	const int numSegments = 48;  // Number of line segments
 	const float angleIncrement = 4*M_PI / (2.0f * numSegments);  // Angle increment
 
 	// Calculate and draw quads for a filled circle
@@ -145,22 +148,7 @@ void gfx_flip() {
 											 // lmao circle made of rects
 	}
 
-    draw_hud();
-
-    CNFGSwapBuffers();
-
-    ThisTime = OGGetAbsoluteTime();
-    if( ThisTime > LastFPSTime + 1 )
-    {
-    //    printf( "FPS: %d\n", frames );
-        frames = 0;
-        LastFPSTime+=1;
-    }
-}
-
-void draw_onscreen_controls() {
     for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(button_coords_t); i++) {
-		if(button_coords[i].color == 0) continue;
         bool set = true;
         int bitIndex = 0;
         int mask = button_coords[i].buttonMask; // this is something like (1 << UP) | (1 << LEFT)
@@ -172,11 +160,13 @@ void draw_onscreen_controls() {
             mask >>= 1;
             bitIndex++;
         }
-        set ? CNFGColor( 0xFFFFFF88 ) : CNFGColor( button_coords[i].color );
-        CNFGTackRectangle(button_coords[i].coords.x,
-                          button_coords[i].coords.y,
-                          button_coords[i].coords.x + button_coords[i].size.x,
-                          button_coords[i].coords.y + button_coords[i].size.y);
+		if (set || button_coords[i].color != 0) {
+			set ? CNFGColor( 0x00000022 ) : CNFGColor( button_coords[i].color );
+			CNFGTackRectangle(button_coords[i].coords.x,
+					button_coords[i].coords.y,
+					button_coords[i].coords.x + button_coords[i].size.x,
+					button_coords[i].coords.y + button_coords[i].size.y);
+		}
     }
 	CNFGColor( 0x000000FF );
 	CNFGTackSegment(200, 1200, 200, 1800); // first vertical

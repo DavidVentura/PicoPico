@@ -34,99 +34,51 @@ size_t pixel_buffer_size = SCREEN_WIDTH*SCREEN_HEIGHT*BYTES_PER_PIXEL;
 size_t pixIdx = 0;
 float scaling_factor = 2.f;
 
-Handle threadRequest;
-Thread threadHandle;
-volatile bool runThread = true;
-#define STACKSIZE (1024)
+void _render() {
+	//	necessary??
+	GSPGPU_FlushDataCache(pico_pixel_buffer, pixel_buffer_size);
+
+	C3D_SyncDisplayTransfer(
+			(u32*)pico_pixel_buffer, GX_BUFFER_DIM(128, 128),
+			(u32*)(pico_tex->data), GX_BUFFER_DIM(128, 128),
+			(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |
+			 GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGB565) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB565) |
+			 GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
+			);
+
+	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+	//C3D_FrameBegin(C3D_FRAME_NONBLOCK); // crashes on console but not emulator?
 
 
-
-uint8_t getPixelNibble(const int x, const int y, uint8_t* targetBuffer) {
-	if (x < 0 || x > 127 || y < 0 || y > 128) {
-		return 0;
-	}
-
-	return (BITMASK(0) & x) 
-		? targetBuffer[COMBINED_IDX(x, y)] >> 4  //just last 4 bits
-		: targetBuffer[COMBINED_IDX(x, y)] & 0x0f; //just first 4 bits
-}
-
-void setPixelNibble(const int x, const int y, uint8_t value, uint8_t* targetBuffer) {
-	if (x < 0 || x > 127 || y < 0 || y > 128) {
-		return;
-	}
-
-	targetBuffer[COMBINED_IDX(x, y)] = (BITMASK(0) & x)
-		? (targetBuffer[COMBINED_IDX(x, y)] & 0x0f) | (value << 4 & 0xf0)
-		: (targetBuffer[COMBINED_IDX(x, y)] & 0xf0) | (value & 0x0f);
-}
-
-void drawRectangle(int x, int y, int w, int h, uint8_t c, uint8_t* targetBuffer) {
-	c = c & 0x0F;
-
-	for(int i = 0; i < h; i++) {
-		for (int j = 0; j < w; j++) {
-			setPixelNibble(x + j, y + i, c, targetBuffer);
-		}
-	}
+	C2D_TargetClear(topTarget, CLEAR_COLOR);
+	C2D_SceneBegin(topTarget);
 
 	/*
-	for(int j = 0; j < h; j++) {
-		memset(targetBuffer + COMBINED_IDX(x, y), ((c << 4) & c), x / 2);
-	}
-	*/
-}
+	 * // necessary??
+	 pico_subtex->width = 128;
+	 pico_subtex->height = 128;
+	 pico_subtex->left = 0.0f;
+	 pico_subtex->top = 1.0f;
+	 pico_subtex->right = 1.0f;
+	 pico_subtex->bottom = 0.0f;
+	 */
 
-void rendering_thread(void *arg){
-	while(runThread) {
-		svcWaitSynchronization(threadRequest, U64_MAX);
-		//svcClearEvent(threadRequest);
-
-		//	necessary??
-		GSPGPU_FlushDataCache(pico_pixel_buffer, pixel_buffer_size);
-
-		C3D_SyncDisplayTransfer(
-				(u32*)pico_pixel_buffer, GX_BUFFER_DIM(128, 128),
-				(u32*)(pico_tex->data), GX_BUFFER_DIM(128, 128),
-				(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |
-				 GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGB565) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB565) |
-				 GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
-				);
-
-		//C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-		C3D_FrameBegin(C3D_FRAME_NONBLOCK);
-
-
-		C2D_TargetClear(topTarget, CLEAR_COLOR);
-		C2D_SceneBegin(topTarget);
-
-		/*
-		 * // necessary??
-		 pico_subtex->width = 128;
-		 pico_subtex->height = 128;
-		 pico_subtex->left = 0.0f;
-		 pico_subtex->top = 1.0f;
-		 pico_subtex->right = 1.0f;
-		 pico_subtex->bottom = 0.0f;
-		 */
-
-		C2D_DrawImageAtRotated(
-				pico_image,
-				200,
-				120,
-				.5,
-				0,
-				NULL,
-				scaling_factor,
-				scaling_factor); // losing 16px; fractional scaling is terrible. 1.f is "too small"
-		C2D_Flush();
-		C3D_FrameEnd(0);
-	}
+	C2D_DrawImageAtRotated(
+			pico_image,
+			200,
+			120,
+			.5,
+			0,
+			NULL,
+			scaling_factor,
+			scaling_factor); // losing 16px; fractional scaling is terrible. 1.f is "too small"
+	C2D_Flush();
+	C3D_FrameEnd(0);
 }
 bool init_video() {
 	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
 
-	APT_SetAppCpuTimeLimit(35); // apparently 25% is the sweet spot for os core usage?
+	//APT_SetAppCpuTimeLimit(35); // apparently 25% is the sweet spot for os core usage?
 	// Init libs
 	gfxInitDefault();
 	//consoleInit(GFX_BOTTOM, NULL);
@@ -159,9 +111,6 @@ bool init_video() {
 
 	pico_pixel_buffer = (u16*)linearAlloc(pixel_buffer_size);
 
-	svcCreateEvent(&threadRequest, RESET_ONESHOT);
-	threadHandle = threadCreate(rendering_thread, 0, STACKSIZE, 0x3f, -1, true); // does NOT run on system core, insta crash
-
 	return true;
 }
 //---------------------------------------------------------------------------------
@@ -179,7 +128,7 @@ void gfx_flip() {
 			pico_pixel_buffer[y*SCREEN_WIDTH+x] = color;
         }
 	}
-	svcSignalEvent(threadRequest); // mark buffer as done
+	_render();
 }
 
 
@@ -190,15 +139,6 @@ uint8_t battery_left() {
 	return 0;
 }
 void video_close() {
-	// end thread
-	runThread = false;
-
-	// signal the thread and wait for it to exit
-	svcSignalEvent(threadRequest);
-	threadJoin(threadHandle, U64_MAX);
-
-	// close event handle
-	svcCloseHandle(threadRequest);
 
 	// free resources
 	C3D_TexDelete(pico_tex);

@@ -43,7 +43,9 @@ https://github.com/DavidVentura/PicoPico/assets/3650670/8b1ce7c6-c577-427d-8bed-
 
 ### On 3DS
 
-https://github.com/DavidVentura/PicoPico/assets/3650670/bf3790bd-cfbf-4afa-9496-783b5044e4fc
+
+https://github.com/DavidVentura/PicoPico/assets/3650670/648f5ae0-5fe0-4eac-8bdf-cbaad8db8e8a
+
 
 
 

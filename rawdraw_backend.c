@@ -23,7 +23,11 @@
 #endif
 #include "data.h"
 
+#ifdef ANDROID_BACKEND
 const uint8_t UPSCALE_FACTOR = 8;
+#else
+const uint8_t UPSCALE_FACTOR = 4;
+#endif
 uint32_t* _rgb32_buf;
 unsigned int tex;
 
@@ -141,19 +145,6 @@ void gfx_flip() {
 											 // lmao circle made of rects
 	}
 
-	/*
-	for (int i = 0; i <= numSegments; ++i) {
-        float angle = i * angleIncrement + M_PI;
-        float x1 = radius * cos(angle)  + 300;
-        float y1 = radius * sin(angle)  + 1500;
-        float x2 = radius * cos(angle + angleIncrement)  + 300;
-        float y2 = radius * sin(angle + angleIncrement)  + 1500;
-		//printf("at %f,%f -> %f, %f\n", x1, y1, x2, y2);
-		CNFGTackSegment(x1, y1, x2, y2);
-		CNFGTackSegment(x1+1, y1+1, x2+1, y2+1); // double width
-		CNFGTackSegment(x1-1, y1-1, x2-1, y2-1); // double width
-    }
-	*/
     draw_hud();
 
     CNFGSwapBuffers();
@@ -167,7 +158,7 @@ void gfx_flip() {
     }
 }
 
-void draw_hud() {
+void draw_onscreen_controls() {
     for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(button_coords_t); i++) {
 		if(button_coords[i].color == 0) continue;
         bool set = true;
@@ -198,6 +189,11 @@ void draw_hud() {
 	CNFGTackSegment(  0, 1400, 600, 1400); // first horizontal
 	CNFGTackSegment(  0, 1600, 600, 1600); // second horizontal
 
+}
+void draw_hud() {
+#ifdef ANDROID_BACKEND
+	draw_onscreen_controls();
+#endif
 }
 void delay(uint16_t ms) {
     OGUSleep(ms*1000);

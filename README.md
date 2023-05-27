@@ -23,7 +23,7 @@ for basic implementations.
 
 ## Demo
 
-### In emulator (SDL backed)
+### In emulator (SDL/rawdraw backed)
 
 https://user-images.githubusercontent.com/3650670/209883786-df8e24eb-6469-4147-87f5-97d2407c08f9.mp4
 
@@ -38,11 +38,14 @@ https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-9
 
 ### On Android
 
-https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
+https://github.com/DavidVentura/PicoPico/assets/3650670/8b1ce7c6-c577-427d-8bed-b0ab688078c9
+
 
 ### On 3DS
 
-https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
+https://github.com/DavidVentura/PicoPico/assets/3650670/bf3790bd-cfbf-4afa-9496-783b5044e4fc
+
+
 
 ## Hardware
 

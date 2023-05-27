@@ -10,12 +10,10 @@
 #endif
 
 #define CNFG_IMPLEMENTATION
-#define CNFG3D
+#define CNFGOGL
 
 #include "rawdraw/CNFG.h"
 
-//Optional: Use OpenGL to do rendering on appropriate systems.
-//#define CNFGOGL
 
 #include <time.h>
 #include <sys/time.h>
@@ -73,8 +71,11 @@ bool init_audio() {
 bool init_video()
 {
     memset(frontbuffer, 0, sizeof(frontbuffer));
-    //CNFGSetup("PicoPico", W_SCREEN_WIDTH, W_SCREEN_HEIGHT);
+#ifdef ANDROID_BACKEND
     CNFGSetupFullscreen( "PicoPico", 0 );
+#else
+    CNFGSetup("PicoPico", SCREEN_WIDTH*UPSCALE_FACTOR, SCREEN_HEIGHT * UPSCALE_FACTOR);
+#endif
     _rgb32_buf = (uint32_t*)malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t) * UPSCALE_FACTOR*UPSCALE_FACTOR);
     tex = CNFGTexImage(_rgb32_buf, SCREEN_WIDTH*UPSCALE_FACTOR, SCREEN_HEIGHT * UPSCALE_FACTOR);
     CNFGGetDimensions(&screenx, &screeny );

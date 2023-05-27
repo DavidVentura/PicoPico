@@ -87,6 +87,7 @@ bool init_video()
 void video_close()
 {
     free(_rgb32_buf);
+	CNFGDeleteTex(tex);
 }
 
 void gfx_flip() {
@@ -268,11 +269,11 @@ void HandleKey( int keycode, int bDown ) {
 }
 void deal_with_button( int x, int y, int button, int bDown) {
     if(!bDown) {
-        for(uint8_t i = 0; i<sizeof(buttons)/sizeof(buttons[0]); i++) {
+        for(uint8_t i = 0; i<sizeof(buttons)/sizeof(uint8_t); i++) {
             buttons[i] &= ~(1 << button);
         }
     } else {
-        for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(button_coords_t); i++) {
+        for(uint8_t i = 0; i<sizeof(button_coords)/sizeof(button_coords_t); i++) {
             if (x>=button_coords[i].coords.x && x<=(button_coords[i].coords.x+button_coords[i].size.x) && y>=button_coords[i].coords.y && y<=(button_coords[i].coords.y+button_coords[i].size.y)) {
                 //buttons_frame[i] = bDown && !buttons[i];
                 int bitIndex = 0;
@@ -294,19 +295,23 @@ void deal_with_button( int x, int y, int button, int bDown) {
     printf("\n");
 }
 void HandleButton( int x, int y, int button, int bDown ) {
+#ifdef ANDROID
     printf("down %d,%d b:%d down:%d\n", x,y,button,bDown);
     deal_with_button(x, y, button, bDown);
+#endif
 }
 
 void HandleMotion( int x, int y, int button ) {
+#ifdef ANDROID_BACKEND
     bool seen = false;
-    for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(button_coords_t); i++) {
+    for(uint8_t i = 0; i<sizeof(button_coords)/sizeof(button_coords_t); i++) {
         if (x>=button_coords[i].coords.x && x<=(button_coords[i].coords.x+button_coords[i].size.x) && y>=button_coords[i].coords.y && y<=(button_coords[i].coords.y+button_coords[i].size.y)) {
             deal_with_button(x, y, button, 1);
             seen = true;
         }
     }
     if(!seen) deal_with_button(x, y, button, 0);
+#endif
 }
 void HandleDestroy() {
     exit(0);

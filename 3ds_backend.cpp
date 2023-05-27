@@ -9,9 +9,6 @@
 #include <stdlib.h>
 
 
-//#define SCREEN_WIDTH  400
-//#define SCREEN_HEIGHT 240
-
 #define COMBINED_IDX(x, y) ((y) << 6) | ((x) >> 1)
 #define BITMASK(n) (1U<<(n))
 

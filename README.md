@@ -36,6 +36,14 @@ https://user-images.githubusercontent.com/3650670/168416377-bf238d62-6be6-4b70-a
 
 https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
 
+### On Android
+
+https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
+
+### On 3DS
+
+https://user-images.githubusercontent.com/3650670/166146124-06b8b223-27b1-47ac-931f-67ba8b523d9e.mp4
+
 ## Hardware
 
 ### BOM

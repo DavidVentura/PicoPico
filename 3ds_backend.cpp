@@ -32,6 +32,12 @@ const GPU_TEXCOLOR texColor = GPU_RGB565;
 
 size_t pixel_buffer_size = SCREEN_WIDTH*SCREEN_HEIGHT*BYTES_PER_PIXEL;
 size_t pixIdx = 0;
+float scaling_factor = 2.f;
+
+Handle threadRequest;
+Thread threadHandle;
+volatile bool runThread = true;
+#define STACKSIZE (1024)
 
 
 
@@ -71,10 +77,56 @@ void drawRectangle(int x, int y, int w, int h, uint8_t c, uint8_t* targetBuffer)
 	*/
 }
 
+void rendering_thread(void *arg){
+	while(runThread) {
+		svcWaitSynchronization(threadRequest, U64_MAX);
+		//svcClearEvent(threadRequest);
 
+		//	necessary??
+		GSPGPU_FlushDataCache(pico_pixel_buffer, pixel_buffer_size);
+
+		C3D_SyncDisplayTransfer(
+				(u32*)pico_pixel_buffer, GX_BUFFER_DIM(128, 128),
+				(u32*)(pico_tex->data), GX_BUFFER_DIM(128, 128),
+				(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |
+				 GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGB565) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB565) |
+				 GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
+				);
+
+		//C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+		C3D_FrameBegin(C3D_FRAME_NONBLOCK);
+
+
+		C2D_TargetClear(topTarget, CLEAR_COLOR);
+		C2D_SceneBegin(topTarget);
+
+		/*
+		 * // necessary??
+		 pico_subtex->width = 128;
+		 pico_subtex->height = 128;
+		 pico_subtex->left = 0.0f;
+		 pico_subtex->top = 1.0f;
+		 pico_subtex->right = 1.0f;
+		 pico_subtex->bottom = 0.0f;
+		 */
+
+		C2D_DrawImageAtRotated(
+				pico_image,
+				200,
+				120,
+				.5,
+				0,
+				NULL,
+				scaling_factor,
+				scaling_factor); // losing 16px; fractional scaling is terrible. 1.f is "too small"
+		C2D_Flush();
+		C3D_FrameEnd(0);
+	}
+}
 bool init_video() {
 	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
 
+	APT_SetAppCpuTimeLimit(35); // apparently 25% is the sweet spot for os core usage?
 	// Init libs
 	gfxInitDefault();
 	//consoleInit(GFX_BOTTOM, NULL);
@@ -107,6 +159,9 @@ bool init_video() {
 
 	pico_pixel_buffer = (u16*)linearAlloc(pixel_buffer_size);
 
+	svcCreateEvent(&threadRequest, RESET_ONESHOT);
+	threadHandle = threadCreate(rendering_thread, 0, STACKSIZE, 0x3f, -1, true); // does NOT run on system core, insta crash
+
 	return true;
 }
 //---------------------------------------------------------------------------------
@@ -124,53 +179,28 @@ void gfx_flip() {
 			pico_pixel_buffer[y*SCREEN_WIDTH+x] = color;
         }
 	}
-
-	GSPGPU_FlushDataCache(pico_pixel_buffer, pixel_buffer_size);
-
-	C3D_SyncDisplayTransfer(
-			(u32*)pico_pixel_buffer, GX_BUFFER_DIM(128, 128),
-			(u32*)(pico_tex->data), GX_BUFFER_DIM(128, 128),
-			(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |
-			 GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGB565) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB565) |
-			 GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
-			);
-
-	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-
-	//C2D_TargetClear(topTarget, CLEAR_COLOR);
-	C2D_SceneBegin(topTarget);
-
-	/*
-	pico_subtex->width = 128;
-	pico_subtex->height = 128;
-	pico_subtex->left = 0.0f;
-	pico_subtex->top = 1.0f;
-	pico_subtex->right = 1.0f;
-	pico_subtex->bottom = 0.0f;
-	*/
-
-	C2D_DrawImageAtRotated(
-			pico_image,
-			200,
-			120,
-			.5,
-			0,
-			NULL,
-			//1.5f,
-			//1.5f);
-			2.f,
-			2.f); // losing 16px
-	C2D_Flush();
-	C3D_FrameEnd(0);
+	svcSignalEvent(threadRequest); // mark buffer as done
 }
 
+
 uint32_t now() {
-	return (svcGetSystemTick()/CPU_TICKS_PER_MSEC);
+	return (uint32_t)osGetTime();
 }
 uint8_t battery_left() {
 	return 0;
 }
 void video_close() {
+	// end thread
+	runThread = false;
+
+	// signal the thread and wait for it to exit
+	svcSignalEvent(threadRequest);
+	threadJoin(threadHandle, U64_MAX);
+
+	// close event handle
+	svcCloseHandle(threadRequest);
+
+	// free resources
 	C3D_TexDelete(pico_tex);
 
 	linearFree(pico_tex);
@@ -180,6 +210,7 @@ void video_close() {
 	// Deinit libs
 	C2D_Fini();
 	C3D_Fini();
+
 	gfxExit();
 }
 
@@ -206,6 +237,13 @@ bool handle_input() {
     memset(buttons_frame, 0, sizeof(buttons_frame));
 
 	if (current_down & KEY_START) return true;
+	if (kDown & KEY_SELECT) {
+		if (scaling_factor == 2.f) {
+			scaling_factor = 1.f;
+		} else {
+			scaling_factor = 2.f;
+		}
+	}
 
 	if (current_down & KEY_LEFT) 		buttons[BTN_IDX_LEFT] 	= 1;
 	if (current_down & KEY_RIGHT) 		buttons[BTN_IDX_RIGHT] 	= 1;
@@ -233,7 +271,7 @@ bool init_audio() {
 	return true;
 }
 uint8_t wifi_strength() {
-	return 0;
+	return osGetWifiStrength();
 }
 void draw_hud() {
 }

@@ -136,31 +136,97 @@ elseif(BACKEND STREQUAL "ESP32")
 	# some day i'll figure out how to merge the 2 projects
 
 elseif(BACKEND STREQUAL "ANDROID")
-	add_executable(android_pico
+	set(APPNAME "cnfgtest")
+
+	add_library("${APPNAME}" SHARED
 		static_game_data.h
 		entrypoint.cpp
+		rawdrawandroid/android_native_app_glue.c
 		${lua_src}
 		)
+
+	# setting vars before `add_subdirectory` is important
+	# TODO generic vars
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -Os -fdata-sections -Wall -fvisibility=hidden -std=c++11")
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg ")
+	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg ")
+
+	SET(ANDROIDVERSION "30")
+	SET(ANDROIDTARGET "${ANDROIDVERSION}")
+	set(LABEL "${APPNAME}")
+	set(ANDROIDSDK "/home/david/AndroidCrap")
+	set(NDK "${ANDROIDSDK}/ndk/21.3.6528147")
+
+	SET(OS_NAME "linux-x86_64")
+	set(PACKAGENAME "org.yourorg.${APPNAME}")
+	SET(CXX_ARM64 "${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/bin/aarch64-linux-android${ANDROIDVERSION}-clang++")
+	SET(CC_ARM64 "${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/bin/aarch64-linux-android${ANDROIDVERSION}-clang")
+	SET(BUILD_TOOLS "${ANDROIDSDK}/build-tools/30.0.2")
+	SET(AAPT "${BUILD_TOOLS}/aapt")
+	SET(ADB "${ANDROIDSDK}/platform-tools/adb")
+	SET(KEYSTOREFILE "${CMAKE_CURRENT_SOURCE_DIR}/rawdrawandroid/my-release-key.keystore")
+	SET(STOREPASS "password")
+	SET(ALIASNAME "standkey")
+	SET(DNAME "CN=example.com, OU=ID, O=Example, L=Doe, S=John, C=GB")
+	SET(APKFILE "${APPNAME}.apk")
+	#SET(CC_ARM32 "${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/bin/armv7a-linux-androideabi${ANDROIDVERSION}-clang")
+	#SET(CC_x86 "${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/bin/i686-linux-android${ANDROIDVERSION}-clang")
+	#SET(CC_x86_64 "${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/bin/x86_64-linux-android${ANDROIDVERSION}-clang")
+
+	set(CMAKE_C_COMPILER "${CC_ARM64}")
+	set(CMAKE_CXX_COMPILER "${CXX_ARM64}")
+
+
 	add_subdirectory(lua)
 
 	# Add pico_stdlib library which aggregates commonly used features
-	target_link_libraries(android_pico
+	target_link_libraries("${APPNAME}"
 		my_lua_lib
 		)
 
-	target_include_directories(android_pico PUBLIC
+	target_include_directories("${APPNAME}" PUBLIC
 		lua
 		rawdrawandroid
+		rawdrawandroid/rawdraw
+		#${NDK}/sysroot/usr/include/
+		${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/sysroot/usr/include
 		)
 
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg ")
-	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg ")
-	target_compile_options(android_pico PRIVATE -DRAWDRAW_BACKEND=1 -DANDROID_BACKEND=1 -DLUA_USE_LINUX=1 -DW_SCREEN_HEIGHT=512 -DW_SCREEN_WIDTH=512 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
-	add_compile_options(
-		-g3
-		-fsingle-precision-constant
+	target_compile_options("${APPNAME}" PRIVATE -DRAWDRAW_BACKEND=1 -DANDROID_BACKEND=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -DAPPNAME="cnfgtest" -DANDROIDVERSION=${ANDROIDVERSION} -DANDROID)
+
+	add_custom_target(render_xml ALL
+		DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/lib${APPNAME}.so"
+		COMMAND PACKAGENAME=${PACKAGENAME} ANDROIDVERSION=${ANDROIDVERSION} ANDROIDTARGET=${ANDROIDTARGET} APPNAME=${APPNAME} LABEL=${LABEL} envsubst '$$ANDROIDTARGET $$ANDROIDVERSION $$APPNAME $$PACKAGENAME $$LABEL' < "${CMAKE_CURRENT_SOURCE_DIR}/rawdrawandroid/AndroidManifest.xml.template" > AndroidManifest.xml
 		)
+
+	add_custom_command(
+		OUTPUT "${KEYSTOREFILE}"
+		COMMAND keytool -genkey -v -keystore ${KEYSTOREFILE} -alias ${ALIASNAME} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${STOREPASS} -keypass ${STOREPASS} -dname ${DNAME}
+		)
+	add_custom_target(makeapk ALL
+		DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/lib${APPNAME}.so"
+		COMMAND mkdir -p makecapk/assets makecapk/lib/arm64-v8a/
+		COMMAND cp "${CMAKE_CURRENT_BINARY_DIR}/lib${APPNAME}.so" makecapk/lib/arm64-v8a/
+		COMMAND cp -r "${CMAKE_CURRENT_SOURCE_DIR}/rawdrawandroid/Sources/assets/*" makecapk/assets
+		COMMAND rm -rf temp.apk
+		COMMAND ${AAPT} package -f -F temp.apk -I ${ANDROIDSDK}/platforms/android-${ANDROIDVERSION}/android.jar -M AndroidManifest.xml -S "${CMAKE_CURRENT_SOURCE_DIR}/rawdrawandroid/Sources/res" -A makecapk/assets -v --target-sdk-version ${ANDROIDTARGET}
+		COMMAND unzip -o temp.apk -d makecapk
+		COMMAND rm -rf makecapk.apk
+		COMMAND cd makecapk && zip -D9r ../makecapk.apk . && zip -D0r ../makecapk.apk ./resources.arsc ./AndroidManifest.xml
+		COMMAND jarsigner -sigalg SHA1withRSA -digestalg SHA1 -verbose -keystore ${KEYSTOREFILE} -storepass ${STOREPASS} makecapk.apk ${ALIASNAME}
+		COMMAND rm -rf ${APKFILE}
+		COMMAND ${BUILD_TOOLS}/zipalign -v 4 makecapk.apk ${APKFILE}
+		# #Using the apksigner in this way is only required on Android 30+
+		COMMAND ${BUILD_TOOLS}/apksigner sign --key-pass pass:${STOREPASS} --ks-pass pass:${STOREPASS} --ks ${KEYSTOREFILE} ${APKFILE}
+		COMMAND ${AAPT} dump badging ${APKFILE} | grep "launchable-activity" | cut -f 2 -d"'" >activity_name
+		)
+
+	#file (STRINGS "activity_name" ACTIVITYNAME)
+	add_custom_target(run
+		#COMMAND ${ADB} install -r ${APKFILE}
+		COMMAND ${ADB} shell am start -n ${PACKAGENAME}/android.app.NativeActivity
+		# TODO: android.app.NativeActivity is actually $(cat activity_name)
+	)
 
 elseif(BACKEND STREQUAL "RAWDRAW")
 	add_executable(rawdraw_pico

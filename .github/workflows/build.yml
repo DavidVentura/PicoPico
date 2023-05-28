@@ -13,8 +13,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
       - name: Build 3DS
         run: mkdir build-3ds && cd build-3ds && cmake .. -DBACKEND=THREEDS && make -j
+
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3
         with:

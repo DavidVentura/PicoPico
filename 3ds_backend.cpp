@@ -1,4 +1,3 @@
-#include "main.cpp"
 // Simple citro2d untextured shape example
 #include <3ds.h>
 #include <citro3d.h>

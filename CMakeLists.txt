@@ -52,10 +52,11 @@ file(GLOB ALL_SOURCE_FILES CONFIGURE_DEPENDS *.c *.h esp/*.c esp/*.h)
 add_custom_target(
 	cppcheck
 	COMMAND /usr/bin/cppcheck
-        --enable=warning,performance,portability,information,missingInclude
+	--enable=warning,performance,portability,information,missingInclude
 	--language=c++
 	${ALL_SOURCE_FILES}
 )
+
 if(BACKEND STREQUAL "PICO")
 	# initialize the Raspberry Pi Pico SDK
 	file (GLOB st_src CONFIGURE_DEPENDS CONFIGURE_DEPENDS "/home/david/git/pico_st7735_80x160/st7735_80x160/*")
@@ -155,7 +156,7 @@ elseif(BACKEND STREQUAL "THREEDS")
 	add_executable("${APPNAME}"
 		static_game_data.h
 		entrypoint.cpp
-		${lua_src}
+		#${lua_src}
 		)
 	add_subdirectory(lua)
 
@@ -167,12 +168,14 @@ elseif(BACKEND STREQUAL "THREEDS")
 		m
 		)
 
-	target_include_directories("${APPNAME}" PUBLIC lua
+	target_include_directories("${APPNAME}" PUBLIC
+		lua
 		/opt/devkitpro/libctru/include)
 	target_compile_options("${APPNAME}" PRIVATE -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -D__3DS__)
 	add_custom_target(generate_cart ALL
 		BYPRODUCTS "${APPNAME}.3dsx"
-		COMMAND /opt/devkitpro/tools/bin/smdhtool --create "${APPNAME}" "'Very_alpha'" "'David'" "${CMAKE_SOURCE_DIR}/artifacts/3ds_icon.png" "${APPNANE}.smdh"
+		# ${CMAKE_SOURCE_DIR}/artifacts/3ds_icon.png
+		COMMAND /opt/devkitpro/tools/bin/smdhtool --create "${APPNAME}" "'Very_alpha'" "'David'" "/opt/devkitpro/libctru/default_icon.png" "${APPNANE}.smdh"
 		COMMAND /opt/devkitpro/tools/bin/3dsxtool "${APPNAME}" "${APPNAME}.3dsx" --smdh=${APPNANE}.smdh #--romfs=/home/david/Downloads/a/romfs
 		COMMAND rm -f "${APPNANE}.smdh"
 		)

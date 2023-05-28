@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     container: picopico-builder:0.0.1
       volumes:
-        - ${{ github.workspace }}:/src
+        - "${{ github.workspace }}:/src"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3

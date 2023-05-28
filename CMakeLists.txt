@@ -141,8 +141,8 @@ elseif(BACKEND STREQUAL "THREEDS")
 	set(CMAKE_C_COMPILER "/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++")
 	set(CMAKE_CXX_COMPILER "/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++")
 
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -O2 -mword-relocations -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft")
-	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg ")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -mword-relocations -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft")
+	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -specs=3dsx.specs")
 
 	SET(APPNAME "3ds_pico")
@@ -170,10 +170,10 @@ elseif(BACKEND STREQUAL "THREEDS")
 		/opt/devkitpro/libctru/include)
 	target_compile_options("${APPNAME}" PRIVATE -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -D__3DS__)
 	add_custom_target(generate_cart ALL
-		BYPRODUCTS "${APPNANE}.smdh"
 		BYPRODUCTS "${APPNAME}.3dsx"
-		COMMAND /opt/devkitpro/tools/bin/smdhtool --create "${APPNAME}" "'Built with devkitARM & libctru'" "'Unspecified Author'" "/opt/devkitpro/libctru/default_icon.png" "${APPNANE}.smdh"
+		COMMAND /opt/devkitpro/tools/bin/smdhtool --create "${APPNAME}" "'Very_alpha'" "'David'" "${CMAKE_SOURCE_DIR}/3ds_icon.png" "${APPNANE}.smdh"
 		COMMAND /opt/devkitpro/tools/bin/3dsxtool "${APPNAME}" "${APPNAME}.3dsx" --smdh=${APPNANE}.smdh #--romfs=/home/david/Downloads/a/romfs
+		COMMAND rm -f "${APPNANE}.smdh"
 		)
 	add_dependencies(generate_cart "${APPNAME}")
 
@@ -248,6 +248,8 @@ elseif(BACKEND STREQUAL "ANDROID")
 		OUTPUT "${KEYSTOREFILE}"
 		COMMAND keytool -genkey -v -keystore ${KEYSTOREFILE} -alias ${ALIASNAME} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${STOREPASS} -keypass ${STOREPASS} -dname ${DNAME}
 		)
+
+	# are you supposed to have a full shell script in here
 	add_custom_target(makeapk ALL
 		BYPRODUCTS "${APKFILE}"
 		BYPRODUCTS "${APKFILE}.idsig"
@@ -262,7 +264,7 @@ elseif(BACKEND STREQUAL "ANDROID")
 		COMMAND rm -rf makecapk.apk
 		COMMAND cd makecapk && zip -D5r ../makecapk.apk . && zip -D0r ../makecapk.apk ./resources.arsc ./AndroidManifest.xml
 		COMMAND rm -rf ${APKFILE}
-		COMMAND ${BUILD_TOOLS}/zipalign -v 4 makecapk.apk ${APKFILE}
+		COMMAND ${BUILD_TOOLS}/zipalign -p -v 4 makecapk.apk ${APKFILE}
 		# #Using the apksigner in this way is only required on Android 30+
 		COMMAND ${BUILD_TOOLS}/apksigner sign --key-pass pass:${STOREPASS} --ks-pass pass:${STOREPASS} --ks ${KEYSTOREFILE} ${APKFILE}
 		COMMAND ${AAPT} dump badging ${APKFILE} | grep "launchable-activity" | cut -f 2 -d"'" >activity_name
@@ -367,10 +369,6 @@ elseif(BACKEND STREQUAL "TEST")
 	target_compile_options(test_regression PRIVATE ${test_compile_options})
 
 	include_directories(${CMAKE_CURRENT_SOURCE_DIR} lua 
-		#$(NDK)/sysroot/usr/include $(NDK)/toolchains/llvm/prebuilt/$(OS_NAME)/sysroot/usr/include
-		#/home/david/AndroidCrap/ndk/21.3.6528147/sysroot/usr/include/
-		#/home/david/git/rawdrawandroid
-		#/home/david/git/rawdrawandroid/rawdraw
 		)
 
 	add_compile_options(

@@ -40,10 +40,10 @@ add_compile_options(
 )
 
 SET(luac ${CMAKE_CURRENT_BINARY_DIR}/local_lua/luac)
-file(GLOB ALL_RESOURCE_FILES CONFIGURE_DEPENDS stdlib/stdlib.lua artifacts/font.lua examples/* to_c.py)
+file(GLOB ALL_RESOURCE_FILES CONFIGURE_DEPENDS stdlib/stdlib.lua artifacts/font.lua carts/* to_c.py)
 add_custom_command(
-	OUTPUT ${CMAKE_SOURCE_DIR}/static_game_data.h
-	COMMAND python3 to_c.py --emit-stdlib --luac ${luac} examples/ > ${CMAKE_SOURCE_DIR}/static_game_data.h
+	OUTPUT ${CMAKE_SOURCE_DIR}/src/generated/static_game_data.h
+	COMMAND python3 to_c.py --emit-stdlib --luac ${luac} carts/ > ${CMAKE_SOURCE_DIR}/src/generated/static_game_data.h
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	DEPENDS ${ALL_RESOURCE_FILES}
 	)
@@ -57,52 +57,10 @@ add_custom_target(
 	${ALL_SOURCE_FILES}
 )
 
-if(BACKEND STREQUAL "PICO")
-	# initialize the Raspberry Pi Pico SDK
-	file (GLOB st_src CONFIGURE_DEPENDS CONFIGURE_DEPENDS "/home/david/git/pico_st7735_80x160/st7735_80x160/*")
-	pico_sdk_init()
-	
-	add_executable(hello_pico
-	    entrypoint.cpp
-	    static_game_data.h
-	    ${lua_src}
-	    ${st_src}
-	)
-	
-        target_compile_options(hello_pico PRIVATE -DSCREEN_HEIGHT=80 -DSCREEN_WIDTH=160 -DHUD_HEIGHT=12)
-	#add_dependencies(hello_pico static_game_data.h)
-	#UART
-	## pico_enable_stdio_usb(hello_pico 1)
-	#pico_enable_stdio_uart(hello_pico 1)
-	
-	#USB
-	pico_enable_stdio_usb(hello_pico 1)
-	pico_enable_stdio_uart(hello_pico 0)
-	
-	target_link_libraries(hello_pico
-		# hardware_uart
-	    hardware_pwm
-	    hardware_clocks
-	    hardware_spi
-	
-	    my_lua_lib
-	    pico_stdlib
-	    pico_multicore
-	)
-	
-	target_include_directories(hello_pico PUBLIC
-	    ../pico_st7735_80x160
-	    lua
-	    )
-	
-	# create map/bin/hex/uf2 file in addition to ELF.
-	pico_add_extra_outputs(hello_pico)
-
-elseif(BACKEND STREQUAL "PC")
+if(BACKEND STREQUAL "PC")
 	add_executable(pc_pico
-		static_game_data.h
-		entrypoint.cpp
-		${lua_src}
+		src/generated/static_game_data.h
+		src/entrypoint.cpp
 		)
 	add_subdirectory(SDL_mixer)
 	add_subdirectory(SDL)
@@ -117,7 +75,7 @@ elseif(BACKEND STREQUAL "PC")
 		)
 
 	target_include_directories(pc_pico PUBLIC
-		lua
+		${CMAKE_CURRENT_SOURCE_DIR}
 		SDL
 		SDL_mixer
 		)
@@ -154,9 +112,8 @@ elseif(BACKEND STREQUAL "THREEDS")
 		)
 
 	add_executable("${APPNAME}"
-		static_game_data.h
-		entrypoint.cpp
-		#${lua_src}
+		src/generated/static_game_data.h
+		src/entrypoint.cpp
 		)
 	add_subdirectory(lua)
 
@@ -169,7 +126,7 @@ elseif(BACKEND STREQUAL "THREEDS")
 		)
 
 	target_include_directories("${APPNAME}" PUBLIC
-		lua
+		${CMAKE_CURRENT_SOURCE_DIR}
 		/opt/devkitpro/libctru/include)
 	target_compile_options("${APPNAME}" PRIVATE -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -D__3DS__)
 	add_custom_target(generate_cart ALL
@@ -191,10 +148,9 @@ elseif(BACKEND STREQUAL "ANDROID")
 	# missing -llua, automatic?
 
 	add_library("${APPNAME}" SHARED
-		static_game_data.h
-		entrypoint.cpp
+		src/generated/static_game_data.h
+		src/entrypoint.cpp
 		rawdrawandroid/android_native_app_glue.c
-		${lua_src}
 		)
 
 
@@ -239,7 +195,7 @@ elseif(BACKEND STREQUAL "ANDROID")
 		)
 
 	target_include_directories("${APPNAME}" PUBLIC
-		lua
+		${CMAKE_CURRENT_SOURCE_DIR}
 		rawdrawandroid
 		rawdrawandroid/rawdraw
 		#${NDK}/sysroot/usr/include/
@@ -289,9 +245,8 @@ elseif(BACKEND STREQUAL "ANDROID")
 
 elseif(BACKEND STREQUAL "RAWDRAW")
 	add_executable(rawdraw_pico
-		static_game_data.h
-		entrypoint.cpp
-		${lua_src}
+		src/generated/static_game_data.h
+		src/entrypoint.cpp
 		)
 	add_subdirectory(lua)
 
@@ -301,7 +256,7 @@ elseif(BACKEND STREQUAL "RAWDRAW")
 		)
 
 	target_include_directories(rawdraw_pico PUBLIC
-		lua
+		${CMAKE_CURRENT_SOURCE_DIR}
 		rawdraw
 		)
 
@@ -361,7 +316,7 @@ elseif(BACKEND STREQUAL "TEST")
 	foreach(testfile ${TEST_SOURCES})
 		get_filename_component(EXECUTABLE_NAME ${testfile} NAME_WE)
 
-		add_executable(${EXECUTABLE_NAME} static_game_data.h tests/test_static_game_data.h ${testfile} ${lua_src})
+		add_executable(${EXECUTABLE_NAME} src/generated/static_game_data.h tests/test_static_game_data.h ${testfile})
 		target_link_libraries(${EXECUTABLE_NAME} my_lua_lib)
 		add_test(NAME ${EXECUTABLE_NAME} COMMAND ${EXECUTABLE_NAME})
 		target_compile_options(${EXECUTABLE_NAME} PRIVATE ${test_compile_options})
@@ -371,7 +326,7 @@ elseif(BACKEND STREQUAL "TEST")
 	endforeach(testfile ${TEST_SOURCES})
 
 	# test regression
-	add_executable(test_regression static_game_data.h tests/regression_static_game_data.h tests/test_lua_regression.cpp ${lua_src})
+	add_executable(test_regression src/generated/static_game_data.h tests/regression_static_game_data.h tests/test_lua_regression.cpp)
 	target_link_libraries(test_regression my_lua_lib)
 	add_test(NAME test_regression COMMAND test_regression)
 	target_compile_options(test_regression PRIVATE ${test_compile_options})
@@ -383,5 +338,4 @@ elseif(BACKEND STREQUAL "TEST")
 		-g3
 		-fsingle-precision-constant
 		)
-
 endif()

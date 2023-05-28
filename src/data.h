@@ -31,7 +31,7 @@ struct GameCart {
 };
 
 typedef struct GameCart GameCart;
-#include "static_game_data.h"
+#include "generated/static_game_data.h"
 #define SAMPLE_RATE 22050
 uint8_t buttons[6] = 	{0, 0, 0, 0, 0, 0};
 uint8_t buttons_frame[6] =  {0, 0, 0, 0, 0, 0};

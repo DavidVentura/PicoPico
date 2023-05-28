@@ -123,7 +123,7 @@ def parse_cart(fname: Path, debug: bool=False, luac: str=''):
         print(f"'{fname}' does not exist or is not a file")
         sys.exit(1)
 
-    bname = path_to_identifier(fname).replace('examples_', '')
+    bname = path_to_identifier(fname).replace('carts_', '')
 
     with open(fname, 'rb') as fd:
         data = fd.read()
@@ -216,7 +216,7 @@ def main():
 
     print(f'GameCart {args.cart_prefix}carts[] = {{')
     for game in games:
-        game_name = game.replace('examples_', '')
+        game_name = game.replace('carts_', '')
         print(f'cart_{game_name},')
     print('};')
 

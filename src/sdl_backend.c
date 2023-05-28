@@ -102,33 +102,33 @@ bool handle_input() {
 	    switch( e.key.keysym.sym )
 	    {
 		case SDLK_LEFT:
-		    buttons_frame[BUTTONS_IDX_LEFT] = buttons[BUTTONS_IDX_LEFT] == 0 && buttons_frame[BUTTONS_IDX_LEFT] == 0;
-		    buttons[BUTTONS_IDX_LEFT] = 1;
+		    buttons_frame[BTN_IDX_LEFT] = buttons[BTN_IDX_LEFT] == 0 && buttons_frame[BTN_IDX_LEFT] == 0;
+		    buttons[BTN_IDX_LEFT] = 1;
 		    break;
 
 		case SDLK_RIGHT:
-		    buttons_frame[BUTTONS_IDX_RIGHT] = buttons[BUTTONS_IDX_RIGHT] == 0 && buttons_frame[BUTTONS_IDX_RIGHT] == 0;
-		    buttons[BUTTONS_IDX_RIGHT] = 1;
+		    buttons_frame[BTN_IDX_RIGHT] = buttons[BTN_IDX_RIGHT] == 0 && buttons_frame[BTN_IDX_RIGHT] == 0;
+		    buttons[BTN_IDX_RIGHT] = 1;
 		    break;
 
 		case SDLK_UP:
-		    buttons_frame[BUTTONS_IDX_UP] = (buttons[BUTTONS_IDX_UP] == 0 && buttons_frame[BUTTONS_IDX_UP] == 0);
-		    buttons[BUTTONS_IDX_UP] = 1;
+		    buttons_frame[BTN_IDX_UP] = (buttons[BTN_IDX_UP] == 0 && buttons_frame[BTN_IDX_UP] == 0);
+		    buttons[BTN_IDX_UP] = 1;
 		    break;
 
 		case SDLK_DOWN:
-		    buttons_frame[BUTTONS_IDX_DOWN] = buttons[BUTTONS_IDX_DOWN] == 0 && buttons_frame[BUTTONS_IDX_DOWN] == 0;
-		    buttons[BUTTONS_IDX_DOWN] = 1;
+		    buttons_frame[BTN_IDX_DOWN] = buttons[BTN_IDX_DOWN] == 0 && buttons_frame[BTN_IDX_DOWN] == 0;
+		    buttons[BTN_IDX_DOWN] = 1;
 		    break;
 
 		case SDLK_z:
-		    buttons_frame[BUTTONS_IDX_A] = buttons[BUTTONS_IDX_A] == 0 && buttons_frame[BUTTONS_IDX_A] == 0;
-		    buttons[BUTTONS_IDX_A] = 1;
+		    buttons_frame[BTN_IDX_A] = buttons[BTN_IDX_A] == 0 && buttons_frame[BTN_IDX_A] == 0;
+		    buttons[BTN_IDX_A] = 1;
 		    break;
 
 		case SDLK_x:
-		    buttons_frame[BUTTONS_IDX_B] = buttons[BUTTONS_IDX_B] == 0 && buttons_frame[BUTTONS_IDX_B] == 0;
-		    buttons[BUTTONS_IDX_B] = 1;
+		    buttons_frame[BTN_IDX_B] = buttons[BTN_IDX_B] == 0 && buttons_frame[BTN_IDX_B] == 0;
+		    buttons[BTN_IDX_B] = 1;
 		    break;
 
 		case SDLK_ESCAPE:

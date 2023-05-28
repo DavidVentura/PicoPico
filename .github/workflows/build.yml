@@ -10,6 +10,8 @@ jobs:
       image: davidv27/picopico-builder:0.0.2
       volumes:
         - "${{ github.workspace }}:/src"
+      env:
+        GIT_SSL_NO_VERIFY: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3

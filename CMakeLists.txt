@@ -40,10 +40,10 @@ add_compile_options(
 )
 
 SET(luac ${CMAKE_CURRENT_BINARY_DIR}/local_lua/luac)
-file(GLOB ALL_RESOURCE_FILES CONFIGURE_DEPENDS stdlib/stdlib.lua artifacts/font.lua carts/* to_c.py)
+file(GLOB ALL_RESOURCE_FILES CONFIGURE_DEPENDS stdlib/stdlib.lua artifacts/font.lua carts/* scripts/to_c.py)
 add_custom_command(
 	OUTPUT ${CMAKE_SOURCE_DIR}/src/generated/static_game_data.h
-	COMMAND python3 to_c.py --emit-stdlib --luac ${luac} carts/ > ${CMAKE_SOURCE_DIR}/src/generated/static_game_data.h
+	COMMAND python3 scripts/to_c.py --emit-stdlib --luac ${luac} carts/ > ${CMAKE_SOURCE_DIR}/src/generated/static_game_data.h
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	DEPENDS ${ALL_RESOURCE_FILES}
 	)
@@ -283,16 +283,16 @@ elseif(BACKEND STREQUAL "TEST")
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/data
 	)
 
-	file(GLOB ALL_REGRESSION_FILES CONFIGURE_DEPENDS tests/regression/*.p8 to_c.py)
+	file(GLOB ALL_REGRESSION_FILES CONFIGURE_DEPENDS tests/regression/*.p8 scripts/to_c.py)
 	add_custom_command(
 		OUTPUT ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h
-		COMMAND python3 to_c.py --luac ${luac} --cart-prefix regression tests/regression > ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h
+		COMMAND python3 scripts/to_c.py --luac ${luac} --cart-prefix regression tests/regression > ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		DEPENDS ${ALL_REGRESSION_FILES}
 	)
 	add_custom_command(
 		OUTPUT ${CMAKE_SOURCE_DIR}/tests/test_static_game_data.h
-		COMMAND python3 to_c.py --luac ${luac} --cart-prefix t_ tests/carts > ${CMAKE_SOURCE_DIR}/tests/test_static_game_data.h
+		COMMAND python3 scripts/to_c.py --luac ${luac} --cart-prefix t_ tests/carts > ${CMAKE_SOURCE_DIR}/tests/test_static_game_data.h
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		DEPENDS ${ALL_REGRESSION_FILES}
 	)

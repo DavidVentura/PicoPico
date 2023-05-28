@@ -1,4 +1,4 @@
-#include "main.cpp"
+#include "src/main.cpp"
 #include "tests/test_utils.cpp"
 #include <cassert>
 

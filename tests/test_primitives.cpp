@@ -1,4 +1,4 @@
-#include "main.cpp"
+#include "src/main.cpp"
 #include "tests/test_utils.cpp"
 #include "tests/test_static_game_data.h"
 #include <cassert>
@@ -9,8 +9,8 @@ bool handle_input() {
 }
 
 void test_basic_gfx() {
-    cartParser(&cart_carts_test_basic_gfx_p8);
-    bool lua_ok = init_lua(cart_carts_test_basic_gfx_p8.code, cart_carts_test_basic_gfx_p8.code_len);
+    cartParser(&cart_test_basic_gfx_p8);
+    bool lua_ok = init_lua(cart_test_basic_gfx_p8.code, cart_test_basic_gfx_p8.code_len);
     assert(lua_ok);
     if (_lua_fn_exists("_init")) _to_lua_call("_init");
     if (_lua_fn_exists("_update")) _to_lua_call("_update");

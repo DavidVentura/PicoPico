@@ -28,6 +28,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: 3DS Cart
-          path: |
-            build-3ds/3ds_pico.3dsx
-            build-android/cnfgtest.apk
+          path: build-3ds/3ds_pico.3dsx
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Android APP
+          path: build-android/cnfgtest.apk

@@ -32,14 +32,14 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # TODO: how do i compile _a_ luac for meta-build
-#add_subdirectory(lua)
+add_subdirectory(local_lua)
 add_compile_options(
 	#	-Werror
 	#-g3
         -Wno-unused-variable
 )
 
-SET(luac ${CMAKE_SOURCE_DIR}/artifacts/luac)
+SET(luac ${CMAKE_CURRENT_BINARY_DIR}/local_lua/luac)
 file(GLOB ALL_RESOURCE_FILES CONFIGURE_DEPENDS stdlib/stdlib.lua artifacts/font.lua examples/* to_c.py)
 add_custom_command(
 	OUTPUT ${CMAKE_SOURCE_DIR}/static_game_data.h

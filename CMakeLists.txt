@@ -175,6 +175,8 @@ elseif(BACKEND STREQUAL "THREEDS")
 	add_custom_target(generate_cart ALL
 		BYPRODUCTS "${APPNAME}.3dsx"
 		# ${CMAKE_SOURCE_DIR}/artifacts/3ds_icon.png
+		# in GH actions, getting:
+		# Could not decode PNG: /__w/PicoPico/PicoPico/artifacts/3ds_icon.png
 		COMMAND /opt/devkitpro/tools/bin/smdhtool --create "${APPNAME}" "'Very_alpha'" "'David'" "/opt/devkitpro/libctru/default_icon.png" "${APPNANE}.smdh"
 		COMMAND /opt/devkitpro/tools/bin/3dsxtool "${APPNAME}" "${APPNAME}.3dsx" --smdh=${APPNANE}.smdh #--romfs=/home/david/Downloads/a/romfs
 		COMMAND rm -f "${APPNANE}.smdh"
@@ -199,7 +201,9 @@ elseif(BACKEND STREQUAL "ANDROID")
 	SET(ANDROIDVERSION "30")
 	SET(ANDROIDTARGET "${ANDROIDVERSION}")
 	set(LABEL "${APPNAME}")
-	set(ANDROIDSDK "/home/david/AndroidCrap")
+	if(NOT DEFINED ANDROIDSDK)
+		set(ANDROIDSDK "/home/david/AndroidCrap")
+	endif()
 	set(NDK "${ANDROIDSDK}/ndk/21.3.6528147")
 
 	SET(OS_NAME "linux-x86_64")

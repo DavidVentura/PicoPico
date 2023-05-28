@@ -5,9 +5,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    container:
-      image: davidv27/picopico-builder:0.0.3
+    runs-on: ubuntu-latest container:
+      image: davidv27/picopico-builder:0.0.4
       volumes:
         - "${{ github.workspace }}:/src"
       env:
@@ -21,9 +20,13 @@ jobs:
       - name: Build 3DS
         run: mkdir build-3ds && cd build-3ds && cmake .. -DBACKEND=THREEDS && make -j
 
+      - name: Build android
+        run: mkdir build-android && cd build-android && cmake .. -DBACKEND=ANDROID && make -j
+
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3
         with:
           name: 3DS Cart
           path: |
             build-3ds/3ds_pico.3dsx
+            build-android/cnfgtest.apk

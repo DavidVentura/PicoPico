@@ -22,7 +22,7 @@ jobs:
         run: mkdir build-3ds && cd build-3ds && cmake .. -DBACKEND=THREEDS && make -j
 
       - name: Build android
-        run: mkdir build-android && cd build-android && cmake .. -DBACKEND=ANDROID && make -j
+        run: mkdir build-android && cd build-android && cmake .. -DANDROIDSDK=/android_sdk -DBACKEND=ANDROID && make -j
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3

@@ -218,22 +218,22 @@ elseif(BACKEND STREQUAL "ANDROID")
 		COMMAND ${AAPT} package -f -F temp.apk -I ${ANDROIDSDK}/platforms/android-${ANDROIDVERSION}/android.jar -M AndroidManifest.xml -S "${CMAKE_CURRENT_SOURCE_DIR}/rawdrawandroid/Sources/res" -A makecapk/assets -v --target-sdk-version ${ANDROIDTARGET}
 		COMMAND unzip -o temp.apk -d makecapk
 		COMMAND rm -rf makecapk.apk
-		COMMAND cd makecapk && zip -D9r ../makecapk.apk . && zip -D0r ../makecapk.apk ./resources.arsc ./AndroidManifest.xml
-		COMMAND jarsigner -sigalg SHA1withRSA -digestalg SHA1 -verbose -keystore ${KEYSTOREFILE} -storepass ${STOREPASS} makecapk.apk ${ALIASNAME}
+		COMMAND cd makecapk && zip -D5r ../makecapk.apk . && zip -D0r ../makecapk.apk ./resources.arsc ./AndroidManifest.xml
 		COMMAND rm -rf ${APKFILE}
 		COMMAND ${BUILD_TOOLS}/zipalign -v 4 makecapk.apk ${APKFILE}
 		# #Using the apksigner in this way is only required on Android 30+
 		COMMAND ${BUILD_TOOLS}/apksigner sign --key-pass pass:${STOREPASS} --ks-pass pass:${STOREPASS} --ks ${KEYSTOREFILE} ${APKFILE}
 		COMMAND ${AAPT} dump badging ${APKFILE} | grep "launchable-activity" | cut -f 2 -d"'" >activity_name
 		)
+	add_dependencies(makeapk "${APPNAME}")
 
-	#file (STRINGS "activity_name" ACTIVITYNAME)
 	add_custom_target(run
 		DEPENDS ${APKFILE}
 		COMMAND ${ADB} install -r ${APKFILE}
 		COMMAND ${ADB} shell am start -n ${PACKAGENAME}/android.app.NativeActivity
 		# TODO: android.app.NativeActivity is actually $(cat activity_name)
 	)
+	add_dependencies(run makeapk)
 
 elseif(BACKEND STREQUAL "RAWDRAW")
 	add_executable(rawdraw_pico

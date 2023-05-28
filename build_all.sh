@@ -1,7 +1,6 @@
 #!/bin/bash
 set -eu
-# does not build esp32
-for target in PC RAWDRAW ANDROID THREEDS TEST; do
-	mkdir -p build-$target
-	(cd build-$target; cmake .. -DBACKEND=${target} && make -j)
+# No dependencies for: ESP32 PC, RAWDRAW, ANDROID 
+for target in THREEDS TEST; do
+	docker run --user $(id -u):$(id -g) -v "$PWD:/src" davidv27/picopico-builder:0.0.3 bash -c "set -x; rm -rf build-$target; mkdir -p build-$target; cd build-$target; cmake .. -DBACKEND=$target && make -j"
 done

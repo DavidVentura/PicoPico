@@ -31,6 +31,7 @@ endif()
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+# TODO: how do i compile _a_ luac for meta-build
 #add_subdirectory(lua)
 add_compile_options(
 	#	-Werror
@@ -38,10 +39,11 @@ add_compile_options(
         -Wno-unused-variable
 )
 
+SET(luac ${CMAKE_SOURCE_DIR}/artifacts/luac)
 file(GLOB ALL_RESOURCE_FILES CONFIGURE_DEPENDS stdlib/stdlib.lua artifacts/font.lua examples/* to_c.py)
 add_custom_command(
 	OUTPUT ${CMAKE_SOURCE_DIR}/static_game_data.h
-	COMMAND python3 to_c.py --emit-stdlib --luac ${CMAKE_SOURCE_DIR}/artifacts/luac examples/ > ${CMAKE_SOURCE_DIR}/static_game_data.h
+	COMMAND python3 to_c.py --emit-stdlib --luac ${luac} examples/ > ${CMAKE_SOURCE_DIR}/static_game_data.h
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	DEPENDS ${ALL_RESOURCE_FILES}
 	)
@@ -170,7 +172,7 @@ elseif(BACKEND STREQUAL "THREEDS")
 	target_compile_options("${APPNAME}" PRIVATE -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -D__3DS__)
 	add_custom_target(generate_cart ALL
 		BYPRODUCTS "${APPNAME}.3dsx"
-		COMMAND /opt/devkitpro/tools/bin/smdhtool --create "${APPNAME}" "'Very_alpha'" "'David'" "${CMAKE_SOURCE_DIR}/3ds_icon.png" "${APPNANE}.smdh"
+		COMMAND /opt/devkitpro/tools/bin/smdhtool --create "${APPNAME}" "'Very_alpha'" "'David'" "${CMAKE_SOURCE_DIR}/artifacts/3ds_icon.png" "${APPNANE}.smdh"
 		COMMAND /opt/devkitpro/tools/bin/3dsxtool "${APPNAME}" "${APPNAME}.3dsx" --smdh=${APPNANE}.smdh #--romfs=/home/david/Downloads/a/romfs
 		COMMAND rm -f "${APPNANE}.smdh"
 		)
@@ -322,13 +324,13 @@ elseif(BACKEND STREQUAL "TEST")
 	file(GLOB ALL_REGRESSION_FILES CONFIGURE_DEPENDS tests/regression/*.p8 to_c.py)
 	add_custom_command(
 		OUTPUT ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h
-		COMMAND python3 to_c.py --cart-prefix regression tests/regression > ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h
+		COMMAND python3 to_c.py --luac ${luac} --cart-prefix regression tests/regression > ${CMAKE_SOURCE_DIR}/tests/regression_static_game_data.h
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		DEPENDS ${ALL_REGRESSION_FILES}
 	)
 	add_custom_command(
 		OUTPUT ${CMAKE_SOURCE_DIR}/tests/test_static_game_data.h
-		COMMAND python3 to_c.py --cart-prefix t_ tests/carts > ${CMAKE_SOURCE_DIR}/tests/test_static_game_data.h
+		COMMAND python3 to_c.py --luac ${luac} --cart-prefix t_ tests/carts > ${CMAKE_SOURCE_DIR}/tests/test_static_game_data.h
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		DEPENDS ${ALL_REGRESSION_FILES}
 	)

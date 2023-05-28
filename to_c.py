@@ -31,9 +31,9 @@ class ProcessType(enum.Enum):
 def chunked(lst, chunk_size: int):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
-def compile_lua_to_bytecode(code: bytes) -> bytes:
+def compile_lua_to_bytecode(luac: str, code: bytes) -> bytes:
     with tempfile.NamedTemporaryFile() as named:
-        with subprocess.Popen(['./lua/luac', '-o', named.name, '-s', '-'], stdin=subprocess.PIPE) as p:
+        with subprocess.Popen([luac, '-o', named.name, '-s', '-'], stdin=subprocess.PIPE) as p:
             p.communicate(code)
         if p.returncode != 0:
             raise ValueError("dead")
@@ -41,7 +41,7 @@ def compile_lua_to_bytecode(code: bytes) -> bytes:
         named.seek(0)
         return named.read()
 
-def process_cart(name: str, data: bytes) -> GameCart:
+def process_cart(luac: str, name: str, data: bytes) -> GameCart:
     LUA_HEADER = b'__lua__'
     LABEL_HEADER = b"__label__"
     headers = [LUA_HEADER, b'__gfx__', b"__gff__", LABEL_HEADER, b"__map__", b"__sfx__", b"__music__"]
@@ -59,7 +59,7 @@ def process_cart(name: str, data: bytes) -> GameCart:
             continue
         sections[section].append(bytes(line))
 
-    sections[LUA_HEADER] = compile_lua_to_bytecode(b'\n'.join(sections.get(LUA_HEADER, b'')))
+    sections[LUA_HEADER] = compile_lua_to_bytecode(luac, b'\n'.join(sections.get(LUA_HEADER, b'')))
 
     gc = GameCart(name=name,
                   code=sections.get(LUA_HEADER, b''),
@@ -118,7 +118,7 @@ def _type(varname: str, uniq: str, data: bytes) -> str:
         return f'const uint8_t* {varname}_{uniq} = NULL'
     return f'const uint8_t {varname}_{uniq}[] = {_chunk(data)}'
 
-def parse_cart(fname: Path, debug: bool=False):
+def parse_cart(fname: Path, debug: bool=False, luac: str=''):
     if not os.path.isfile(fname):
         print(f"'{fname}' does not exist or is not a file")
         sys.exit(1)
@@ -127,7 +127,7 @@ def parse_cart(fname: Path, debug: bool=False):
 
     with open(fname, 'rb') as fd:
         data = fd.read()
-    cart = process_cart(bname, data)
+    cart = process_cart(luac, bname, data)
     output = textwrap.dedent(f'''
     {_type('code', bname, cart.code)};
     {_type('gfx', bname, cart.gfx)};
@@ -161,7 +161,7 @@ def parse_cart(fname: Path, debug: bool=False):
     ''')
     return output
 
-def parse(fname: Path, process_as: ProcessType, debug: bool=False):
+def parse(luac: str, fname: Path, process_as: ProcessType, debug: bool=False):
     if not os.path.isfile(fname):
         print(f"'{fname}' does not exist or is not a file")
         sys.exit(1)
@@ -177,7 +177,7 @@ def parse(fname: Path, process_as: ProcessType, debug: bool=False):
         data = to_char_value(b''.join(data.splitlines()))
         output.append(f'const uint16_t {bname}_len = {len(data)};')
     else:
-        data = compile_lua_to_bytecode(data)
+        data = compile_lua_to_bytecode(luac, data)
 
     initial_len = len(data)
     processed_data = data
@@ -197,6 +197,7 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument('--emit-stdlib', action='store_true')
     p.add_argument('--cart-prefix', required=False, default='')
+    p.add_argument('--luac', required=False, default='lua/luac')
     p.add_argument('directory')
     return p.parse_args()
 
@@ -204,14 +205,14 @@ def main():
     args = parse_args()
     debug = True
     if args.emit_stdlib:
-        print(parse(Path('stdlib/stdlib.lua'), ProcessType.COMPILE, debug))
-        print(parse(Path('artifacts/font.lua'), ProcessType.RAW, debug))
-        print(parse(Path('artifacts/hud.p8'), ProcessType.RAW, debug))
+        print(parse(args.luac, Path('stdlib/stdlib.lua'), ProcessType.COMPILE, debug))
+        print(parse(args.luac, Path('artifacts/font.lua'), ProcessType.RAW, debug))
+        print(parse(args.luac, Path('artifacts/hud.p8'), ProcessType.RAW, debug))
 
     games = []
     for f in Path(args.directory).glob('*.p8'):
         games.append(path_to_identifier(f))
-        print(parse_cart(f, debug))
+        print(parse_cart(f, debug, args.luac))
 
     print(f'GameCart {args.cart_prefix}carts[] = {{')
     for game in games:

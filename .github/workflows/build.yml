@@ -6,7 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: picopico-builder:0.0.1
+    container:
+      image: picopico-builder:0.0.1
       volumes:
         - "${{ github.workspace }}:/src"
     steps:

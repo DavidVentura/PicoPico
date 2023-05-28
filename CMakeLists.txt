@@ -137,6 +137,10 @@ elseif(BACKEND STREQUAL "ESP32")
 
 elseif(BACKEND STREQUAL "ANDROID")
 	set(APPNAME "cnfgtest")
+	# setting vars before `add_subdirectory` is important
+	# TODO generic vars
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -Os -fdata-sections -Wall -fvisibility=hidden -std=c++11")
+	# missing -llua, automatic?
 
 	add_library("${APPNAME}" SHARED
 		static_game_data.h
@@ -145,11 +149,6 @@ elseif(BACKEND STREQUAL "ANDROID")
 		${lua_src}
 		)
 
-	# setting vars before `add_subdirectory` is important
-	# TODO generic vars
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -Os -fdata-sections -Wall -fvisibility=hidden -std=c++11")
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg ")
-	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg ")
 
 	SET(ANDROIDVERSION "30")
 	SET(ANDROIDTARGET "${ANDROIDVERSION}")
@@ -182,6 +181,11 @@ elseif(BACKEND STREQUAL "ANDROID")
 	# Add pico_stdlib library which aggregates commonly used features
 	target_link_libraries("${APPNAME}"
 		my_lua_lib
+		-Wl,--gc-sections -Wl,-Map=output.map
+		-s
+		-static-libstdc++
+		-lm -lGLESv3 -lEGL -landroid -llog 
+		-shared -uANativeActivity_onCreate
 		)
 
 	target_include_directories("${APPNAME}" PUBLIC
@@ -195,7 +199,6 @@ elseif(BACKEND STREQUAL "ANDROID")
 	target_compile_options("${APPNAME}" PRIVATE -DRAWDRAW_BACKEND=1 -DANDROID_BACKEND=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -DAPPNAME="cnfgtest" -DANDROIDVERSION=${ANDROIDVERSION} -DANDROID)
 
 	add_custom_target(render_xml ALL
-		DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/lib${APPNAME}.so"
 		COMMAND PACKAGENAME=${PACKAGENAME} ANDROIDVERSION=${ANDROIDVERSION} ANDROIDTARGET=${ANDROIDTARGET} APPNAME=${APPNAME} LABEL=${LABEL} envsubst '$$ANDROIDTARGET $$ANDROIDVERSION $$APPNAME $$PACKAGENAME $$LABEL' < "${CMAKE_CURRENT_SOURCE_DIR}/rawdrawandroid/AndroidManifest.xml.template" > AndroidManifest.xml
 		)
 
@@ -204,7 +207,10 @@ elseif(BACKEND STREQUAL "ANDROID")
 		COMMAND keytool -genkey -v -keystore ${KEYSTOREFILE} -alias ${ALIASNAME} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${STOREPASS} -keypass ${STOREPASS} -dname ${DNAME}
 		)
 	add_custom_target(makeapk ALL
-		DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/lib${APPNAME}.so"
+		BYPRODUCTS "${APKFILE}"
+		BYPRODUCTS "${APKFILE}.idsig"
+		BYPRODUCTS "activity_name"
+		DEPENDS "${KEYSTOREFILE}"
 		COMMAND mkdir -p makecapk/assets makecapk/lib/arm64-v8a/
 		COMMAND cp "${CMAKE_CURRENT_BINARY_DIR}/lib${APPNAME}.so" makecapk/lib/arm64-v8a/
 		COMMAND cp -r "${CMAKE_CURRENT_SOURCE_DIR}/rawdrawandroid/Sources/assets/*" makecapk/assets
@@ -223,7 +229,8 @@ elseif(BACKEND STREQUAL "ANDROID")
 
 	#file (STRINGS "activity_name" ACTIVITYNAME)
 	add_custom_target(run
-		#COMMAND ${ADB} install -r ${APKFILE}
+		DEPENDS ${APKFILE}
+		COMMAND ${ADB} install -r ${APKFILE}
 		COMMAND ${ADB} shell am start -n ${PACKAGENAME}/android.app.NativeActivity
 		# TODO: android.app.NativeActivity is actually $(cat activity_name)
 	)

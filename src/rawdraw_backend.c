@@ -9,9 +9,11 @@
 #include "CNFGAndroid.h"
 #endif
 
+#define CNFA_IMPLEMENTATION
 #define CNFG_IMPLEMENTATION
 #define CNFGOGL
 
+#include "cnfa/CNFA.h"
 #include "rawdraw/CNFG.h"
 
 
@@ -30,6 +32,9 @@ const uint8_t UPSCALE_FACTOR = 4;
 #endif
 uint32_t* _rgb32_buf;
 unsigned int tex;
+
+
+struct CNFADriver * cnfa;
 
 typedef struct {
     uint16_t x;
@@ -62,11 +67,42 @@ const button_coords_t button_coords[] = {
 
 short screenx, screeny;
 
+volatile static bool exiting;
 bool init_platform() {
+	exiting = false;
     return true;
+}
+double omega = 0;
+
+void Callback( struct CNFADriver * sd, short * out, short * in, int framesp, int framesr )
+{
+	if (exiting) return;
+	// framesp = size of 1 channel in samples
+
+
+    uint16_t samples = SAMPLES_PER_DURATION * SAMPLES_PER_BUFFER;
+    memset(out, 0, 2*framesp);
+    for(uint8_t i=0; i<4; i++)
+		fill_buffer((uint16_t*)out, &channels[i], framesp);
 }
 
 bool init_audio() {
+	cnfa = CNFAInit( 
+		// no audio on pulse?
+		//"PULSE",
+		"ALSA", //You can select a plaback driver, or use 0 for default.
+		//0, //default
+		"cnfa_example", Callback,
+		SAMPLE_RATE, //Requested samplerate for playback
+		0, //Requested samplerate for recording
+		1, //Number of playback channels.
+		0, //Number of record channels.
+		SAMPLES_PER_DURATION, //Buffer size in frames.
+		0, //Could be a string, for the selected input device - but 0 means default.
+		0,  //Could be a string, for the selected output device - but 0 means default.
+		0 // 'opaque' value if the driver wanted it.
+	 );
+
     return true;
 }
 bool init_video()
@@ -86,6 +122,9 @@ bool init_video()
 
 void video_close()
 {
+	exiting = true;
+	delay(1);
+	CNFAClose(cnfa);
     free(_rgb32_buf);
 	CNFGDeleteTex(tex);
 }
@@ -110,7 +149,6 @@ void gfx_flip() {
             g = ((color >> 5) & 0x3f) << 2;
             b = (color & 0x1f) << 3;
 
-            // android R....
             _rgb32_buf[y*SCREEN_WIDTH*UPSCALE_FACTOR+x] = (r << 24) | (g << 16) | (b << 8) | a;
         }
     }
@@ -301,6 +339,7 @@ void HandleDestroy() {
     exit(0);
 }
 
+#ifdef ANDROID_BACKEND
 void HandleSuspend()
 {
 }
@@ -308,3 +347,5 @@ void HandleSuspend()
 void HandleResume()
 {
 }
+#endif
+

@@ -198,8 +198,8 @@ elseif(BACKEND STREQUAL "ANDROID")
 		${CMAKE_CURRENT_SOURCE_DIR}
 		rawdrawandroid
 		rawdrawandroid/rawdraw
-		#${NDK}/sysroot/usr/include/
 		${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/sysroot/usr/include
+		${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/sysroot/usr/include/android
 		)
 
 	target_compile_options("${APPNAME}" PRIVATE -DRAWDRAW_BACKEND=1 -DANDROID_BACKEND=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -DAPPNAME="cnfgtest" -DANDROIDVERSION=${ANDROIDVERSION} -DANDROID)
@@ -253,6 +253,7 @@ elseif(BACKEND STREQUAL "RAWDRAW")
 	# Add pico_stdlib library which aggregates commonly used features
 	target_link_libraries(rawdraw_pico
 		my_lua_lib
+		asound
 		)
 
 	target_include_directories(rawdraw_pico PUBLIC

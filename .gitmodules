@@ -16,3 +16,6 @@
 [submodule "rawdrawandroid"]
 	path = rawdrawandroid
 	url = git@github.com:cnlohr/rawdrawandroid.git
+[submodule "cnfa"]
+	path = cnfa
+	url = git@github.com:cntools/cnfa.git

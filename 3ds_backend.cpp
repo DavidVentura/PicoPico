@@ -29,6 +29,8 @@ const GPU_TEXCOLOR texColor = GPU_RGB565;
 size_t pixel_buffer_size = SCREEN_WIDTH*SCREEN_HEIGHT*BYTES_PER_PIXEL;
 size_t pixIdx = 0;
 float scaling_factor = 2.f;
+C2D_Text instructions;
+C2D_TextBuf g_staticBuf;
 
 void _render() {
 	//	necessary??
@@ -43,7 +45,6 @@ void _render() {
 			);
 
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-	//C3D_FrameBegin(C3D_FRAME_NONBLOCK); // crashes on console but not emulator?
 
 
 	C2D_TargetClear(topTarget, CLEAR_COLOR);
@@ -69,6 +70,13 @@ void _render() {
 			scaling_factor,
 			scaling_factor); // losing 16px; fractional scaling is terrible. 1.f is "too small"
 	C2D_Flush();
+
+	// Draw text labels on bottom
+	C2D_TargetClear(bottomTarget, CLEAR_COLOR);
+	C2D_SceneBegin(bottomTarget);
+	C2D_DrawText(&instructions, C2D_AtBaseline | C2D_WithColor | C2D_AlignCenter, 150.0f, 40.0f, 0.5f, 0.75f, 0.75f, C2D_Color32f(1.0f,1.0f,1.0f,1.0f));
+	C2D_Flush();
+
 	C3D_FrameEnd(0);
 }
 bool init_video() {
@@ -85,6 +93,7 @@ bool init_video() {
 
 	// Create screens
 	topTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+	bottomTarget = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
 	pico_tex = (C3D_Tex*)linearAlloc(sizeof(C3D_Tex));
 
@@ -107,6 +116,9 @@ bool init_video() {
 
 	pico_pixel_buffer = (u16*)linearAlloc(pixel_buffer_size);
 
+	g_staticBuf  = C2D_TextBufNew(100);
+	C2D_TextParse(&instructions, g_staticBuf, "SELECT to resize\nSTART to quit");
+	C2D_TextOptimize(&instructions);
 	return true;
 }
 //---------------------------------------------------------------------------------

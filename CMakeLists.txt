@@ -320,6 +320,9 @@ elseif(BACKEND STREQUAL "TEST")
 		target_link_libraries(${EXECUTABLE_NAME} my_lua_lib)
 		add_test(NAME ${EXECUTABLE_NAME} COMMAND ${EXECUTABLE_NAME})
 		target_compile_options(${EXECUTABLE_NAME} PRIVATE ${test_compile_options})
+		target_include_directories(${EXECUTABLE_NAME} PUBLIC
+			${CMAKE_CURRENT_SOURCE_DIR}
+		)
 		if(APPLE)
 			add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD COMMAND codesign -s - ${EXECUTABLE_NAME})
 		endif()

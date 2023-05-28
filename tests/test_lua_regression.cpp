@@ -1,4 +1,4 @@
-#include "main.cpp"
+#include "src/main.cpp"
 #include "tests/regression_static_game_data.h"
 #include "tests/test_utils.cpp"
 #include <cassert>

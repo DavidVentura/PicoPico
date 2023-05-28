@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
+project(my_project C CXX ASM)
 if(NOT DEFINED BACKEND)
-	message(FATAL_ERROR "You must define the variable BACKEND (to either PICO, ESP32, PC or TEST)" )
+	message(FATAL_ERROR "You must define the variable BACKEND (to either PICO, ESP32, PC, RAWDRAW, ANDROID, THREEDS or TEST)" )
 endif()
 
 if(BACKEND STREQUAL "PICO")
@@ -27,8 +28,6 @@ else()
 message( SEND_ERROR "Invalid backend" )
 endif()
 
-project(my_project C CXX ASM)
-
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -42,7 +41,7 @@ add_compile_options(
 file(GLOB ALL_RESOURCE_FILES CONFIGURE_DEPENDS stdlib/stdlib.lua artifacts/font.lua examples/* to_c.py)
 add_custom_command(
 	OUTPUT ${CMAKE_SOURCE_DIR}/static_game_data.h
-	COMMAND python3 to_c.py --emit-stdlib examples/ > ${CMAKE_SOURCE_DIR}/static_game_data.h
+	COMMAND python3 to_c.py --emit-stdlib --luac ${CMAKE_SOURCE_DIR}/artifacts/luac examples/ > ${CMAKE_SOURCE_DIR}/static_game_data.h
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	DEPENDS ${ALL_RESOURCE_FILES}
 	)

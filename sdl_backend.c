@@ -102,33 +102,33 @@ bool handle_input() {
 	    switch( e.key.keysym.sym )
 	    {
 		case SDLK_LEFT:
-		    buttons_frame[0] = buttons[0] == 0 && buttons_frame[0] == 0;
-		    buttons[0] = 1;
+		    buttons_frame[BUTTONS_IDX_LEFT] = buttons[BUTTONS_IDX_LEFT] == 0 && buttons_frame[BUTTONS_IDX_LEFT] == 0;
+		    buttons[BUTTONS_IDX_LEFT] = 1;
 		    break;
 
 		case SDLK_RIGHT:
-		    buttons_frame[1] = buttons[1] == 0 && buttons_frame[1] == 0;
-		    buttons[1] = 1;
+		    buttons_frame[BUTTONS_IDX_RIGHT] = buttons[BUTTONS_IDX_RIGHT] == 0 && buttons_frame[BUTTONS_IDX_RIGHT] == 0;
+		    buttons[BUTTONS_IDX_RIGHT] = 1;
 		    break;
 
 		case SDLK_UP:
-		    buttons_frame[2] = (buttons[2] == 0 && buttons_frame[2] == 0);
-		    buttons[2] = 1;
+		    buttons_frame[BUTTONS_IDX_UP] = (buttons[BUTTONS_IDX_UP] == 0 && buttons_frame[BUTTONS_IDX_UP] == 0);
+		    buttons[BUTTONS_IDX_UP] = 1;
 		    break;
 
 		case SDLK_DOWN:
-		    buttons_frame[3] = buttons[3] == 0 && buttons_frame[3] == 0;
-		    buttons[3] = 1;
+		    buttons_frame[BUTTONS_IDX_DOWN] = buttons[BUTTONS_IDX_DOWN] == 0 && buttons_frame[BUTTONS_IDX_DOWN] == 0;
+		    buttons[BUTTONS_IDX_DOWN] = 1;
 		    break;
 
 		case SDLK_z:
-		    buttons_frame[4] = buttons[4] == 0 && buttons_frame[4] == 0;
-		    buttons[4] = 1;
+		    buttons_frame[BUTTONS_IDX_A] = buttons[BUTTONS_IDX_A] == 0 && buttons_frame[BUTTONS_IDX_A] == 0;
+		    buttons[BUTTONS_IDX_A] = 1;
 		    break;
 
 		case SDLK_x:
-		    buttons_frame[5] = buttons[5] == 0 && buttons_frame[5] == 0;
-		    buttons[5] = 1;
+		    buttons_frame[BUTTONS_IDX_B] = buttons[BUTTONS_IDX_B] == 0 && buttons_frame[BUTTONS_IDX_B] == 0;
+		    buttons[BUTTONS_IDX_B] = 1;
 		    break;
 
 		case SDLK_ESCAPE:
@@ -140,33 +140,33 @@ bool handle_input() {
 	    switch( e.key.keysym.sym )
 	    {
 		case SDLK_LEFT:
-		    buttons[0] = 0;
-		    buttons_frame[0] = 0;
+		    buttons[BTN_IDX_LEFT] = 0;
+		    buttons_frame[BTN_IDX_LEFT] = 0;
 		    break;
 
 		case SDLK_RIGHT:
-		    buttons[1] = 0;
-		    buttons_frame[1] = 0;
+		    buttons[BTN_IDX_RIGHT] = 0;
+		    buttons_frame[BTN_IDX_RIGHT] = 0;
 		    break;
 
 		case SDLK_UP:
-		    buttons[2] = 0;
-		    buttons_frame[2] = 0;
+		    buttons[BTN_IDX_UP] = 0;
+		    buttons_frame[BTN_IDX_UP] = 0;
 		    break;
 
 		case SDLK_DOWN:
-		    buttons[3] = 0;
-		    buttons_frame[3] = 0;
+		    buttons[BTN_IDX_DOWN] = 0;
+		    buttons_frame[BTN_IDX_DOWN] = 0;
 		    break;
 
 		case SDLK_z:
-		    buttons[4] = 0;
-		    buttons_frame[4] = 0;
+		    buttons[BTN_IDX_A] = 0;
+		    buttons_frame[BTN_IDX_A] = 0;
 		    break;
 
 		case SDLK_x:
-		    buttons[5] = 0;
-		    buttons_frame[5] = 0;
+		    buttons[BTN_IDX_B] = 0;
+		    buttons_frame[BTN_IDX_B] = 0;
 		    break;
 
 	    }

@@ -45,12 +45,12 @@ int16_t drawMenu() {
     delay(10);
     while(!wants_to_quit) {
 
-        if (buttons_frame[3]) { // DOWN
+        if (buttons_frame[BTN_IDX_DOWN]) {
             highlighted = (highlighted + 1) % cartCount;
             changed = true;
         }
 
-        if (buttons_frame[2]) { // UP
+        if (buttons_frame[BTN_IDX_UP]) {
              highlighted = highlighted == 0 ? cartCount - 1 : highlighted - 1;
              changed = true;
         }

@@ -145,12 +145,12 @@ bool handle_input() {
     buttons_prev[4] = buttons[4];
     buttons_prev[5] = buttons[5];
 
-    buttons[0] = left == 1;
-    buttons[1] = right == 1;
-    buttons[2] = up == 1;
-    buttons[3] = 0; // FIXME no down connected
-    buttons[4] = a == 1;
-    buttons[5] = b == 1;
+    buttons[BTN_IDX_LEFT] = left == 1;
+    buttons[BTN_IDX_RIGHT] = right == 1;
+    buttons[BTN_IDX_UP] = up == 1;
+    buttons[BTN_IDX_DOWN] = 0; // FIXME no down connected
+    buttons[BTN_IDX_A] = a == 1;
+    buttons[BTN_IDX_B] = b == 1;
 
     buttons_frame[0] = (buttons[0] == 1) && (buttons_prev[0] == 0);
     buttons_frame[1] = (buttons[1] == 1) && (buttons_prev[1] == 0);

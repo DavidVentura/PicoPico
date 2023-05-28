@@ -220,30 +220,28 @@ void HandleKey( int keycode, int bDown ) {
     if( keycode == 27 ) exit( 0 );
     switch(keycode) {
         case 65361: // left
-            buttons_frame[0] = bDown == 2;
-            buttons[0] = bDown;
+            buttons_frame[BTN_IDX_LEFT] = bDown == 2;
+            buttons[BTN_IDX_LEFT] = bDown;
             break;
         case 65362: // up
-            buttons_frame[2] = bDown == 2;
-            buttons[2] = bDown;
+            buttons_frame[BTN_IDX_UP] = bDown == 2;
+            buttons[BTN_IDX_UP] = bDown;
             break;
         case 65363: // right
-            buttons_frame[1] = bDown == 2;
-            buttons[1] = bDown;
+            buttons_frame[BTN_IDX_RIGHT] = bDown == 2;
+            buttons[BTN_IDX_RIGHT] = bDown;
             break;
         case 65364: // down
-            printf("b3 %d bf3 %d\n", buttons[3], buttons_frame[3]);
-            buttons_frame[3] = buttons[3] == 0 && (buttons_frame[3] == 0);
-            buttons[3] = bDown;
-            printf("b3 %d bf3 %d\n", buttons[3], buttons_frame[3]);
+            buttons_frame[BTN_IDX_DOWN] = buttons[BTN_IDX_DOWN] == 0 && (buttons_frame[BTN_IDX_DOWN] == 0);
+            buttons[BTN_IDX_DOWN] = bDown;
             break;
         case 122: // z
-            buttons_frame[4] = bDown == 2;
-            buttons[4] = bDown;
+            buttons_frame[BTN_IDX_A] = bDown == 2;
+            buttons[BTN_IDX_A] = bDown;
             break;
         case 120: // x
-            buttons_frame[5] = bDown == 2;
-            buttons[5] = bDown;
+            buttons_frame[BTN_IDX_B] = bDown == 2;
+            buttons[BTN_IDX_B] = bDown;
             break;
     }
 

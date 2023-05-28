@@ -14,6 +14,8 @@
 #include "test_backend.c"
 #elif defined(ESP_BACKEND)
 //#include "esp/backend.c"
+#elif defined(__3DS__)
+#include "3ds_backend.cpp"
 #endif
 
 

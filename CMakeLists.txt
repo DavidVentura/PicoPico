@@ -19,6 +19,8 @@ add_definitions(-DRAWDRAW_BACKEND)
 elseif(BACKEND STREQUAL "ANDROID")
 add_definitions(-DANDROID_BACKEND)
 add_definitions(-DRAWDRAW_BACKEND)
+elseif(BACKEND STREQUAL "THREEDS")
+add_definitions(-DTHREEDS_BACKEND)
 elseif(BACKEND STREQUAL "TEST")
 add_definitions(-DTEST_BACKEND)
 else()
@@ -134,6 +136,46 @@ elseif(BACKEND STREQUAL "PC")
 
 elseif(BACKEND STREQUAL "ESP32")
 	# some day i'll figure out how to merge the 2 projects
+
+elseif(BACKEND STREQUAL "THREEDS")
+	set(CMAKE_C_COMPILER "/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++")
+	set(CMAKE_CXX_COMPILER "/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++")
+
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -O2 -mword-relocations -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft")
+	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg ")
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -specs=3dsx.specs")
+
+	SET(APPNAME "3ds_pico")
+
+	link_directories(
+		/opt/devkitpro/libctru/lib
+		)
+
+	add_executable("${APPNAME}"
+		static_game_data.h
+		entrypoint.cpp
+		${lua_src}
+		)
+	add_subdirectory(lua)
+
+	target_link_libraries("${APPNAME}"
+		my_lua_lib
+		citro2d
+		citro3d
+		ctru
+		m
+		)
+
+	target_include_directories("${APPNAME}" PUBLIC lua
+		/opt/devkitpro/libctru/include)
+	target_compile_options("${APPNAME}" PRIVATE -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -D__3DS__)
+	add_custom_target(generate_cart ALL
+		BYPRODUCTS "${APPNANE}.smdh"
+		BYPRODUCTS "${APPNAME}.3dsx"
+		COMMAND /opt/devkitpro/tools/bin/smdhtool --create "${APPNAME}" "'Built with devkitARM & libctru'" "'Unspecified Author'" "/opt/devkitpro/libctru/default_icon.png" "${APPNANE}.smdh"
+		COMMAND /opt/devkitpro/tools/bin/3dsxtool "${APPNAME}" "${APPNAME}.3dsx" --smdh=${APPNANE}.smdh #--romfs=/home/david/Downloads/a/romfs
+		)
+	add_dependencies(generate_cart "${APPNAME}")
 
 elseif(BACKEND STREQUAL "ANDROID")
 	set(APPNAME "cnfgtest")

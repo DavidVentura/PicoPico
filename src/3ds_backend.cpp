@@ -255,11 +255,11 @@ bool init_audio() {
 	audioBuffer = (u16*)linearAlloc(SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*demo_BYTESPERSAMPLE); // 4 bpp
 	ndspInit();
 
-	ndspSetOutputMode(NDSP_OUTPUT_MONO);
+	ndspSetOutputMode(NDSP_OUTPUT_STEREO);
 
 	ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
 	ndspChnSetRate(0, SAMPLE_RATE);
-	ndspChnSetFormat(0, NDSP_FORMAT_MONO_PCM16);
+	ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
 
 	float mix[12];
 	memset(mix, 0, sizeof(mix));

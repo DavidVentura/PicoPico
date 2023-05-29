@@ -11,6 +11,9 @@
 #define COMBINED_IDX(x, y) ((y) << 6) | ((x) >> 1)
 #define BITMASK(n) (1U<<(n))
 
+#define demo_SAMPLESPERBUF (SAMPLE_RATE / 30)
+#define demo_BYTESPERSAMPLE 2
+
 static C2D_Image pico_image;
 
 C3D_Tex *pico_tex;
@@ -27,8 +30,10 @@ const GPU_TEXCOLOR texColor = GPU_RGB565;
 #define BYTES_PER_PIXEL 2
 
 size_t pixel_buffer_size = SCREEN_WIDTH*SCREEN_HEIGHT*BYTES_PER_PIXEL;
-size_t pixIdx = 0;
 float scaling_factor = 2.f;
+size_t stream_offset = 0;
+u16 *audioBuffer;
+ndspWaveBuf waveBuf;
 C2D_Text instructions;
 C2D_TextBuf g_staticBuf;
 
@@ -72,20 +77,21 @@ void _render() {
 	C2D_Flush();
 
 	// Draw text labels on bottom
+	/*
 	C2D_TargetClear(bottomTarget, CLEAR_COLOR);
 	C2D_SceneBegin(bottomTarget);
 	C2D_DrawText(&instructions, C2D_AtBaseline | C2D_WithColor | C2D_AlignCenter, 150.0f, 40.0f, 0.5f, 0.75f, 0.75f, C2D_Color32f(1.0f,1.0f,1.0f,1.0f));
 	C2D_Flush();
+	*/
 
 	C3D_FrameEnd(0);
 }
 bool init_video() {
-	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
 
 	//APT_SetAppCpuTimeLimit(35); // apparently 25% is the sweet spot for os core usage?
 	// Init libs
 	gfxInitDefault();
-	//consoleInit(GFX_BOTTOM, NULL);
+	consoleInit(GFX_BOTTOM, NULL);
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
@@ -122,6 +128,23 @@ bool init_video() {
 	return true;
 }
 //---------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+void _fill_buffer(void *audioBuffer,size_t offset, size_t size, int frequency ) {
+//----------------------------------------------------------------------------
+
+	u16 *dest = (u16*)audioBuffer;
+
+	for (int i=0; i<size; i++) {
+
+		s16 sample = INT16_MAX * sin(frequency*(2*M_PI)*(offset+i)/SAMPLE_RATE);
+
+		dest[i] = sample;
+		//dest[i] = (sample<<16) | (sample & 0xffff);
+	}
+
+	DSP_FlushDataCache(audioBuffer,size);
+
+}
 
 void gfx_flip() {
 	// 1.5-1.8ms menu frame
@@ -137,6 +160,19 @@ void gfx_flip() {
         }
 	}
 	_render();
+
+	// FIXME: design is expecting an audio callback. maybe timer?
+	/*
+	for(uint8_t i=0; i<4; i++)
+		fill_buffer((uint16_t*)waveBuf.data_pcm16, &channels[i], waveBuf.nsamples);
+
+	DSP_FlushDataCache(audioBuffer, waveBuf.nsamples); // num samples, but bytes-per-sample? 2?
+	*/
+	if (waveBuf.status == NDSP_WBUF_DONE) {
+		_fill_buffer(waveBuf.data_pcm16, stream_offset, waveBuf.nsamples,440);
+		ndspChnWaveBufAdd(0, &waveBuf);
+		stream_offset += waveBuf.nsamples;
+	}
 }
 
 
@@ -207,15 +243,35 @@ bool handle_input() {
 	if (kDown & (KEY_A | KEY_X)) 	buttons_frame[BTN_IDX_A] 		= 1;
 	if (kDown & (KEY_B | KEY_Y)) 	buttons_frame[BTN_IDX_B] 		= 1;
 
-	printf("\x1b[6;1H"); //Move the cursor to the fourth row because on the third one we'll write the circle pad position
-	printf("Input %8lx\r", current_down);
 	return false;
 }
 
 void delay(unsigned short ms) {
 	svcSleepThread( ((uint64_t)ms)* 1000000LL);
+	//svcSleepThread( ((uint64_t)ms)* 10000LL);
 }
 bool init_audio() {
+
+	audioBuffer = (u16*)linearAlloc(SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*demo_BYTESPERSAMPLE); // 4 bpp
+	ndspInit();
+
+	ndspSetOutputMode(NDSP_OUTPUT_MONO);
+
+	ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
+	ndspChnSetRate(0, SAMPLE_RATE);
+	ndspChnSetFormat(0, NDSP_FORMAT_MONO_PCM16);
+
+	float mix[12];
+	memset(mix, 0, sizeof(mix));
+	mix[0] = 1.0;
+//	mix[1] = 1.0;
+	ndspChnSetMix(0, mix);
+
+	memset(&waveBuf,0,sizeof(waveBuf));
+	waveBuf.data_vaddr = &audioBuffer[0];
+	waveBuf.nsamples = SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER; // 6 * 183 = 1092. example uses 5512 for 2 channels
+	_fill_buffer(audioBuffer, stream_offset, SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*2,440);
+	ndspChnWaveBufAdd(0, &waveBuf);
 	return true;
 }
 uint8_t wifi_strength() {

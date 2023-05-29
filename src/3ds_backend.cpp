@@ -171,13 +171,14 @@ void gfx_flip() {
 	*/
 	if (waveBuf[which_buf].status == NDSP_WBUF_DONE) {
 		//_fill_buffer(waveBuf[which_buf].data_pcm16, stream_offset, waveBuf[which_buf].nsamples,440);
+		memset(waveBuf[which_buf].data_pcm16, 0, waveBuf[which_buf].nsamples*2); // bytes per buff
 		for(uint8_t i=0; i<4; i++)
-			fill_buffer((uint16_t*)waveBuf[which_buf].data_pcm16, &channels[i], waveBuf.nsamples);
+			fill_buffer((uint16_t*)waveBuf[which_buf].data_pcm16, &channels[i], waveBuf[which_buf].nsamples);
 		ndspChnWaveBufAdd(0, &waveBuf[which_buf]);
 		stream_offset += waveBuf[which_buf].nsamples;
 		which_buf = !which_buf;
 	}
-	
+
 }
 
 
@@ -200,6 +201,8 @@ void video_close() {
 	C2D_Fini();
 	C3D_Fini();
 
+	ndspExit();
+	linearFree(audioBuffer);
 	gfxExit();
 }
 
@@ -253,11 +256,10 @@ bool handle_input() {
 
 void delay(unsigned short ms) {
 	svcSleepThread( ((uint64_t)ms)* 1000000LL);
-	//svcSleepThread( ((uint64_t)ms)* 10000LL);
 }
 bool init_audio() {
 
-	audioBuffer = (u16*)linearAlloc(SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*demo_BYTESPERSAMPLE*2); // 2 bufs // 4 bpp
+	audioBuffer = (u16*)linearAlloc(SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*demo_BYTESPERSAMPLE*2); // 2 bufs
 	ndspInit();
 
 	ndspSetOutputMode(NDSP_OUTPUT_MONO);
@@ -269,7 +271,7 @@ bool init_audio() {
 	float mix[12];
 	memset(mix, 0, sizeof(mix));
 	mix[0] = 1.0;
-//	mix[1] = 1.0;
+	mix[1] = 1.0;
 	ndspChnSetMix(0, mix);
 
 	memset(&waveBuf,0,sizeof(waveBuf));
@@ -278,7 +280,6 @@ bool init_audio() {
 	waveBuf[1].data_vaddr = &audioBuffer[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*demo_BYTESPERSAMPLE];
 	waveBuf[1].nsamples = SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER;
 	// 6 * 183 = 1092. example uses 5512 for 2 channels
-	_fill_buffer(audioBuffer, stream_offset, SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*2,440);
 	ndspChnWaveBufAdd(0, &waveBuf[0]);
 	ndspChnWaveBufAdd(0, &waveBuf[1]);
 	return true;

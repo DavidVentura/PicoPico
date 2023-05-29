@@ -109,6 +109,15 @@ bool init_audio() {
 
     return true;
 }
+void _init_tex() {
+	if(tex) {
+		CNFGDeleteTex(tex);
+	}
+    tex = CNFGTexImage(_rgb32_buf, SCREEN_WIDTH*UPSCALE_FACTOR, SCREEN_HEIGHT * UPSCALE_FACTOR);
+    CNFGGetDimensions(&screenx, &screeny );
+    glBindTexture( GL_TEXTURE_2D, tex );
+}
+
 bool init_video()
 {
     memset(frontbuffer, 0, sizeof(frontbuffer));
@@ -118,16 +127,8 @@ bool init_video()
     CNFGSetup("PicoPico", SCREEN_WIDTH*UPSCALE_FACTOR, SCREEN_HEIGHT * UPSCALE_FACTOR);
 #endif
     _rgb32_buf = (uint32_t*)malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t) * UPSCALE_FACTOR*UPSCALE_FACTOR);
+	_init_tex();
     return true;
-}
-
-void _init_tex() {
-	if(tex) {
-		CNFGDeleteTex(tex);
-	}
-    tex = CNFGTexImage(_rgb32_buf, SCREEN_WIDTH*UPSCALE_FACTOR, SCREEN_HEIGHT * UPSCALE_FACTOR);
-    CNFGGetDimensions(&screenx, &screeny );
-    glBindTexture( GL_TEXTURE_2D, tex );
 }
 
 void video_close()

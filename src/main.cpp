@@ -165,7 +165,12 @@ int pico8() {
 
     bool skip_next_render = false;
     uint16_t frame_count = 0;
+    suspended = false;
     while (!wants_to_quit) {
+		if(suspended) {
+			delay(50);
+			continue;
+		}
         update_start_time = now();
         (void)update_start_time;
         (void)update_end_time; // logging is conditional, this makes the unused warning go away

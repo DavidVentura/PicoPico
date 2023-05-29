@@ -19,4 +19,5 @@ void flip();
 //static inline void put_pixel(uint8_t x, uint8_t y, const color_t p);
 //uint16_t get_pixel(uint8_t x, uint8_t y);
 // backend.h ?
+volatile static bool suspended;
 #endif

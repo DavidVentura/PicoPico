@@ -118,22 +118,32 @@ bool init_video()
     CNFGSetup("PicoPico", SCREEN_WIDTH*UPSCALE_FACTOR, SCREEN_HEIGHT * UPSCALE_FACTOR);
 #endif
     _rgb32_buf = (uint32_t*)malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t) * UPSCALE_FACTOR*UPSCALE_FACTOR);
+    return true;
+}
+
+void _init_tex() {
+	if(tex) {
+		CNFGDeleteTex(tex);
+	}
     tex = CNFGTexImage(_rgb32_buf, SCREEN_WIDTH*UPSCALE_FACTOR, SCREEN_HEIGHT * UPSCALE_FACTOR);
     CNFGGetDimensions(&screenx, &screeny );
     glBindTexture( GL_TEXTURE_2D, tex );
-    return true;
 }
 
 void video_close()
 {
 	exiting = true;
 	delay(1);
-	CNFAClose(cnfa);
-    free(_rgb32_buf);
+	if(cnfa) CNFAClose(cnfa);
 	CNFGDeleteTex(tex);
+    free(_rgb32_buf);
 }
 
 void gfx_flip() {
+	if(!tex) {
+		printf("TRIED TO FLIP WITH NO TEX\n");
+		return;
+	}
 
     for(uint8_t i = 0; i<sizeof(buttons_frame)/ sizeof(buttons_frame[0]); i++) {
         buttons_frame[i] = buttons[i] > 0 && (buttons_frame[i] == 0);
@@ -339,10 +349,15 @@ void HandleDestroy() {
 #ifdef ANDROID_BACKEND
 void HandleSuspend()
 {
+	if(tex) {
+		CNFGDeleteTex(tex);
+	}
 }
 
 void HandleResume()
 {
+	_init_tex();
+	suspended = false;
 }
 #endif
 

@@ -170,11 +170,14 @@ void gfx_flip() {
 	DSP_FlushDataCache(audioBuffer, waveBuf.nsamples); // num samples, but bytes-per-sample? 2?
 	*/
 	if (waveBuf[which_buf].status == NDSP_WBUF_DONE) {
-		_fill_buffer(waveBuf[which_buf].data_pcm16, stream_offset, waveBuf[which_buf].nsamples,440);
+		//_fill_buffer(waveBuf[which_buf].data_pcm16, stream_offset, waveBuf[which_buf].nsamples,440);
+		for(uint8_t i=0; i<4; i++)
+			fill_buffer((uint16_t*)waveBuf[which_buf].data_pcm16, &channels[i], waveBuf.nsamples);
 		ndspChnWaveBufAdd(0, &waveBuf[which_buf]);
 		stream_offset += waveBuf[which_buf].nsamples;
 		which_buf = !which_buf;
 	}
+	
 }
 
 

@@ -7,7 +7,7 @@
 #include "hud.c"
 #include "sfx.c"
 #include "pico8api.c"
-#include <cstring>
+#include <string.h>
 
 static bool     wants_to_quit = false;
 static uint8_t  fps = 30;

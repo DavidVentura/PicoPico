@@ -1,6 +1,8 @@
 #include "data.h"
 #include "engine.h"
 #include "backend.h"
+#include <string.h>
+#include <stdlib.h>
 
 static uint32_t cartdata[64];
 static Spritesheet spritesheet;

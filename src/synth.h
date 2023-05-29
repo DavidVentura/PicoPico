@@ -1,4 +1,6 @@
 #include "lua/fix32.h"
+#include <math.h>
+#include <stdlib.h>
 // https://github.com/samhocevar/zepto8/blob/master/src/synth.h
 const uint8_t INST_TRIANGLE   = 0; // Triangle signal
 const uint8_t INST_TILTED_SAW = 1; // Slanted triangle

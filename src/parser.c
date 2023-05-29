@@ -1,5 +1,4 @@
 #include "data.h"
-#include <cstring> // memset
 
 uint8_t parseChar(char c);
 

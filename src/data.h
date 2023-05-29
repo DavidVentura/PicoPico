@@ -1,6 +1,6 @@
 #ifndef DATA
 #define DATA
-#include <cassert>
+#include <assert.h>
 #include <stdint.h>
 // The memory used by Lua is entirely separate from the PICO-8 memory and is limited to 2 MiB. 
 // this does not include the "General use / extended map" 32KB chunk

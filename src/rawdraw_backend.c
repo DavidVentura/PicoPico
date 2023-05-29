@@ -72,7 +72,6 @@ bool init_platform() {
 	exiting = false;
     return true;
 }
-double omega = 0;
 
 void Callback( struct CNFADriver * sd, short * out, short * in, int framesp, int framesr )
 {
@@ -87,6 +86,10 @@ void Callback( struct CNFADriver * sd, short * out, short * in, int framesp, int
 }
 
 bool init_audio() {
+	printf("Init Audio - Registering callback\n");
+#ifdef ANDROID_BACKEND
+	InitCNFAAndroid( Callback, "IDK APP", SAMPLE_RATE, 0, 1, 0, SAMPLES_PER_DURATION*2, 0, 0, 0 );
+#else
 	cnfa = CNFAInit( 
 		// no audio on pulse?
 		//"PULSE",
@@ -102,6 +105,7 @@ bool init_audio() {
 		0,  //Could be a string, for the selected output device - but 0 means default.
 		0 // 'opaque' value if the driver wanted it.
 	 );
+#endif
 
     return true;
 }
@@ -286,7 +290,6 @@ void HandleKey( int keycode, int bDown ) {
 #ifdef ANDROID
     if( keycode == 4 ) { AndroidSendToBack( 1 ); } //Handle Physical Back Button.
 #endif
-    printf( "Key: %d -> %d\n", keycode, bDown );
     fflush(stdout);
 }
 void deal_with_button( int x, int y, int button, int bDown) {
@@ -302,7 +305,6 @@ void deal_with_button( int x, int y, int button, int bDown) {
                 int mask = button_coords[i].buttonMask; // this is something like (1 << UP) | (1 << LEFT)
                 while (mask != 0) {
                     if (mask & 1) {
-                        printf("bitindex %d \n", bitIndex);
                         buttons[bitIndex] |= (1 << button); // bitIndex = "UP" or "LEFT"
                     }
                     mask >>= 1;
@@ -311,14 +313,9 @@ void deal_with_button( int x, int y, int button, int bDown) {
             }
         }
     }
-    for(uint8_t i = 0; i<sizeof(button_coords)/ sizeof(button_coords_t); i++) {
-        printf("%x ", buttons[i]);
-    }
-    printf("\n");
 }
 void HandleButton( int x, int y, int button, int bDown ) {
 #ifdef ANDROID
-    printf("down %d,%d b:%d down:%d\n", x,y,button,bDown);
     deal_with_button(x, y, button, bDown);
 #endif
 }

@@ -191,6 +191,7 @@ elseif(BACKEND STREQUAL "ANDROID")
 		-s
 		-static-libstdc++
 		-lm -lGLESv3 -lEGL -landroid -llog 
+		-lOpenSLES
 		-shared -uANativeActivity_onCreate
 		)
 

@@ -33,7 +33,8 @@ size_t pixel_buffer_size = SCREEN_WIDTH*SCREEN_HEIGHT*BYTES_PER_PIXEL;
 float scaling_factor = 2.f;
 size_t stream_offset = 0;
 u16 *audioBuffer;
-ndspWaveBuf waveBuf;
+ndspWaveBuf waveBuf[2];
+bool which_buf = false;
 C2D_Text instructions;
 C2D_TextBuf g_staticBuf;
 
@@ -168,10 +169,11 @@ void gfx_flip() {
 
 	DSP_FlushDataCache(audioBuffer, waveBuf.nsamples); // num samples, but bytes-per-sample? 2?
 	*/
-	if (waveBuf.status == NDSP_WBUF_DONE) {
-		_fill_buffer(waveBuf.data_pcm16, stream_offset, waveBuf.nsamples,440);
-		ndspChnWaveBufAdd(0, &waveBuf);
-		stream_offset += waveBuf.nsamples;
+	if (waveBuf[which_buf].status == NDSP_WBUF_DONE) {
+		_fill_buffer(waveBuf[which_buf].data_pcm16, stream_offset, waveBuf[which_buf].nsamples,440);
+		ndspChnWaveBufAdd(0, &waveBuf[which_buf]);
+		stream_offset += waveBuf[which_buf].nsamples;
+		which_buf = !which_buf;
 	}
 }
 
@@ -252,14 +254,14 @@ void delay(unsigned short ms) {
 }
 bool init_audio() {
 
-	audioBuffer = (u16*)linearAlloc(SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*demo_BYTESPERSAMPLE); // 4 bpp
+	audioBuffer = (u16*)linearAlloc(SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*demo_BYTESPERSAMPLE*2); // 2 bufs // 4 bpp
 	ndspInit();
 
-	ndspSetOutputMode(NDSP_OUTPUT_STEREO);
+	ndspSetOutputMode(NDSP_OUTPUT_MONO);
 
 	ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
 	ndspChnSetRate(0, SAMPLE_RATE);
-	ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
+	ndspChnSetFormat(0, NDSP_FORMAT_MONO_PCM16);
 
 	float mix[12];
 	memset(mix, 0, sizeof(mix));
@@ -268,10 +270,14 @@ bool init_audio() {
 	ndspChnSetMix(0, mix);
 
 	memset(&waveBuf,0,sizeof(waveBuf));
-	waveBuf.data_vaddr = &audioBuffer[0];
-	waveBuf.nsamples = SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER; // 6 * 183 = 1092. example uses 5512 for 2 channels
+	waveBuf[0].data_vaddr = &audioBuffer[0];
+	waveBuf[0].nsamples = SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER;
+	waveBuf[1].data_vaddr = &audioBuffer[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*demo_BYTESPERSAMPLE];
+	waveBuf[1].nsamples = SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER;
+	// 6 * 183 = 1092. example uses 5512 for 2 channels
 	_fill_buffer(audioBuffer, stream_offset, SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER*2,440);
-	ndspChnWaveBufAdd(0, &waveBuf);
+	ndspChnWaveBufAdd(0, &waveBuf[0]);
+	ndspChnWaveBufAdd(0, &waveBuf[1]);
 	return true;
 }
 uint8_t wifi_strength() {

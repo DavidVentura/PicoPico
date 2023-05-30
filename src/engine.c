@@ -7,6 +7,8 @@
 #include "hud.c"
 #include "sfx.c"
 #include "pico8api.c"
+#include "lua/lauxlib.h"
+#include "lua/lualib.h"
 #include <string.h>
 
 static bool     wants_to_quit = false;

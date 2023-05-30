@@ -66,7 +66,6 @@ if(BACKEND STREQUAL "PC")
 	add_subdirectory(SDL)
 	add_subdirectory(lua)
 
-	# Add pico_stdlib library which aggregates commonly used features
 	target_link_libraries(pc_pico
 		my_lua_lib
 		SDL2::SDL2
@@ -184,7 +183,6 @@ elseif(BACKEND STREQUAL "ANDROID")
 
 	add_subdirectory(lua)
 
-	# Add pico_stdlib library which aggregates commonly used features
 	target_link_libraries("${APPNAME}"
 		my_lua_lib
 		-Wl,--gc-sections -Wl,-Map=output.map
@@ -251,7 +249,6 @@ elseif(BACKEND STREQUAL "RAWDRAW")
 		)
 	add_subdirectory(lua)
 
-	# Add pico_stdlib library which aggregates commonly used features
 	target_link_libraries(rawdraw_pico
 		my_lua_lib
 		asound

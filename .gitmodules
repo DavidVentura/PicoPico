@@ -18,4 +18,4 @@
 	url = git@github.com:cnlohr/rawdrawandroid.git
 [submodule "cnfa"]
 	path = cnfa
-	url = git@github.com:cntools/cnfa.git
+	url = git@github.com:davidventura/cnfa.git

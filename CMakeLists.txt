@@ -298,7 +298,7 @@ elseif(BACKEND STREQUAL "TEST")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
-	SET(test_compile_options -DTEST_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
+	SET(test_compile_options -DTEST_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -fprofile-arcs -ftest-coverage)
 	#  -DRAWDRAW_BACKEND=1 -DANDROID_BACKEND=1
 
 	enable_testing()
@@ -316,8 +316,9 @@ elseif(BACKEND STREQUAL "TEST")
 		get_filename_component(EXECUTABLE_NAME ${testfile} NAME_WE)
 
 		add_executable(${EXECUTABLE_NAME} src/generated/static_game_data.h tests/test_static_game_data.h ${testfile})
-		target_link_libraries(${EXECUTABLE_NAME} my_lua_lib)
+		target_link_libraries(${EXECUTABLE_NAME} my_lua_lib gcov)
 		add_test(NAME ${EXECUTABLE_NAME} COMMAND ${EXECUTABLE_NAME})
+		set_tests_properties(${EXECUTABLE_NAME} PROPERTIES ENVIRONMENT GMON_OUT_PREFIX=gmon_${EXECUTABLE_NAME})
 		target_compile_options(${EXECUTABLE_NAME} PRIVATE ${test_compile_options})
 		target_include_directories(${EXECUTABLE_NAME} PUBLIC
 			${CMAKE_CURRENT_SOURCE_DIR}
@@ -329,7 +330,7 @@ elseif(BACKEND STREQUAL "TEST")
 
 	# test regression
 	add_executable(test_regression src/generated/static_game_data.h tests/regression_static_game_data.h tests/test_lua_regression.cpp)
-	target_link_libraries(test_regression my_lua_lib)
+	target_link_libraries(test_regression my_lua_lib gcov)
 	add_test(NAME test_regression COMMAND test_regression)
 	target_compile_options(test_regression PRIVATE ${test_compile_options})
 

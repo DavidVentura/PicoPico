@@ -78,10 +78,8 @@ void Callback( struct CNFADriver * sd, short * out, short * in, int framesp, int
 	if (exiting) return;
 	// framesp = size of 1 channel in samples
 
-
-    uint16_t samples = SAMPLES_PER_DURATION * SAMPLES_PER_BUFFER;
-    memset(out, 0, 2*framesp);
-    for(uint8_t i=0; i<4; i++)
+	memset(out, 0, framesp*sizeof(out));
+	for(uint8_t i=0; i<4; i++)
 		fill_buffer((uint16_t*)out, &channels[i], framesp);
 }
 

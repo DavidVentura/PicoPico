@@ -1,3 +1,4 @@
 (fp_lib_table
   (lib (name "picopico")(type "KiCad")(uri "${KIPRJMOD}/picopico.pretty")(options "")(descr ""))
+  (lib (name "picopico2")(type "KiCad")(uri "${KIPRJMOD}/../kicad_libraries/libraries")(options "")(descr ""))
 )

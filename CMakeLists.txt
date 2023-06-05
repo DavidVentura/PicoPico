@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(my_project C CXX ASM)
 if(NOT DEFINED BACKEND)
 	message(FATAL_ERROR "You must define the variable BACKEND (to either PICO, ESP32, PC, RAWDRAW, ANDROID, THREEDS or TEST)" )
 endif()
@@ -30,9 +29,12 @@ endif()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
+project(my_project C CXX ASM)
 
 # TODO: how do i compile _a_ luac for meta-build
+if(NOT BACKEND  STREQUAL "ESP32")
 add_subdirectory(local_lua)
+endif()
 add_compile_options(
 	#	-Werror
 	#-g3

@@ -1,4 +1,4 @@
-#include "main.cpp"
+#include "main.c"
 int main(int argc, char* args[] ) {
 	return pico8();
 }

@@ -1,8 +1,9 @@
+#include "fix32.h"
 // TODO: consider shifting << 2**12 (slightly above max range) or 2**11
-const z8::fix32 VOL_NORMALIZER = 32767.99f/7.f;
+fix32_t VOL_NORMALIZER = (fix32_t){.i=4096, .f=0};
 
-static SFX sfx[64];
-static Channel channels[4];
+SFX sfx[64];
+Channel channels[4];
 
 // this is can fit an SFX of duration 1;
 // so filling this buffer $duration times will play an entire SFX
@@ -15,9 +16,14 @@ static Channel channels[4];
 // --------
 // this total should not exceed 4092 bytes; which is the max supported by ESP32
 // which means choices are between 4 and 8
-const uint8_t SAMPLES_PER_BUFFER = 6;
+#define SAMPLES_PER_BUFFER 6
 uint16_t audiobuf[SAMPLES_PER_DURATION*SAMPLES_PER_BUFFER];
 
+
+// FIXME, use synth.c
+fix32_t waveform(int instrument, fix32_t advance) {
+	return (fix32_t){.i = 440, .f=0};
+}
 void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
     SFX* _sfx = c->sfx;
     if(_sfx == NULL) {
@@ -30,34 +36,35 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
         uint16_t note_id = c->offset / (SAMPLES_PER_DURATION * _sfx->duration);
 
         Note n = _sfx->notes[note_id];
-        z8::fix32 freq = key_to_freq[n.key];
-        const z8::fix32 delta = freq / SAMPLE_RATE;
+        //fix32_t freq = key_to_freq[n.key]; // FIXME
+		fix32_t freq = fix32_from_int16(440);
+        const fix32_t delta = fix32_div(freq, fix32_from_int16(SAMPLE_RATE));
 
         c->offset += SAMPLES_PER_DURATION;
         if (n.volume == 0) {
-            c->phi += SAMPLES_PER_DURATION * delta;
+            c->phi = fix32_add(c->phi, fix32_mul(fix32_from_int16(SAMPLES_PER_DURATION), delta));
             s += SAMPLES_PER_DURATION-1;
             continue;
         }
         // printf("Note id %d has fx %d\n", note_id, n.effect);
-        z8::fix32 volume = n.volume; // can be modified by `n.effect`
+        fix32_t volume = fix32_from_int8(n.volume); // can be modified by `n.effect`
 
-        const z8::fix32 norm_vol = VOL_NORMALIZER*volume;
+        const fix32_t norm_vol = fix32_mul(VOL_NORMALIZER, volume);
         // const uint16_t n_effect = n.effect; // alias for memory access?
         const uint16_t n_waveform = n.waveform; // alias for memory access?
 
         for(uint16_t _s=0; _s<SAMPLES_PER_DURATION; _s++) {
             // TODO: apply FX per _sample_ ?? gonna suck
-            const z8::fix32 w = waveform(n_waveform, c->phi);
-            const int16_t sample = (int16_t)(norm_vol*w);
+            const fix32_t w = waveform(n_waveform, c->phi);
+            const int16_t sample = fix32_mul(norm_vol, w).i;
             uint16_t _offset = (_s+s);
 
             // NOTE: this is += so that all sfx can be played in parallel
             buf[_offset] += sample;
             if(buf[_offset] < sample) // wrap around
-                buf[_offset] = USHRT_MAX;
+                buf[_offset] = UINT16_MAX;
 
-            c->phi += delta;
+            c->phi = fix32_add(c->phi, delta);
         }
 
         s += SAMPLES_PER_DURATION-1;
@@ -67,6 +74,6 @@ void fill_buffer(uint16_t* buf, Channel* c, uint16_t samples) {
         c->sfx      = NULL;
         c->sfx_id   = 0;
         c->offset   = 0;
-        c->phi      = 0;
+        c->phi      = fix32_from_int8(0);
     }
 }

@@ -16,6 +16,8 @@ elseif(BACKEND STREQUAL "PC")
 add_definitions(-DSDL_BACKEND)
 elseif(BACKEND STREQUAL "RAWDRAW")
 add_definitions(-DRAWDRAW_BACKEND)
+elseif(BACKEND STREQUAL "WASM")
+add_definitions(-DWASM_BACKEND)
 elseif(BACKEND STREQUAL "ANDROID")
 add_definitions(-DANDROID_BACKEND)
 add_definitions(-DRAWDRAW_BACKEND)
@@ -32,9 +34,9 @@ set(CMAKE_CXX_STANDARD 17)
 project(my_project C CXX ASM)
 
 # TODO: how do i compile _a_ luac for meta-build
-if(NOT BACKEND  STREQUAL "ESP32")
-add_subdirectory(local_lua)
-endif()
+#if(NOT BACKEND  STREQUAL "ESP32")
+#add_subdirectory(local_lua)
+#endif()
 add_compile_options(
 	#	-Werror
 	#-g3
@@ -247,28 +249,66 @@ elseif(BACKEND STREQUAL "ANDROID")
 elseif(BACKEND STREQUAL "RAWDRAW")
 	add_executable(rawdraw_pico
 		src/generated/static_game_data.h
-		src/entrypoint.cpp
+		src/entrypoint.c
+		#src/engine.c
+		#src/hud.c
+		#src/out.c
 		)
-	add_subdirectory(lua)
+	#	add_subdirectory(lua)
 
 	target_link_libraries(rawdraw_pico
-		my_lua_lib
+		#	my_lua_lib
 		asound
+		m
+		Xext
+		GL
+		dl
+		X11
+		Xinerama
 		)
 
 	target_include_directories(rawdraw_pico PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}
 		rawdraw
+		/home/david/git/lua-but-worse/
 		)
 
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg -lX11 -lpthread -lXinerama -lXext -lGL -g -lm -ldl")
+	#SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg -lX11 -lpthread -lXinerama -lXext -lGL -g -lm -ldl")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg ")
-	target_compile_options(rawdraw_pico PRIVATE -DRAWDRAW_BACKEND=1 -DLUA_USE_LINUX=1 -DW_SCREEN_HEIGHT=512 -DW_SCREEN_WIDTH=512 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
+	target_compile_options(rawdraw_pico PRIVATE -c -DRAWDRAW_BACKEND=1 -DLUA_USE_LINUX=1 -DW_SCREEN_HEIGHT=512 -DW_SCREEN_WIDTH=512 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
 	add_compile_options(
 		-g3
 		-fsingle-precision-constant
 		)
+elseif(BACKEND STREQUAL "WASM")
+       set(CMAKE_AR "emar")
+       set(CMAKE_FLAGS "-s")
+       set(CMAKE_C_COMPILER "em++")
+       set(CMAKE_CXX_COMPILER "em++")
+			 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWASM -O2 -sWARN_ON_UNDEFINED_SYMBOLS=0")
+			 #set(CMAKE_C_COMPILER "clang++")
+       #set(CMAKE_CXX_COMPILER "clang++")
+			 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWASM -nostdlib --target=wasm32 -mbulk-memory -Oz")
+       add_executable(pico.js
+               src/generated/static_game_data.h
+               src/wasm_entrypoint.cpp
+               )
+       add_subdirectory(lua)
+       
+       target_link_libraries(pico.js
+               my_lua_lib
+               )
+
+       target_include_directories(pico.js PUBLIC
+               ${CMAKE_CURRENT_SOURCE_DIR}
+               ${CMAKE_CURRENT_SOURCE_DIR}/lua
+               rawdraw
+               )
+
+       target_compile_options(pico.js PRIVATE -DWASM_BACKEND=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -DWASM )
+			 #target_link_options(pico.wasm  PRIVATE -Wl,--whole-archive  -Wl,--lto-O3 -Wl,--no-entry -Wl,--allow-undefined -Wl,--import-memory)
+			 #target_link_options(pico.wasm  PRIVATE -Wl,--whole-archive  -Wl,--lto-O3 -Wl,--no-entry -Wl,--allow-undefined -Wl,--import-memory)
 elseif(BACKEND STREQUAL "TEST")
 	add_custom_target(
 		bin_to_png

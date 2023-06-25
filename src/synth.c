@@ -1,20 +1,21 @@
 #include "synth.h"
+#include "fix32.h"
 
-const z8::fix32 QUARTER = z8::fix32(0.25f);
-const z8::fix32 THIRD   = z8::fix32(0.3333f);
-const z8::fix32 HALF    = z8::fix32(0.5f);
-const z8::fix32 ONE     = z8::fix32(1);
-const z8::fix32 TWO     = z8::fix32(2);
-const z8::fix32 THREE   = z8::fix32(3);
-const z8::fix32 FOUR    = z8::fix32(4);
-const z8::fix32 SIX     = z8::fix32(6);
+const fix32_t QUARTER = fix32_from_float(0.25f);
+const fix32_t THIRD   = fix32_from_float(0.3333f);
+const fix32_t HALF    = fix32_from_float(0.5f);
+const fix32_t ONE     = fix32_from_int8(1);
+const fix32_t TWO     = fix32_from_int8(2);
+const fix32_t THREE   = fix32_from_int8(3);
+const fix32_t FOUR    = fix32_from_int8(4);
+const fix32_t SIX     = fix32_from_int8(6);
 
-const z8::fix32 SAW_FACTOR  = z8::fix32(0.653f);
+const fix32_t SAW_FACTOR  = fix32_from_float(0.653f);
 
-z8::fix32 waveform(int instrument, z8::fix32 advance)
+fix32_t waveform(int instrument, fix32_t advance)
 {
-    z8::fix32 t = z8::fix32::decimals(advance);
-    z8::fix32 ret = 0;
+    fix32_t t = fix32_t::decimals(advance);
+    fix32_t ret = 0;
 
     // Multipliers were measured from PICO-8 WAV exports. Waveforms are
     // inferred from those exports by guessing what the original formulas
@@ -22,11 +23,11 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
     switch (instrument)
     {
         case INST_TRIANGLE:
-            return (z8::fix32::abs(z8::fix32::fast_shl(t, 2) - TWO) - ONE) >> 1;
-            //return z8::fix32::fast_shr(z8::fix32::abs(z8::fix32::fast_shl(t, 2) - TWO) - ONE, 1);
+            return (fix32_t::abs(fix32_t::fast_shl(t, 2) - TWO) - ONE) >> 1;
+            //return fix32_t::fast_shr(fix32_t::abs(fix32_t::fast_shl(t, 2) - TWO) - ONE, 1);
         case INST_TILTED_SAW:
         {
-            static z8::fix32 const a = 0.9f;
+            static fix32_t const a = 0.9f;
             ret = t < a ? 2 * t / a - ONE
                         : 2 * (ONE - t) / (ONE - a) - ONE;
             return ret >> 1;
@@ -38,8 +39,8 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
         case INST_PULSE:
             return t < THIRD ? QUARTER : -QUARTER;
         case INST_ORGAN:
-            ret = t < HALF ? THREE  - z8::fix32::abs(24 * t - SIX)
-                           : ONE    - z8::fix32::abs(16 * t - 12);
+            ret = t < HALF ? THREE  - fix32_t::abs(24 * t - SIX)
+                           : ONE    - fix32_t::abs(16 * t - 12);
             return ret / 9;
         case INST_NOISE:
         {
@@ -58,15 +59,15 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
             */
             // FIXME: this is now more broken )) it gives _some_ noise
             // but obviously the noise profile is terrible
-            return (z8::fix32(rand() >> 16)/z8::fix32(RAND_MAX >> 17)) * THIRD;
+            return (fix32_t(rand() >> 16)/fix32_t(RAND_MAX >> 17)) * THIRD;
         }
         case INST_PHASER:
         {   // This one has a subfrequency of freq/128 that appears
             // to modulate two signals using a triangle wave
             // FIXME: amplitude seems to be affected, too
-            z8::fix32 k = z8::fix32::abs(TWO * z8::fix32::decimals(advance >> 7) - ONE);
-            z8::fix32 u = z8::fix32::decimals(t + HALF * k);
-            ret = z8::fix32::abs((u<<2) - TWO) - z8::fix32::abs((t<<3) - FOUR);
+            fix32_t k = fix32_t::abs(TWO * fix32_t::decimals(advance >> 7) - ONE);
+            fix32_t u = fix32_t::decimals(t + HALF * k);
+            ret = fix32_t::abs((u<<2) - TWO) - fix32_t::abs((t<<3) - FOUR);
             return ret / SIX;
         }
     }
@@ -74,7 +75,7 @@ z8::fix32 waveform(int instrument, z8::fix32 advance)
     return 0;
 }
 
-void apply_fx(SFX* s, Note* n, z8::fix32* volume, uint16_t* freq, uint16_t offset, uint16_t speed, uint16_t note_id) {
+void apply_fx(SFX* s, Note* n, fix32_t* volume, uint16_t* freq, uint16_t offset, uint16_t speed, uint16_t note_id) {
     switch(n->effect) {
         case FX_NO_EFFECT:
             return;

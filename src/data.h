@@ -2,9 +2,10 @@
 #define DATA
 #include <assert.h>
 #include <stdint.h>
+#include "fix32.h"
 // The memory used by Lua is entirely separate from the PICO-8 memory and is limited to 2 MiB. 
 // this does not include the "General use / extended map" 32KB chunk
-static uint8_t ram[0x5DFF - 0x4300]; // 7KB
+uint8_t ram[0x5DFF - 0x4300]; // 7KB
 typedef uint8_t  palidx_t;
 typedef uint16_t color_t;
 struct GameCart {
@@ -36,7 +37,7 @@ typedef struct GameCart GameCart;
 uint8_t buttons[6] = 	{0, 0, 0, 0, 0, 0};
 uint8_t buttons_frame[6] =  {0, 0, 0, 0, 0, 0};
 
-const uint8_t SAMPLES_PER_DURATION = 183;
+#define SAMPLES_PER_DURATION 183
 const uint8_t NOTES_PER_SFX = 32;
 
 struct Spritesheet {
@@ -46,23 +47,23 @@ struct Spritesheet {
 typedef struct Spritesheet Spritesheet;
 
 
-struct DrawState {
-	uint8_t     pen_color   = 7;
-	uint8_t     bg_color    = 0;
-	uint8_t     clip_x      = 0;
-	uint8_t     clip_y      = 0;
-	uint8_t     clip_w      = SCREEN_WIDTH;
-	uint8_t     clip_h      = SCREEN_HEIGHT;
-	int16_t     camera_x    = 0;
-	int16_t     camera_y    = 0;
-	uint16_t    line_x      = 0;
-	uint16_t    line_y      = 0;
-	uint8_t     cursor_x    = 0;
-	uint8_t     cursor_y    = 0;
+typedef struct DrawState_s {
+	uint8_t     pen_color   ;
+	uint8_t     bg_color    ;
+	uint8_t     clip_x      ;
+	uint8_t     clip_y      ;
+	uint8_t     clip_w      ;
+	uint8_t     clip_h      ;
+	int16_t     camera_x    ;
+	int16_t     camera_y    ;
+	uint16_t    line_x      ;
+	uint16_t    line_y      ;
+	uint8_t     cursor_x    ;
+	uint8_t     cursor_y    ;
 	uint8_t     transparent[16];
-};
+} DrawState_t;
 
-typedef struct DrawState DrawState;
+DrawState_t DrawState;
 
 struct Note {
     uint8_t key;        //  pitch / C# / etc ; 0-0x40
@@ -87,24 +88,38 @@ struct SFX {
 typedef struct SFX SFX;
 
 struct Channel {
-    uint8_t id = 0;
+    uint8_t id;
     SFX* sfx;
-    uint8_t sfx_id = 0;
+    uint8_t sfx_id;
     // TODO: review if <offset> can go back to uint16_t, 
     // currently it overflows (eg: celeste sfx 38), but the formula
     // samples_per_duration * notes_per_sfx * duration
     // may not need the <notes_per_sfx> ??
-    uint32_t offset = 0; // in samples
-    z8::fix32 phi = 0;
+    uint32_t offset; // in samples
+    fix32_t phi;
 };
 
 typedef struct Channel Channel;
 
-static DrawState drawstate;
+DrawState_t drawstate = {
+	.pen_color   = 7,
+	.bg_color    = 0,
+	.clip_x      = 0,
+	.clip_y      = 0,
+	.clip_w      = SCREEN_WIDTH,
+	.clip_h      = SCREEN_HEIGHT,
+	.camera_x    = 0,
+	.camera_y    = 0,
+	.line_x      = 0,
+	.line_y      = 0,
+	.cursor_x    = 0,
+	.cursor_y    = 0,
+	.transparent = {0},
+};
 
 #define to_rgb565(r, g, b) (((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3))
 
-static const color_t original_palette[] = {
+const color_t original_palette[] = {
     to_rgb565(0, 0, 0),         //	black
     to_rgb565(29, 43, 83),      //	dark-blue
     to_rgb565(126, 37, 83),     //	dark-purple

@@ -1,14 +1,14 @@
 #ifndef PICO8_API_H
 #define PICO8_API_H
 #include "data.h"
-static uint32_t cartdata[64];
-static Spritesheet spritesheet;
-static Spritesheet fontsheet;
-static uint8_t map_data[64 * 128];
-static uint32_t bootup_time;
-static palidx_t frontbuffer[SCREEN_WIDTH/2*SCREEN_HEIGHT];
+uint32_t cartdata[64];
+Spritesheet spritesheet;
+Spritesheet fontsheet;
+uint8_t map_data[64 * 128];
+uint32_t bootup_time;
+palidx_t frontbuffer[SCREEN_WIDTH/2*SCREEN_HEIGHT];
 
-static color_t palette[] = {
+color_t palette[] = {
     to_rgb565(0, 0, 0),         //	black
     to_rgb565(29, 43, 83),      //	dark-blue
     to_rgb565(126, 37, 83),     //	dark-purple
@@ -27,6 +27,6 @@ static color_t palette[] = {
     to_rgb565(255, 204, 170),   //	light-peach 
 };
 
-static uint8_t pal_map[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-const static uint8_t orig_pal_map[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+uint8_t pal_map[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+const uint8_t orig_pal_map[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 #endif

@@ -186,8 +186,8 @@ void draw_onscreen_controls() {
 
 	// Calculate and draw quads for a filled circle
     for (int i = 0; i < numSegments; ++i) {
-        float angle1 = 2.0f * M_PI * (static_cast<float>(i) / numSegments);
-        float angle2 = 2.0f * M_PI * (static_cast<float>(i + 1) / numSegments);
+        float angle1 = 2.0f * M_PI * ((float)(i) / numSegments);
+        float angle2 = 2.0f * M_PI * ((float)(i + 1) / numSegments);
         
         float x1 = radius * cos(angle1) + 300;
         float y1 = radius * sin(angle1) + 1500;

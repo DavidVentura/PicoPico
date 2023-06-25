@@ -96,7 +96,7 @@ bool init_platform() {
     return true;
 }
 bool init_audio() {
-
+	return true; // FIXME enable audio
     i2s_driver_install(I2S_NUM_0, &i2s_config, 4, &i2s_event_queue);   //install and start i2s driver
     i2s_zero_dma_buffer(I2S_NUM_0);
 

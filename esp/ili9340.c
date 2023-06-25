@@ -15,6 +15,7 @@
 
 #ifdef CONFIG_IDF_TARGET_ESP32
 #define LCD_HOST HSPI_HOST
+#define LCD_HOST VSPI_HOST
 #elif defined CONFIG_IDF_TARGET_ESP32S2
 #define LCD_HOST SPI2_HOST
 #elif defined CONFIG_IDF_TARGET_ESP32S3
@@ -28,9 +29,9 @@
 
 static const int SPI_Command_Mode = 0;
 static const int SPI_Data_Mode = 1;
-//static const int TFT_Frequency = SPI_MASTER_FREQ_20M;
+static const int TFT_Frequency = SPI_MASTER_FREQ_20M;
 ////static const int TFT_Frequency = SPI_MASTER_FREQ_26M;
-static const int TFT_Frequency = SPI_MASTER_FREQ_40M;
+//static const int TFT_Frequency = SPI_MASTER_FREQ_40M;
 ////static const int TFT_Frequency = SPI_MASTER_FREQ_80M;
 
 void spi_master_init(TFT_t * dev, gpio_num_t GPIO_MOSI, gpio_num_t GPIO_SCLK, gpio_num_t TFT_CS, gpio_num_t GPIO_DC, gpio_num_t GPIO_RESET, gpio_num_t GPIO_BL)
@@ -51,16 +52,16 @@ void spi_master_init(TFT_t * dev, gpio_num_t GPIO_MOSI, gpio_num_t GPIO_SCLK, gp
 	gpio_set_level((gpio_num_t) GPIO_DC, 0 );
 
 	ESP_LOGI(TAG, "GPIO_RESET=%d",GPIO_RESET);
-	if ( GPIO_RESET >= 0 ) {
+	if ( GPIO_RESET >= 99 ) {
 		//gpio_pad_select_gpio( GPIO_RESET );
 		gpio_reset_pin( GPIO_RESET );
 		gpio_set_direction( GPIO_RESET, GPIO_MODE_OUTPUT );
 		gpio_set_level( (gpio_num_t)GPIO_RESET, 1 );
-		vTaskDelay( pdMS_TO_TICKS( 1 ) );
+		vTaskDelay( pdMS_TO_TICKS( 100 ) );
 		gpio_set_level((gpio_num_t) GPIO_RESET, 0 );
-		vTaskDelay( pdMS_TO_TICKS( 5 ) );
+		vTaskDelay( pdMS_TO_TICKS( 100 ) );
 		gpio_set_level( (gpio_num_t)GPIO_RESET, 1 );
-		vTaskDelay( pdMS_TO_TICKS( 5 ) );
+		vTaskDelay( pdMS_TO_TICKS( 100 ) );
 	}
 
 	ESP_LOGI(TAG, "GPIO_BL=%d",GPIO_BL);
@@ -74,9 +75,9 @@ void spi_master_init(TFT_t * dev, gpio_num_t GPIO_MOSI, gpio_num_t GPIO_SCLK, gp
 	ESP_LOGI(TAG, "GPIO_MOSI=%d",GPIO_MOSI);
 	ESP_LOGI(TAG, "GPIO_CLK=%d",GPIO_SCLK);
 	spi_bus_config_t buscfg = {
-		.mosi_io_num = GPIO_MOSI,
+		.mosi_io_num = GPIO_SCLK,
 		.miso_io_num = -1,
-		.sclk_io_num = GPIO_SCLK,
+		.sclk_io_num = GPIO_MOSI,
 		.quadwp_io_num = -1,
 		.quadhd_io_num = -1,
         .max_transfer_sz = CONFIG_WIDTH*CONFIG_HEIGHT*2,

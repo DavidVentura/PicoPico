@@ -33,10 +33,11 @@ def chunked(lst, chunk_size: int):
 
 def compile_lua_to_bytecode(luac: str, code: bytes) -> bytes:
     with tempfile.NamedTemporaryFile() as named:
-        with subprocess.Popen([luac, '-o', named.name, '-s', '-'], stdin=subprocess.PIPE) as p:
-            p.communicate(code)
-        if p.returncode != 0:
-            raise ValueError("dead")
+        #named
+        #with subprocess.Popen([luac, '-o', named.name, '-s', '-'], stdin=subprocess.PIPE) as p:
+        #    p.communicate(code)
+        #if p.returncode != 0:
+        #    raise ValueError("dead")
         named.flush()
         named.seek(0)
         return named.read()
@@ -100,7 +101,7 @@ def path_to_identifier(p: Path) -> str:
     return f'{pname}_{bname}'
 
 def _chunk(data: bytes, join: str='\n', brace_enclosed=True) -> str:
-    assert data
+    #assert data
     output = []
 
     if brace_enclosed:
@@ -115,7 +116,7 @@ def _chunk(data: bytes, join: str='\n', brace_enclosed=True) -> str:
 
 def _type(varname: str, uniq: str, data: bytes) -> str:
     if not data:
-        return f'const uint8_t* {varname}_{uniq} = NULL'
+        return f'const uint8_t* {varname}_{uniq} = 0' # null
     return f'const uint8_t {varname}_{uniq}[] = {_chunk(data)}'
 
 def parse_cart(fname: Path, debug: bool=False, luac: str=''):
@@ -136,27 +137,20 @@ def parse_cart(fname: Path, debug: bool=False, luac: str=''):
     {_type('map', bname, cart.map)};
     {_type('label', bname, cart.label)};
     const GameCart cart_{bname} = {{
-        // name_len
-        {len(cart.name)},
-        "{cart.name}",
-        // code_len
-        {len(cart.code)},
-        code_{bname},
-        // gff_len
-        {len(cart.gff)},
-        gff_{bname},
-        // gfx_len
-        {len(cart.gfx)},
-        gfx_{bname},
-        // sfx_len
-        {len(cart.sfx)},
-        sfx_{bname},
-        // map_len
-        {len(cart.map)},
-        map_{bname},
-        // label_len
-        {len(cart.label)},
-        label_{bname},
+        .name_len={len(cart.name)},
+        .name="{cart.name}",
+        .code_len={len(cart.code)},
+        .code=code_{bname},
+        .gff_len={len(cart.gff)},
+        .gff=gff_{bname},
+        .gfx_len={len(cart.gfx)},
+        .gfx=gfx_{bname},
+        .sfx_len={len(cart.sfx)},
+        .sfx=sfx_{bname},
+        .map_len={len(cart.map)},
+        .map=map_{bname},
+        .label_len={len(cart.label)},
+        .label=label_{bname},
     }};
     ''')
     return output

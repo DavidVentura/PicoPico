@@ -3,27 +3,29 @@
 #include "data.h"
 #include "engine.h"
 #include "parser.c"
-#include "synth.c"
+//#include "synth.c"
 #include "hud.c"
 #include "sfx.c"
 #include "pico8api.c"
-#include "lua/lauxlib.h"
-#include "lua/lualib.h"
+//#include "lua/lauxlib.h"
+//#include "lua/lualib.h"
 #include <string.h>
+#include <stdbool.h>
 
 static bool     wants_to_quit = false;
 static uint8_t  fps = 30;
-static uint8_t  ms_delay = 1000 / fps;
+static uint8_t  ms_delay = 33;
 static uint32_t frame_start_time;
 static uint32_t frame_end_time;
 
-static lua_State *L = NULL;
-void registerLuaFunctions();
+//static lua_State *L = NULL;
+//void registerLuaFunctions();
 
+/*
 static int p_init_lua(lua_State* _L) {
     luaL_checkversion(_L);
-    lua_gc(_L, LUA_GCSTOP, 0);  /* stop collector during initialization */
-    luaL_openlibs(_L);  /* open libraries */
+    lua_gc(_L, LUA_GCSTOP, 0);  / * stop collector during initialization * /
+    luaL_openlibs(_L);  / * open libraries * /
     lua_gc(_L, LUA_GCRESTART, 0);
     return 1;
 }
@@ -69,6 +71,7 @@ handle_error:
     lua_close(L);
     return false;
 }
+*/
 
 void reset_transparency() {
     memset(drawstate.transparent, 0, sizeof(drawstate.transparent));
@@ -124,6 +127,7 @@ void cartParser(const GameCart* parsingCart) {
                 SFXParser(parsingCart->sfx+(i*168), i, sfx);
         }
 }
+/*
 void registerLuaFunctions() {
     lua_pushcfunction(L, _lua_spr);
     lua_setglobal(L, "spr");
@@ -237,7 +241,7 @@ uint8_t _to_lua_call(const char* fn) {
 		return 1;
 	}
 }
-
+*/
 
 void flip() {
     gfx_flip();

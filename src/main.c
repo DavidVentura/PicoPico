@@ -1,5 +1,5 @@
-#include "lua/fix32.h"
-#include "lua/lua.h"
+//#include "lua/lua.h"
+#include "fix32.h"
 #include <stdbool.h>
 #include "engine.c"
 #if defined(SDL_BACKEND)
@@ -16,7 +16,9 @@
 #include "3ds_backend.cpp"
 #endif
 
+#include "out.c"
 
+/*
 int16_t drawMenu() {
     int8_t highlighted = 0;
     uint8_t cartCount = sizeof(carts)/sizeof(GameCart);
@@ -65,6 +67,7 @@ int16_t drawMenu() {
     }
     return -1;
 }
+*/
 
 int pico8() {
     bootup_time = now();
@@ -92,8 +95,8 @@ int pico8() {
     printf("initializing took %dms\n", init_done-bootup_time);
 
 
-    //int16_t game = 0; // FIXME drawMenu();
-    int16_t game = drawMenu();
+    int16_t game = 0; // FIXME drawMenu();
+    //int16_t game = drawMenu();
     if (game < 0) {
         video_close();
         return 1;
@@ -106,6 +109,7 @@ int pico8() {
     printf("Parsing cart %s\n", carts[game].name);
     cartParser(&carts[game]);
 
+	/*
     printf("init lua \n");
     bool lua_ok = init_lua(carts[game].code, carts[game].code_len);
     printf("init done \n");
@@ -126,18 +130,23 @@ int pico8() {
     bool call_update = _lua_fn_exists("_update");
     bool call_update60 = _lua_fn_exists("_update60");
     bool call_draw = _lua_fn_exists("_draw");
+	*/
+	__preinit();
+	__init();
+	bool call_update = true;
+	bool call_update60 = false;
 
 
-    if (call_update) {
-	fps = 30;
-	ms_delay = 1000 / fps;
-    } else if (call_update60) {
-	fps = 60;
-	ms_delay = 1000 / fps;
-    } else {
-	fps = 0;
-	ms_delay = 0;
-    }
+	if (call_update) {
+		fps = 30;
+		ms_delay = 1000 / fps;
+	} else if (call_update60) {
+		fps = 60;
+		ms_delay = 1000 / fps;
+	} else {
+		fps = 0;
+		ms_delay = 0;
+	}
     uint32_t update_start_time;
     uint32_t draw_start_time;
 
@@ -155,12 +164,14 @@ int pico8() {
         update_start_time = now();
         (void)update_start_time;
         (void)update_end_time; // logging is conditional, this makes the unused warning go away
-        if (call_update) _to_lua_call("_update");
-        if (call_update60) _to_lua_call("_update60");
+        //if (call_update) _to_lua_call("_update");
+        //if (call_update60) _to_lua_call("_update60");
+		_update();
         update_end_time = now();
 
         draw_start_time = now();
-        if (call_draw && !skip_next_render) _to_lua_call("_draw");
+        //if (call_draw && !skip_next_render) _to_lua_call("_draw");
+		if(!skip_next_render) _draw();
         draw_end_time = now();
 
         if (draw_end_time - draw_start_time > ms_delay)
@@ -168,7 +179,7 @@ int pico8() {
         else
             skip_next_render = false;
 
-        lua_gc(L, LUA_GCSTEP, 0);
+        //lua_gc(L, LUA_GCSTEP, 0);
 
         // printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);
         // printf("Frame: %03d [U: %d, D: %03d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
@@ -177,10 +188,10 @@ int pico8() {
             drawHud();
             draw_hud();
         }
-	flip();
+		flip();
     }
 
-    lua_close(L);
+    //lua_close(L);
     video_close();
     return 0;
 }

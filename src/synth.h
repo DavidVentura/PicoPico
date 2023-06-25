@@ -1,4 +1,4 @@
-#include "lua/fix32.h"
+#include "fix32.h"
 #include <math.h>
 #include <stdlib.h>
 // https://github.com/samhocevar/zepto8/blob/master/src/synth.h

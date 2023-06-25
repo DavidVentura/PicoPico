@@ -1,14 +1,15 @@
 #include "pico8api.h"
 #include "engine.h"
 #include "backend.h"
-#include "lua/lauxlib.h"
+//#include "lua/lauxlib.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "lua.h"
 
 void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t color);
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
-static inline void put_pixel(uint8_t x, uint8_t y, palidx_t p){
+void put_pixel(uint8_t x, uint8_t y, palidx_t p){
     if (x&0x1) {
         frontbuffer[(y*SCREEN_WIDTH/2+x/2)] &= 0x0f;
         frontbuffer[(y*SCREEN_WIDTH/2+x/2)] |= (pal_map[p] << 4);
@@ -185,7 +186,7 @@ void gfx_rectfill(int16_t x0, int16_t y0, int16_t x2, int16_t y2, const palidx_t
 }
 
 
-inline palidx_t get_pixel(uint8_t x, uint8_t y) {
+palidx_t get_pixel(uint8_t x, uint8_t y) {
     if (x&0x1) {
         return (frontbuffer[(y*SCREEN_WIDTH/2+x/2)] & 0xf0) >> 4;
     } else {
@@ -194,11 +195,62 @@ inline palidx_t get_pixel(uint8_t x, uint8_t y) {
 }
 
 
-static void map(int16_t mapX, int16_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags=0) {
+//uint8_t btn(lua_State* L, uint8_t* _buttons) {
+TValue_t btn(uint8_t argc, TValue_t* argv) {
+	/*
+	uint8_t argcount = lua_gettop(L);
+	if (argcount == 0) {
+		uint8_t bitfield = 0;
+		for(uint8_t i=0; i<6; i++) {
+			bitfield |= ((_buttons[i]) << i);
+		}
+		return bitfield;
+	} else if (argcount == 1) {
+		int idx = luaL_optinteger(L, 1, -1);
+		if(idx==-1) return 0;
+		return _buttons[idx];
+	} else {
+		printf("Unsupported btn/btnp with 2 args\n");
+		return 0;
+	}
+	*/
+	assert(argc==1);
+	int16_t idx = __opt_int(argv, argc, 0, -1);
+	if(idx==-1) return TNUM(0);
+	return TNUM(buttons[idx]);
+}
+
+TValue_t cls(uint8_t argc, TValue_t* argv) {
+	int16_t idx = __opt_int(argv, argc, 0, 0);
+    gfx_cls(idx);
+	return T_NULL;
+}
+
+TValue_t spr(uint8_t argc, TValue_t* argv) {
+	uint16_t n = 	__get_int(argv, argc, 0);
+	fix32_t x = 	__get_num(argv, argc, 1);
+	fix32_t y = 	__get_num(argv, argc, 2);
+	fix32_t w = 	__opt_num(argv, argc, 3, fix32_from_int8(1));
+	fix32_t h = 	__opt_num(argv, argc, 4, fix32_from_int8(1));
+	bool flip_x = 	__opt_bool(argv, argc, 5, false);
+	bool flip_y = 	__opt_bool(argv, argc, 6, false);
+	render_many(&spritesheet, n, x.i, y.i, -1, flip_x, flip_y, w, h);
+}
+
+//void map(int16_t mapX, int16_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
+TValue_t map(uint8_t argc, TValue_t* argv) {
+
+	int16_t mapX 		= __get_int(argv, argc, 0);
+	int16_t mapY 		= __get_int(argv, argc, 1);
+	int16_t screenX 	= __get_int(argv, argc, 2);
+	int16_t screenY 	= __get_int(argv, argc, 3);
+	uint8_t cellW 		= __get_int(argv, argc, 4);
+	uint8_t cellH 		= __get_int(argv, argc, 5);
+	uint8_t layerFlags 	= __opt_int(argv, argc, 6, 0);
 
     //Map at 0 -16, S 0 0, C 16 16, F 4
-    if(mapX<0) return;
-    if(mapY<0) return;
+    if(mapX<0) return T_NULL;
+    if(mapY<0) return T_NULL;
     const uint8_t sprite_count = 16;
 
     for(uint8_t y = mapY; y < mapY+cellH; y++) {
@@ -218,6 +270,7 @@ static void map(int16_t mapX, int16_t mapY, int16_t screenX, int16_t screenY, ui
             }
         }
     }
+	return T_NULL;
 }
 
 void render_text(Spritesheet* s, uint16_t sprite, uint8_t x0, uint8_t y0, uint8_t width_ratio, uint8_t height_ratio) {
@@ -408,6 +461,7 @@ void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t col
         if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
     }
 }
+/*
 int _lua_print(lua_State* L) {
     size_t textLen = 0;
     const char* text = luaL_checklstring(L, 1, (size_t*)&textLen);
@@ -514,7 +568,7 @@ int _lua_sspr(lua_State* L) {
     return 0;
 }
 
-inline void spr(uint16_t n, z8::fix32 x, z8::fix32 y, z8::fix32 w = z8::fix32(1.0f), z8::fix32 h = z8::fix32(1.0f), bool flip_x = false, bool flip_y = false) {
+inline void spr(uint16_t n, fix32_t x, fix32_t y, fix32_t w = fix32_t(1.0f), fix32_t h = fix32_t(1.0f), bool flip_x = false, bool flip_y = false) {
     render_many(&spritesheet, n, (int16_t)x, (int16_t)y, -1, flip_x, flip_y, w, h);
 }
 
@@ -528,8 +582,8 @@ int _lua_spr(lua_State* L) {
         return 0;
     int x = luaL_checkinteger(L, 2);
     int y = luaL_checkinteger(L, 3);
-    z8::fix32 w = luaL_optinteger(L, 4, 1.0);
-    z8::fix32 h = luaL_optinteger(L, 5, 1.0);
+    fix32_t w = luaL_optinteger(L, 4, 1.0);
+    fix32_t h = luaL_optinteger(L, 5, 1.0);
 
     bool flip_x = false;
     bool flip_y = false;
@@ -1033,6 +1087,7 @@ int _lua_poke4(lua_State* L) {
     }
     return 0;
 }
+*/
 inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
     uint16_t val;
 
@@ -1064,16 +1119,17 @@ inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, i
     }
 }
 
-void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
+void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, int paletteIdx, bool flip_x, bool flip_y, fix32_t width, fix32_t height) {
     palidx_t p;
     uint16_t val;
 
     int16_t ymin = MAX(0, -(y0-drawstate.camera_y));
     int16_t xmin = MAX(0, -(x0-drawstate.camera_x));
 
-    int16_t ymax = z8::fix32::ceil(8*height);
-    int16_t xmax = z8::fix32::ceil(8*width);
+    int16_t ymax = fix32_ceil(fix32_mul(height, fix32_from_int8(8))).i;
+    int16_t xmax = fix32_ceil(fix32_mul(width, fix32_from_int8(8))).i;
 
+	//
 //    ymax = MAX(0, MIN((SCREEN_HEIGHT-1)-(int16_t)(y0-drawstate.camera_y+ymax), ymax));
 //    xmax = MAX(0, MIN((SCREEN_WIDTH -1)-(int16_t)(x0-drawstate.camera_x+xmax), xmax));
 
@@ -1091,7 +1147,7 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
 		for (int16_t x=xmin; x<xmax; x++) {
 			int16_t screen_x;
 			if(flip_x) {
-				screen_x = x0-drawstate.camera_x-x+8*width;
+				screen_x = x0-drawstate.camera_x-x+8*1; // width; // FIXME width
 			} else {
 				screen_x = x0+x-drawstate.camera_x;
 			}
@@ -1114,7 +1170,7 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
 	}
 }
 
-inline void render_many(Spritesheet* s, uint16_t n, int16_t x0, int16_t y0, int paletteIdx, bool flip_x, bool flip_y, z8::fix32 width, z8::fix32 height) {
+void render_many(Spritesheet* s, uint16_t n, int16_t x0, int16_t y0, int paletteIdx, bool flip_x, bool flip_y, fix32_t width, fix32_t height) {
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;
@@ -1125,13 +1181,13 @@ inline void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int pal
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;
-    _render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y, 1, 1);
+    _render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y, fix32_from_int8(1), fix32_from_int8(1));
 }
 
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy,
 		      uint16_t dw, uint16_t dh) {
 
-    if(dw == sw && dh == sh) return _render(s, sx, sy, dx, dy, -1, false, false, z8::fix32(dw)/8, z8::fix32(dh)/8);
+    if(dw == sw && dh == sh) return _render(s, sx, sy, dx, dy, -1, false, false, fix32_from_uint16(dw/8), fix32_from_uint16(dh/8));
     if(dx >= SCREEN_WIDTH) return;
     if(dy >= SCREEN_HEIGHT) return;
 

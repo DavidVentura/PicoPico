@@ -1,3 +1,4 @@
+#include <stdint.h>
 // these must be implemented by each specific backend
 #ifndef BACKEND_H
 #define BACKEND_H

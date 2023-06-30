@@ -101,22 +101,20 @@ def path_to_identifier(p: Path) -> str:
     return f'{pname}_{bname}'
 
 def _chunk(data: bytes, join: str='\n', brace_enclosed=True) -> str:
-    #assert data
     output = []
 
     if brace_enclosed:
         output.append('{')
 
-    for chunk in chunked(data, 32):
-        output.append('  ' + ', '.join([f'0x{b:02x}' for b in chunk]) + ',')
+    if data:
+        for chunk in chunked(data, 32):
+            output.append('  ' + ', '.join([f'0x{b:02x}' for b in chunk]) + ',')
 
     if brace_enclosed:
         output.append('}')
     return join.join(output)
 
 def _type(varname: str, uniq: str, data: bytes) -> str:
-    if not data:
-        return f'const uint8_t* {varname}_{uniq} = 0' # null
     return f'const uint8_t {varname}_{uniq}[] = {_chunk(data)}'
 
 def parse_cart(fname: Path, debug: bool=False, luac: str=''):

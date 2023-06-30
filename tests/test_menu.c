@@ -1,6 +1,6 @@
-#include "src/main.cpp"
-#include "tests/test_utils.cpp"
-#include <cassert>
+#include "src/main.c"
+#include "tests/test_utils.c"
+#include <assert.h>
 
 bool handle_input() {
     static uint8_t queryCounter = 0;

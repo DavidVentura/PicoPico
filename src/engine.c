@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include <dlfcn.h> // dlopen, dlsym
 static bool     wants_to_quit = false;
 static uint8_t  fps = 30;
 static uint8_t  ms_delay = 33;
@@ -77,6 +78,34 @@ void reset_transparency() {
     memset(drawstate.transparent, 0, sizeof(drawstate.transparent));
     drawstate.transparent[0] = 1;
 }
+
+void load_game_code(GameCart* cart) {
+	cart->_preinit_fn = NULL;
+	cart->_init_fn = NULL;
+	cart->_update_fn = NULL;
+	cart->_draw_fn = NULL;
+
+	void *libhandle = dlopen("/home/david/git/lua-but-worse/hello_world", RTLD_NOW);
+	if(libhandle == NULL) {
+		printf("No libhandle %s\n", dlerror());
+		fflush(stdout);
+		exit(1);
+		return;
+	}
+
+	printf("err %s\n", dlerror());
+	//dlerror(); // clear existing errors
+	typedef void(*fn_t)();
+
+	cart->_preinit_fn = dlsym(libhandle, "__preinit");
+	printf("err %s\n", dlerror());
+	cart->_init_fn = dlsym(libhandle, "__init");
+	printf("err %s\n", dlerror());
+	cart->_update_fn = dlsym(libhandle, "_update");
+	printf("err %s\n", dlerror());
+	cart->_draw_fn = dlsym(libhandle, "_draw");
+	printf("err %s\n", dlerror());
+}
 void engine_init() {
     reset_transparency();
 
@@ -107,7 +136,7 @@ void engine_init() {
 //    init_pink_noise_gen(&osc);
 }
 
-void cartParser(const GameCart* parsingCart) {
+void cartParser(GameCart* parsingCart) {
 	assert(parsingCart->gfx_len <= sizeof(spritesheet.sprite_data));
 	memcpy(spritesheet.sprite_data, parsingCart->gfx, parsingCart->gfx_len);
 
@@ -126,6 +155,7 @@ void cartParser(const GameCart* parsingCart) {
         for(uint8_t i=0; i<(parsingCart->sfx_len/168); i++) {
                 SFXParser(parsingCart->sfx+(i*168), i, sfx);
         }
+	load_game_code(parsingCart);
 }
 /*
 void registerLuaFunctions() {

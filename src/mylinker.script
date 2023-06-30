@@ -1,0 +1,8 @@
+SECTIONS
+{
+  .sdk_var_section 0x0afebabe: /* fixme */
+  {
+    KEEP(*(.sdk_var_section))
+  }
+}
+INSERT AFTER .rodata;

@@ -1,12 +1,13 @@
-#include "src/main.cpp"
+#include "src/main.c"
 #include "tests/regression_static_game_data.h"
-#include "tests/test_utils.cpp"
-#include <cassert>
+#include "tests/test_utils.c"
+#include <assert.h>
 
 bool handle_input() {
 	return false;
 }
 
+/*
 bool is_test_func(lua_State* _L, const char* name, int idx) {
 	if (!lua_isfunction(_L, idx)) {
 		return false;
@@ -43,20 +44,23 @@ int test_regression(GameCart c) {
 	lua_close(L);
 	return failed_tests;
 }
+ * TBD how to handle nice tests
+*/
 
 int main() {
         engine_init();
-	uint16_t total_failed_count = 0;
-	for (uint16_t i = 0; i<sizeof(regressioncarts)/sizeof(GameCart); i++) {
-		printf("\nTesting %s\n", regressioncarts[i].name);
-		uint16_t failed_count = test_regression(regressioncarts[i]);
-		total_failed_count += failed_count;
-		if (failed_count > 0) {
-			printf("%d tests failed\n", failed_count);
-		}
-	}
-	if (total_failed_count > 0) {
-		return 1;
-	}
+		assert(false);
+//	uint16_t total_failed_count = 0;
+//	for (uint16_t i = 0; i<sizeof(regressioncarts)/sizeof(GameCart); i++) {
+//		printf("\nTesting %s\n", regressioncarts[i].name);
+//		uint16_t failed_count = test_regression(regressioncarts[i]);
+//		total_failed_count += failed_count;
+//		if (failed_count > 0) {
+//			printf("%d tests failed\n", failed_count);
+//		}
+//	}
+//	if (total_failed_count > 0) {
+//		return 1;
+//	}
 	return 0;
 }

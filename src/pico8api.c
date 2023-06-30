@@ -1,7 +1,6 @@
 #include "pico8api.h"
 #include "engine.h"
 #include "backend.h"
-//#include "lua/lauxlib.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -234,6 +233,8 @@ TValue_t spr(uint8_t argc, TValue_t* argv) {
 	fix32_t h = 	__opt_num(argv, argc, 4, fix32_from_int8(1));
 	bool flip_x = 	__opt_bool(argv, argc, 5, false);
 	bool flip_y = 	__opt_bool(argv, argc, 6, false);
+	//if(n!=3) return;
+	printf("sprite with spr=%d x=%d y=%d w=%d.%d h=%d.%d, flipx=%d, flipy=%d\n", n, x.i, y.i, w.i, w.f, h.i, h.f, flip_x, flip_y);
 	render_many(&spritesheet, n, x.i, y.i, -1, flip_x, flip_y, w, h);
 }
 
@@ -461,18 +462,36 @@ void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t col
         if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
     }
 }
-/*
-int _lua_print(lua_State* L) {
-    size_t textLen = 0;
-    const char* text = luaL_checklstring(L, 1, (size_t*)&textLen);
-    const int16_t x = luaL_checkinteger(L, 2);
-    const int16_t y = luaL_checkinteger(L, 3);
-    const int16_t paletteIdx = luaL_optinteger(L, 4, drawstate.pen_color);
+TValue_t print(uint8_t argc, TValue_t* argv) {
+	Str_t* str 			= __get_str(argv, argc, 0);
+	int16_t x 			= __get_int(argv, argc, 1);
+	int16_t y 			= __get_int(argv, argc, 2);
+    int16_t paletteIdx 	= __opt_int(argv, argc, 3, drawstate.pen_color);
 
-    _print(text, (uint8_t)textLen, x-drawstate.camera_x, y-drawstate.camera_y, paletteIdx);
-    lua_pushnumber(L, x + ((uint8_t)textLen) * 4);
-    return 1;
+    _print(str->data, (uint8_t)str->len, x-drawstate.camera_x, y-drawstate.camera_y, paletteIdx);
+	return T_NULL;
 }
+int pal(uint8_t argc, TValue_t* argv) {
+    // TODO: significant functionality missing
+    // https://pico-8.fandom.com/wiki/Pal
+    if (argc == 0) {
+        memcpy(pal_map, orig_pal_map, sizeof(orig_pal_map));
+        reset_transparency();
+        return 0;
+    }
+    if(argv[0].tag == TAB) {
+        uint8_t palIdx = __opt_int(argv, argc, 1, 0);
+		assert(false);
+        //_replace_palette(palIdx);
+        return 0;
+    }
+
+    const uint8_t origIdx = __get_int(argv, argc, 0);
+    const uint8_t newIdx = __get_int(argv, argc, 1);
+    pal_map[origIdx] = newIdx;
+    return 0;
+}
+/*
 
 int _lua_palt(lua_State* L) {
     uint8_t argcount = lua_gettop(L);
@@ -523,26 +542,6 @@ void _replace_palette(uint8_t palIdx, lua_State* L) {
     // Stack is now the same as it was on entry to this function
 }
 
-int _lua_pal(lua_State* L) {
-    // TODO: significant functionality missing
-    // https://pico-8.fandom.com/wiki/Pal
-    uint8_t argcount = lua_gettop(L);
-    if (argcount == 0) {
-        memcpy(pal_map, orig_pal_map, sizeof(orig_pal_map));
-        reset_transparency();
-        return 0;
-    }
-    if(lua_istable(L, 1)) {
-        uint8_t palIdx = luaL_optinteger(L, 2, 0);
-        _replace_palette(palIdx, L);
-        return 0;
-    }
-
-    const uint8_t origIdx = luaL_checkinteger(L, 1);
-    const uint8_t newIdx = luaL_checkinteger(L, 2);
-    pal_map[origIdx] = newIdx;
-    return 0;
-}
 
 inline void cls(uint8_t palIdx = 0) {
     gfx_cls(palIdx);
@@ -1122,6 +1121,7 @@ inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, i
 void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, int paletteIdx, bool flip_x, bool flip_y, fix32_t width, fix32_t height) {
     palidx_t p;
     uint16_t val;
+	printf("Called render with sx=%d sy=%d x0=%d y0=%d\n", sx, sy, x0, y0);
 
     int16_t ymin = MAX(0, -(y0-drawstate.camera_y));
     int16_t xmin = MAX(0, -(x0-drawstate.camera_x));
@@ -1137,6 +1137,8 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
     ymin = MIN(ymin, ymax);
 
     if(xmin>=xmax) return;
+	assert(width.f==0); // change screen_x == ...*1 to *width
+	assert(width.i==1); // change screen_x == ...*1 to *width
 
 	for (int16_t y=ymin; y<ymax; y++) {
 		int16_t screen_y = y0+y-drawstate.camera_y;
@@ -1147,7 +1149,7 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
 		for (int16_t x=xmin; x<xmax; x++) {
 			int16_t screen_x;
 			if(flip_x) {
-				screen_x = x0-drawstate.camera_x-x+8*1; // width; // FIXME width
+				screen_x = x0-drawstate.camera_x-x+8*1; // width; // FIXME 1=width
 			} else {
 				screen_x = x0+x-drawstate.camera_x;
 			}
@@ -1210,3 +1212,18 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
         }
     }
 }
+
+TValue_t _cos(TValue_t angle) {
+	assert(angle.tag == NUM);
+	return TNUM(fix32_cos(angle.num));
+}
+
+pico8_t pico8 = {
+	.cls=cls,
+	.btn=btn,
+	.map=map,
+	.spr=spr,
+	.print=print,
+	.pal=pal,
+	.cos=_cos,
+};

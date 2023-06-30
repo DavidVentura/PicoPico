@@ -16,9 +16,6 @@
 #include "3ds_backend.cpp"
 #endif
 
-#include "out.c"
-
-/*
 int16_t drawMenu() {
     int8_t highlighted = 0;
     uint8_t cartCount = sizeof(carts)/sizeof(GameCart);
@@ -67,9 +64,8 @@ int16_t drawMenu() {
     }
     return -1;
 }
-*/
 
-int pico8() {
+int pico8_main() {
     bootup_time = now();
     if( !init_video() )
     {
@@ -95,8 +91,8 @@ int pico8() {
     printf("initializing took %dms\n", init_done-bootup_time);
 
 
-    int16_t game = 0; // FIXME drawMenu();
-    //int16_t game = drawMenu();
+    //int16_t game = 0; // FIXME drawMenu();
+    int16_t game = drawMenu();
     if (game < 0) {
         video_close();
         return 1;
@@ -106,8 +102,9 @@ int pico8() {
     delay(10);
 
     bootup_time = now();
-    printf("Parsing cart %s\n", carts[game].name);
-    cartParser(&carts[game]);
+	GameCart cart = carts[game];
+    printf("Parsing cart %s\n", cart.name);
+    cartParser(&cart);
 
 	/*
     printf("init lua \n");
@@ -131,8 +128,8 @@ int pico8() {
     bool call_update60 = _lua_fn_exists("_update60");
     bool call_draw = _lua_fn_exists("_draw");
 	*/
-	__preinit();
-	__init();
+	cart._preinit_fn();
+	if(cart._init_fn) cart._init_fn();
 	bool call_update = true;
 	bool call_update60 = false;
 
@@ -166,12 +163,11 @@ int pico8() {
         (void)update_end_time; // logging is conditional, this makes the unused warning go away
         //if (call_update) _to_lua_call("_update");
         //if (call_update60) _to_lua_call("_update60");
-		_update();
+		if (cart._update_fn) cart._update_fn();
         update_end_time = now();
 
         draw_start_time = now();
-        //if (call_draw && !skip_next_render) _to_lua_call("_draw");
-		if(!skip_next_render) _draw();
+		if(cart._draw_fn && !skip_next_render) cart._draw_fn();
         draw_end_time = now();
 
         if (draw_end_time - draw_start_time > ms_delay)

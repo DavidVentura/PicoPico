@@ -30,20 +30,15 @@ message( SEND_ERROR "Invalid backend" )
 endif()
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
-project(my_project C CXX ASM)
+project(my_project C ASM)
 
-# TODO: how do i compile _a_ luac for meta-build
-#if(NOT BACKEND  STREQUAL "ESP32")
-#add_subdirectory(local_lua)
-#endif()
 add_compile_options(
 	#	-Werror
 	#-g3
         -Wno-unused-variable
 )
 
-SET(luac ${CMAKE_CURRENT_BINARY_DIR}/local_lua/luac)
+SET(luac "luac-is-dead")
 file(GLOB ALL_RESOURCE_FILES CONFIGURE_DEPENDS stdlib/stdlib.lua artifacts/font.lua carts/* scripts/to_c.py)
 add_custom_command(
 	OUTPUT ${CMAKE_SOURCE_DIR}/src/generated/static_game_data.h
@@ -68,10 +63,8 @@ if(BACKEND STREQUAL "PC")
 		)
 	add_subdirectory(SDL_mixer)
 	add_subdirectory(SDL)
-	add_subdirectory(lua)
 
 	target_link_libraries(pc_pico
-		my_lua_lib
 		SDL2::SDL2
 		SDL2::SDL2main
 		SDL2_mixer
@@ -83,7 +76,7 @@ if(BACKEND STREQUAL "PC")
 		SDL_mixer
 		)
 
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
         target_compile_options(pc_pico PRIVATE -DSDL_BACKEND=1 -DLUA_USE_LINUX=1 -DW_SCREEN_HEIGHT=512 -DW_SCREEN_WIDTH=512 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
@@ -102,9 +95,8 @@ elseif(BACKEND STREQUAL "ESP32")
 
 elseif(BACKEND STREQUAL "THREEDS")
 	set(CMAKE_C_COMPILER "/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++")
-	set(CMAKE_CXX_COMPILER "/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++")
 
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -mword-relocations -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O2 -mword-relocations -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -specs=3dsx.specs")
 
@@ -118,10 +110,8 @@ elseif(BACKEND STREQUAL "THREEDS")
 		src/generated/static_game_data.h
 		src/entrypoint.cpp
 		)
-	add_subdirectory(lua)
 
 	target_link_libraries("${APPNAME}"
-		my_lua_lib
 		citro2d
 		citro3d
 		ctru
@@ -147,8 +137,7 @@ elseif(BACKEND STREQUAL "ANDROID")
 	set(APPNAME "cnfgtest")
 	# setting vars before `add_subdirectory` is important
 	# TODO generic vars
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -Os -fdata-sections -Wall -fvisibility=hidden -std=c++11")
-	# missing -llua, automatic?
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffunction-sections -Os -fdata-sections -Wall -fvisibility=hidden -std=c++11")
 
 	add_library("${APPNAME}" SHARED
 		src/generated/static_game_data.h
@@ -167,7 +156,6 @@ elseif(BACKEND STREQUAL "ANDROID")
 
 	SET(OS_NAME "linux-x86_64")
 	set(PACKAGENAME "org.yourorg.${APPNAME}")
-	SET(CXX_ARM64 "${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/bin/aarch64-linux-android${ANDROIDVERSION}-clang++")
 	SET(CC_ARM64 "${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/bin/aarch64-linux-android${ANDROIDVERSION}-clang")
 	SET(BUILD_TOOLS "${ANDROIDSDK}/build-tools/30.0.2")
 	SET(AAPT "${BUILD_TOOLS}/aapt")
@@ -182,13 +170,9 @@ elseif(BACKEND STREQUAL "ANDROID")
 	#SET(CC_x86_64 "${NDK}/toolchains/llvm/prebuilt/${OS_NAME}/bin/x86_64-linux-android${ANDROIDVERSION}-clang")
 
 	set(CMAKE_C_COMPILER "${CC_ARM64}")
-	set(CMAKE_CXX_COMPILER "${CXX_ARM64}")
 
-
-	add_subdirectory(lua)
 
 	target_link_libraries("${APPNAME}"
-		my_lua_lib
 		-Wl,--gc-sections -Wl,-Map=output.map
 		-s
 		-static-libstdc++
@@ -250,14 +234,12 @@ elseif(BACKEND STREQUAL "RAWDRAW")
 	add_executable(rawdraw_pico
 		src/generated/static_game_data.h
 		src/entrypoint.c
-		#src/engine.c
-		#src/hud.c
-		#src/out.c
+		src/pico8.c
+		~/git/lua-but-worse/fix32.c
+		~/git/lua-but-worse/lua.c
 		)
-	#	add_subdirectory(lua)
 
 	target_link_libraries(rawdraw_pico
-		#	my_lua_lib
 		asound
 		m
 		Xext
@@ -273,10 +255,12 @@ elseif(BACKEND STREQUAL "RAWDRAW")
 		/home/david/git/lua-but-worse/
 		)
 
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address -g")
 	#SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg -lX11 -lpthread -lXinerama -lXext -lGL -g -lm -ldl")
-	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg ")
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 	target_compile_options(rawdraw_pico PRIVATE -c -DRAWDRAW_BACKEND=1 -DLUA_USE_LINUX=1 -DW_SCREEN_HEIGHT=512 -DW_SCREEN_WIDTH=512 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12)
+	target_link_options(rawdraw_pico PRIVATE -rdynamic)
 	add_compile_options(
 		-g3
 		-fsingle-precision-constant
@@ -284,25 +268,18 @@ elseif(BACKEND STREQUAL "RAWDRAW")
 elseif(BACKEND STREQUAL "WASM")
        set(CMAKE_AR "emar")
        set(CMAKE_FLAGS "-s")
-       set(CMAKE_C_COMPILER "em++")
-       set(CMAKE_CXX_COMPILER "em++")
-			 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWASM -O2 -sWARN_ON_UNDEFINED_SYMBOLS=0")
-			 #set(CMAKE_C_COMPILER "clang++")
-       #set(CMAKE_CXX_COMPILER "clang++")
-			 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWASM -nostdlib --target=wasm32 -mbulk-memory -Oz")
+       set(CMAKE_C_COMPILER "em")
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DWASM -O2 -sWARN_ON_UNDEFINED_SYMBOLS=0")
        add_executable(pico.js
                src/generated/static_game_data.h
                src/wasm_entrypoint.cpp
                )
-       add_subdirectory(lua)
        
        target_link_libraries(pico.js
-               my_lua_lib
                )
 
        target_include_directories(pico.js PUBLIC
                ${CMAKE_CURRENT_SOURCE_DIR}
-               ${CMAKE_CURRENT_SOURCE_DIR}/lua
                rawdraw
                )
 
@@ -337,31 +314,39 @@ elseif(BACKEND STREQUAL "TEST")
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		DEPENDS ${ALL_REGRESSION_FILES}
 	)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address -Wmissing-field-initializers")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
-	SET(test_compile_options -DTEST_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -fprofile-arcs -ftest-coverage)
+	SET(test_compile_options -g -DTEST_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -fprofile-arcs -ftest-coverage)
 	#  -DRAWDRAW_BACKEND=1 -DANDROID_BACKEND=1
 
 	enable_testing()
-	add_subdirectory(lua rawdraw)
+	#add_subdirectory(rawdraw)
 
 	file(GLOB TEST_SOURCES
-		tests/test_hud.cpp
-		tests/test_menu.cpp
-		tests/test_hello_world.cpp
-		tests/test_primitives.cpp
-		tests/rawdraw_backend_test.cpp
+		tests/test_hud.c
+		tests/test_menu.c
+		tests/test_hello_world.c
+		tests/test_primitives.c
+		tests/rawdraw_backend_test.c
 		)
 	
 	foreach(testfile ${TEST_SOURCES})
 		get_filename_component(EXECUTABLE_NAME ${testfile} NAME_WE)
 
-		add_executable(${EXECUTABLE_NAME} src/generated/static_game_data.h tests/test_static_game_data.h ${testfile})
-		target_link_libraries(${EXECUTABLE_NAME} my_lua_lib gcov)
+		add_executable(${EXECUTABLE_NAME}
+					   src/generated/static_game_data.h
+					   tests/test_static_game_data.h
+					   ${testfile}
+					   src/pico8.c
+					   ~/git/lua-but-worse/fix32.c
+					   ~/git/lua-but-worse/lua.c
+					   )
+		target_link_libraries(${EXECUTABLE_NAME} gcov)
 		add_test(NAME ${EXECUTABLE_NAME} COMMAND ${EXECUTABLE_NAME})
 		set_tests_properties(${EXECUTABLE_NAME} PROPERTIES ENVIRONMENT GMON_OUT_PREFIX=gmon_${EXECUTABLE_NAME})
 		target_compile_options(${EXECUTABLE_NAME} PRIVATE ${test_compile_options})
+		target_link_options(${EXECUTABLE_NAME} PRIVATE -rdynamic)
 		target_include_directories(${EXECUTABLE_NAME} PUBLIC
 			${CMAKE_CURRENT_SOURCE_DIR}
 		)
@@ -371,12 +356,22 @@ elseif(BACKEND STREQUAL "TEST")
 	endforeach(testfile ${TEST_SOURCES})
 
 	# test regression
-	add_executable(test_regression src/generated/static_game_data.h tests/regression_static_game_data.h tests/test_lua_regression.cpp)
-	target_link_libraries(test_regression my_lua_lib gcov)
+	add_executable(test_regression
+		src/generated/static_game_data.h
+		tests/regression_static_game_data.h
+		tests/test_lua_regression.c
+	    src/pico8.c
+	    ~/git/lua-but-worse/fix32.c
+		~/git/lua-but-worse/lua.c
+		)
+
+	target_link_libraries(test_regression gcov)
 	add_test(NAME test_regression COMMAND test_regression)
 	target_compile_options(test_regression PRIVATE ${test_compile_options})
 
-	include_directories(${CMAKE_CURRENT_SOURCE_DIR} lua 
+	include_directories(
+		${CMAKE_CURRENT_SOURCE_DIR}
+		/home/david/git/lua-but-worse/
 		)
 
 	add_compile_options(

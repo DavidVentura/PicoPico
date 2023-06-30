@@ -8,6 +8,8 @@
 uint8_t ram[0x5DFF - 0x4300]; // 7KB
 typedef uint8_t  palidx_t;
 typedef uint16_t color_t;
+typedef void (*game_entrypoint_t)();
+
 struct GameCart {
     const uint8_t  name_len;
     const char*    name;
@@ -29,7 +31,13 @@ struct GameCart {
 
     const uint16_t label_len;
     const uint8_t* label;
+
+	game_entrypoint_t _preinit_fn;
+	game_entrypoint_t _init_fn;
+	game_entrypoint_t _update_fn;
+	game_entrypoint_t _draw_fn;
 };
+
 
 typedef struct GameCart GameCart;
 #include "generated/static_game_data.h"

@@ -233,8 +233,7 @@ TValue_t spr(uint8_t argc, TValue_t* argv) {
 	fix32_t h = 	__opt_num(argv, argc, 4, fix32_from_int8(1));
 	bool flip_x = 	__opt_bool(argv, argc, 5, false);
 	bool flip_y = 	__opt_bool(argv, argc, 6, false);
-	//if(n!=3) return;
-	printf("sprite with spr=%d x=%d y=%d w=%d.%d h=%d.%d, flipx=%d, flipy=%d\n", n, x.i, y.i, w.i, w.f, h.i, h.f, flip_x, flip_y);
+	//printf("sprite with spr=%d x=%d y=%d w=%d.%d h=%d.%d, flipx=%d, flipy=%d\n", n, x.i, y.i, w.i, w.f, h.i, h.f, flip_x, flip_y);
 	render_many(&spritesheet, n, x.i, y.i, -1, flip_x, flip_y, w, h);
 }
 
@@ -471,25 +470,25 @@ TValue_t print(uint8_t argc, TValue_t* argv) {
     _print(str->data, (uint8_t)str->len, x-drawstate.camera_x, y-drawstate.camera_y, paletteIdx);
 	return T_NULL;
 }
-int pal(uint8_t argc, TValue_t* argv) {
+TValue_t pal(uint8_t argc, TValue_t* argv) {
     // TODO: significant functionality missing
     // https://pico-8.fandom.com/wiki/Pal
     if (argc == 0) {
         memcpy(pal_map, orig_pal_map, sizeof(orig_pal_map));
         reset_transparency();
-        return 0;
+        return T_NULL;
     }
     if(argv[0].tag == TAB) {
         uint8_t palIdx = __opt_int(argv, argc, 1, 0);
 		assert(false);
         //_replace_palette(palIdx);
-        return 0;
+        return T_NULL;
     }
 
     const uint8_t origIdx = __get_int(argv, argc, 0);
     const uint8_t newIdx = __get_int(argv, argc, 1);
     pal_map[origIdx] = newIdx;
-    return 0;
+    return T_NULL;
 }
 /*
 
@@ -596,90 +595,92 @@ int _lua_spr(lua_State* L) {
 
     return 0;
 }
+*/
 
-int _lua_line(lua_State* L) {
+TValue_t line(uint8_t argc, TValue_t* argv) {
     //TODO: handle all cases https://pico-8.fandom.com/wiki/Line
-    int16_t x0 = luaL_optinteger(L, 1, drawstate.line_x);
-    int16_t y0 = luaL_optinteger(L, 2, drawstate.line_y);
-    int16_t x1 = luaL_optinteger(L, 3, 0);
-    int16_t y1 = luaL_optinteger(L, 4, 0);
-    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+    int16_t x0 = __opt_int(argv, argc, 0, drawstate.line_x);
+    int16_t y0 = __opt_int(argv, argc, 1, drawstate.line_y);
+    int16_t x1 = __opt_int(argv, argc, 2, 0);
+    int16_t y1 = __opt_int(argv, argc, 3, 0);
+    int16_t col =__opt_int(argv, argc, 4, drawstate.pen_color);
     drawstate.pen_color = col;
     drawstate.line_x = x1;
     drawstate.line_y = y1;
     gfx_line(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-drawstate.camera_x, y1-drawstate.camera_y, col);
-    return 0;
+    return T_NULL;
 }
 
-int _lua_rect(lua_State* L) {
-    int16_t x = luaL_checkinteger(L, 1);
-    int16_t y = luaL_checkinteger(L, 2);
-    int16_t x2 = luaL_checkinteger(L, 3);
-    int16_t y2 = luaL_checkinteger(L, 4);
-    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+TValue_t rect(uint8_t argc, TValue_t* argv) {
+    int16_t x =  __get_int(argv, argc, 0);
+    int16_t y =  __get_int(argv, argc, 1);
+    int16_t x2 = __get_int(argv, argc, 2);
+    int16_t y2 = __get_int(argv, argc, 3);
+    int col = 	 __opt_int(argv, argc, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 	    
     gfx_rect(x-drawstate.camera_x, y-drawstate.camera_y, x2-drawstate.camera_x, y2-drawstate.camera_y, col);
-    return 0;
+    return T_NULL;
 }
 
-int _lua_rectfill(lua_State* L) {
-    int16_t x = luaL_checkinteger(L, 1);
-    int16_t y = luaL_checkinteger(L, 2);
-    int16_t x2 = luaL_checkinteger(L, 3);
-    int16_t y2 = luaL_checkinteger(L, 4);
-    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+TValue_t rectfill(uint8_t argc, TValue_t* argv) {
+    int16_t x =  __get_int(argv, argc, 0);
+    int16_t y =  __get_int(argv, argc, 1);
+    int16_t x2 = __get_int(argv, argc, 2);
+    int16_t y2 = __get_int(argv, argc, 3);
+    int col = 	 __opt_int(argv, argc, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_rectfill(x-drawstate.camera_x, y-drawstate.camera_y, x2-drawstate.camera_x, y2-drawstate.camera_y, col);
-    return 0;
+    return T_NULL;
 }
 
-int _lua_circ(lua_State* L) {
-    int x = luaL_checkinteger(L, 1);
-    int y = luaL_checkinteger(L, 2);
-    int r = luaL_optinteger(L, 3, 4);
-    int col = luaL_optinteger(L, 4, drawstate.pen_color);
+TValue_t circ(uint8_t argc, TValue_t* argv) {
+    int x =   __get_int(argv, argc, 0);
+    int y =   __get_int(argv, argc, 1);
+    int r =   __opt_int(argv, argc, 2, 4);
+    int col = __opt_int(argv, argc, 3, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_circle(x-drawstate.camera_x, y-drawstate.camera_y, r, col);
-    return 0;
+    return T_NULL;
 }
 
-int _lua_oval(lua_State* L) {
-    int x0 = luaL_checkinteger(L, 1);
-    int y0 = luaL_checkinteger(L, 2);
-    int x1 = luaL_checkinteger(L, 3);
-    int y1 = luaL_checkinteger(L, 4);
-    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+TValue_t oval(uint8_t argc, TValue_t* argv) {
+    int x0 =  __get_int(argv, argc, 0);
+    int y0 =  __get_int(argv, argc, 1);
+    int x1 =  __get_int(argv, argc, 2);
+    int y1 =  __get_int(argv, argc, 3);
+    int col = __opt_int(argv, argc, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_oval(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-drawstate.camera_x, y1-drawstate.camera_y, col);
-    return 0;
+    return T_NULL;
 }
-int _lua_ovalfill(lua_State* L) {
-    int x0 = luaL_checkinteger(L, 1);
-    int y0 = luaL_checkinteger(L, 2);
-    int x1 = luaL_checkinteger(L, 3);
-    int y1 = luaL_checkinteger(L, 4);
-    int col = luaL_optinteger(L, 5, drawstate.pen_color);
+TValue_t ovalfill(uint8_t argc, TValue_t* argv) {
+    int x0 =  __get_int(argv, argc, 0);
+    int y0 =  __get_int(argv, argc, 1);
+    int x1 =  __get_int(argv, argc, 2);
+    int y1 =  __get_int(argv, argc, 3);
+    int col = __opt_int(argv, argc, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_ovalfill(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-drawstate.camera_x, y1-drawstate.camera_y, col);
-    return 0;
+    return T_NULL;
 }
 
-int _lua_circfill(lua_State* L) {
-    int x = luaL_checkinteger(L, 1);
-    int y = luaL_checkinteger(L, 2);
-    int r = luaL_optinteger(L, 3, 4);
-    int col = luaL_optinteger(L, 4, drawstate.pen_color);
+TValue_t circfill(uint8_t argc, TValue_t* argv) {
+    int x =   __get_int(argv, argc, 0);
+    int y =   __get_int(argv, argc, 1);
+    int r =   __opt_int(argv, argc, 2, 4);
+    int col = __opt_int(argv, argc, 3, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, col);
-    return 0;
+    return T_NULL;
 }
 
+/*
 int _lua_map(lua_State* L) {
     uint8_t argcount = lua_gettop(L);
     if (argcount == 0) {
@@ -1121,7 +1122,7 @@ inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, i
 void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, int paletteIdx, bool flip_x, bool flip_y, fix32_t width, fix32_t height) {
     palidx_t p;
     uint16_t val;
-	printf("Called render with sx=%d sy=%d x0=%d y0=%d\n", sx, sy, x0, y0);
+	//printf("Called render with sx=%d sy=%d x0=%d y0=%d\n", sx, sy, x0, y0);
 
     int16_t ymin = MAX(0, -(y0-drawstate.camera_y));
     int16_t xmin = MAX(0, -(x0-drawstate.camera_x));
@@ -1226,4 +1227,11 @@ pico8_t pico8 = {
 	.print=print,
 	.pal=pal,
 	.cos=_cos,
+	.rect=rect,
+	.rectfill=rectfill,
+	.circ=circ,
+	.circfill=circfill,
+	.oval=oval,
+	.ovalfill=ovalfill,
+	.line=line,
 };

@@ -85,7 +85,10 @@ void load_game_code(GameCart* cart) {
 	cart->_update_fn = NULL;
 	cart->_draw_fn = NULL;
 
-	void *libhandle = dlopen("/home/david/git/lua-but-worse/hello_world", RTLD_NOW);
+	char data[100] = {0};
+	sprintf(data, "/home/david/git/lua-but-worse/%s", cart->name);
+	void *libhandle = dlopen(data, RTLD_NOW);
+	printf("%s\n", data);
 	if(libhandle == NULL) {
 		printf("No libhandle %s\n", dlerror());
 		fflush(stdout);

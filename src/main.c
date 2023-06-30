@@ -106,28 +106,6 @@ int pico8_main() {
     printf("Parsing cart %s\n", cart.name);
     cartParser(&cart);
 
-	/*
-    printf("init lua \n");
-    bool lua_ok = init_lua(carts[game].code, carts[game].code_len);
-    printf("init done \n");
-	if ( !lua_ok ) {
-		printf( "Failed to initialize LUA!\n" );
-		return 1;
-		while (!wants_to_quit) {
-			flip();
-		}
-		return 1;
-	}
-    init_done = now();
-    printf("Parsing took %dms\n", init_done-bootup_time);
-
-    // call _init first, in case _update / _draw are defined then
-    if (_lua_fn_exists("_init")) _to_lua_call("_init");
-
-    bool call_update = _lua_fn_exists("_update");
-    bool call_update60 = _lua_fn_exists("_update60");
-    bool call_draw = _lua_fn_exists("_draw");
-	*/
 	cart._preinit_fn();
 	if(cart._init_fn) cart._init_fn();
 	bool call_update = true;

@@ -216,7 +216,7 @@ TValue_t btn(uint8_t argc, TValue_t* argv) {
 	assert(argc==1);
 	int16_t idx = __opt_int(argv, argc, 0, -1);
 	if(idx==-1) return TNUM(0);
-	return TNUM(buttons[idx]);
+	return TBOOL(buttons[idx]);
 }
 
 TValue_t cls(uint8_t argc, TValue_t* argv) {

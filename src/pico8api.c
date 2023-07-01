@@ -462,7 +462,16 @@ void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t col
     }
 }
 TValue_t print(uint8_t argc, TValue_t* argv) {
-	Str_t* str 			= __get_str(argv, argc, 0);
+	Str_t* str;
+	assert(argc>0);
+	if (argv[0].tag == STR) {
+		str = __get_str(argv, argc, 0);
+	} else {
+		assert(argv[0].tag == NUM); // bool/etc implemented
+		char buf[12] = {0};
+		print_fix32(argv[0].num, buf);
+		str = GETSTRP(TSTR((buf)));
+	}
 	int16_t x 			= __get_int(argv, argc, 1);
 	int16_t y 			= __get_int(argv, argc, 2);
     int16_t paletteIdx 	= __opt_int(argv, argc, 3, drawstate.pen_color);

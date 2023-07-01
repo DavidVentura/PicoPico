@@ -30,11 +30,11 @@ const uint8_t UPSCALE_FACTOR = 8;
 #else
 const uint8_t UPSCALE_FACTOR = 4;
 #endif
-uint32_t* _rgb32_buf;
-unsigned int tex;
+uint32_t* _rgb32_buf = NULL;
+unsigned int tex = 0;
 
 
-struct CNFADriver * cnfa;
+struct CNFADriver * cnfa = NULL;
 
 typedef struct {
     uint16_t x;
@@ -134,8 +134,8 @@ void video_close()
 	exiting = true;
 	delay(1);
 	if(cnfa) CNFAClose(cnfa);
-	CNFGDeleteTex(tex);
-    free(_rgb32_buf);
+	if(tex) CNFGDeleteTex(tex);
+	if (_rgb32_buf) free(_rgb32_buf);
 }
 
 void gfx_flip() {

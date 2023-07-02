@@ -252,8 +252,6 @@ def main():
     args = parse_args()
     debug = True
     if args.emit_stdlib:
-        # stdlib is unused
-        # print(parse(Path("stdlib/stdlib.lua"), ProcessType.COMPILE, debug))
         print(parse(Path("artifacts/font.lua"), ProcessType.RAW, debug))
         print(parse(Path("artifacts/hud.p8"), ProcessType.RAW, debug))
 

@@ -59,8 +59,3 @@ void foreach(TValue_t t, Func_t f) {
 		}
 	}
 }
-
-TValue_t _printh(uint8_t argc, TValue_t* argv) {
-	assert(argc==1);
-	printh(argv[0]);
-}

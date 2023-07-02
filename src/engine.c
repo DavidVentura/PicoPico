@@ -12,7 +12,12 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include <fcntl.h>
+#include <sys/mman.h> // shm_open
+#include <sys/stat.h> // S_IRWXU
 #include <dlfcn.h> // dlopen, dlsym
+#include <unistd.h> // getpid
+
 static bool     wants_to_quit = false;
 static uint8_t  fps = 30;
 static uint8_t  ms_delay = 33;
@@ -85,10 +90,13 @@ void load_game_code(GameCart* cart) {
 	cart->_update_fn = NULL;
 	cart->_draw_fn = NULL;
 
-	char data[100] = {0};
-	sprintf(data, "/home/david/git/lua-but-worse/%s", cart->name);
-	void *libhandle = dlopen(data, RTLD_NOW);
-	printf("%s\n", data);
+	int fd = shm_open("game.so", O_RDWR | O_CREAT, S_IRWXU);
+	if (write(fd, cart->code, cart->code_len) < 0) {
+		fprintf(stderr, "[-] Could not write file :'(\n");
+		close(fd);
+		exit(-1);
+	}
+	void *libhandle = dlopen("/dev/shm/game.so", RTLD_NOW);
 	if(libhandle == NULL) {
 		printf("No libhandle %s\n", dlerror());
 		fflush(stdout);
@@ -98,7 +106,6 @@ void load_game_code(GameCart* cart) {
 
 	printf("err %s\n", dlerror());
 	//dlerror(); // clear existing errors
-	typedef void(*fn_t)();
 
 	cart->_preinit_fn = dlsym(libhandle, "__preinit");
 	printf("err %s\n", dlerror());

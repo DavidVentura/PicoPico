@@ -14,7 +14,7 @@ struct GameCart {
     const uint8_t  name_len;
     const char*    name;
 
-    const uint16_t code_len;
+    const uint32_t code_len;
     const uint8_t* code;
 
     const uint16_t gff_len;

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from pathlib import Path
 
+
 @dataclass
 class GameCart:
     name: str
@@ -22,30 +23,72 @@ class GameCart:
     music: bytes
 
     def size(self) -> int:
-        return len(self.code) + len(self.gfx) + len(self.gff) + len(self.label) + len(self.map) + len(self.sfx) + len(self.music)
+        return (
+            len(self.code)
+            + len(self.gfx)
+            + len(self.gff)
+            + len(self.label)
+            + len(self.map)
+            + len(self.sfx)
+            + len(self.music)
+        )
+
 
 class ProcessType(enum.Enum):
     COMPILE = enum.auto()
     RAW = enum.auto()
 
+
 def chunked(lst, chunk_size: int):
-    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
+    return [lst[i : i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
-def compile_lua_to_bytecode(luac: str, code: bytes) -> bytes:
-    with tempfile.NamedTemporaryFile() as named:
-        #named
-        #with subprocess.Popen([luac, '-o', named.name, '-s', '-'], stdin=subprocess.PIPE) as p:
-        #    p.communicate(code)
-        #if p.returncode != 0:
-        #    raise ValueError("dead")
-        named.flush()
-        named.seek(0)
-        return named.read()
 
-def process_cart(luac: str, name: str, data: bytes) -> GameCart:
-    LUA_HEADER = b'__lua__'
+def compile_lua_to_shared_object(lua_code: bytes) -> bytes:
+    LUA_DIR = "/home/david/git/lua-but-worse"
+    PICOPICO_DIR = "/home/david/git/PicoPico/src"
+    with tempfile.NamedTemporaryFile() as lua_file:
+        lua_file.write(lua_code)
+        lua_file.flush()
+
+        command = [f'{LUA_DIR}/venv/bin/python', f'{LUA_DIR}/a.py', lua_file.name]
+        with subprocess.Popen(command, stdout=subprocess.PIPE) as p:
+            c_code, _ = p.communicate()
+        if p.returncode != 0:
+            raise ValueError("dead")
+
+        with tempfile.NamedTemporaryFile(suffix=".c") as c_output:
+            c_output.write(c_code)
+            c_output.flush()
+            c_output.seek(0)
+            with tempfile.NamedTemporaryFile() as named:
+                command = [
+                    "gcc",
+                    f"-I{LUA_DIR}",
+                    f"-I{PICOPICO_DIR}",
+                    "-fPIC",
+                    "-shared",
+                    #"-g",
+                    "-O2",
+                    "-std=c11",
+                    "-o", named.name,
+                    c_output.name,
+                    f"{PICOPICO_DIR}/pico8.c",
+                    f"{LUA_DIR}/fix32.c",
+                    f"{LUA_DIR}/lua.c",
+                ]
+                with subprocess.Popen(command, stdin=subprocess.PIPE) as p:
+                    p.communicate(c_code)
+                if p.returncode != 0:
+                    raise ValueError("dead")
+                named.flush()
+                named.seek(0)
+                return named.read()
+
+
+def process_cart(name: str, data: bytes) -> GameCart:
+    LUA_HEADER = b"__lua__"
     LABEL_HEADER = b"__label__"
-    headers = [LUA_HEADER, b'__gfx__', b"__gff__", LABEL_HEADER, b"__map__", b"__sfx__", b"__music__"]
+    headers = [LUA_HEADER, b"__gfx__", b"__gff__", LABEL_HEADER, b"__map__", b"__sfx__", b"__music__"]
 
     sections = {}
     section = None

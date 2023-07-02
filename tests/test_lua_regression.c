@@ -51,7 +51,7 @@ int main() {
         engine_init();
 		assert(false);
 //	uint16_t total_failed_count = 0;
-//	for (uint16_t i = 0; i<sizeof(regressioncarts)/sizeof(GameCart); i++) {
+//	for (uint16_t i = 0; i<sizeof(regressioncarts)/sizeof(GameCart*); i++) {
 //		printf("\nTesting %s\n", regressioncarts[i].name);
 //		uint16_t failed_count = test_regression(regressioncarts[i]);
 //		total_failed_count += failed_count;

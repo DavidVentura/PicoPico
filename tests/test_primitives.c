@@ -10,7 +10,7 @@ bool handle_input() {
 
 void test_basic_gfx() {
     cartParser(&cart_test_basic_gfx_p8);
-    cart_test_basic_gfx_p8._preinit_fn();
+    if (cart_test_basic_gfx_p8._preinit_fn != NULL) cart_test_basic_gfx_p8._preinit_fn(); // FIXME this should come from compiler
     if (cart_test_basic_gfx_p8._init_fn != NULL) cart_test_basic_gfx_p8._init_fn();
     if (cart_test_basic_gfx_p8._update_fn != NULL) cart_test_basic_gfx_p8._update_fn();
     if (cart_test_basic_gfx_p8._draw_fn != NULL) cart_test_basic_gfx_p8._draw_fn();

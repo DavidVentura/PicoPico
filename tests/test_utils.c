@@ -30,10 +30,10 @@ bool compare_buffer(const char* in_file, uint8_t* buf, uint16_t buf_len) {
 }
 
 uint8_t cart_index(const char* cartname) {
-    uint8_t cart_count = sizeof(carts)/sizeof(GameCart);
+    uint8_t cart_count = sizeof(carts)/sizeof(GameCart*);
     for(uint8_t i=0; i<cart_count; i++) {
-		printf("%s\n", carts[i].name);
-        if(strncmp(carts[i].name, cartname, MIN(carts[i].name_len, sizeof(cartname))) == 0) {
+		printf("%s\n", carts[i]->name);
+        if(strncmp(carts[i]->name, cartname, MIN(carts[i]->name_len, sizeof(cartname))) == 0) {
             return i;
         }
     }

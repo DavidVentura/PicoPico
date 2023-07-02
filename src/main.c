@@ -18,7 +18,7 @@
 
 int16_t drawMenu() {
     int8_t highlighted = 0;
-    uint8_t cartCount = sizeof(carts)/sizeof(GameCart);
+    uint8_t cartCount = sizeof(carts)/sizeof(GameCart*);
     uint8_t cartsToShow = 3;
     bool changed = true;
     uint8_t first, last = 0;
@@ -36,8 +36,8 @@ int16_t drawMenu() {
         }
 
         if(changed) {
-            if (carts[highlighted].label_len) {
-                memcpy(&label.sprite_data, carts[highlighted].label, carts[highlighted].label_len);
+            if (carts[highlighted]->label_len) {
+                memcpy(&label.sprite_data, carts[highlighted]->label, carts[highlighted]->label_len);
             } else {
                 memset(&label.sprite_data, 0x1f, sizeof(label.sprite_data));
             }
@@ -51,7 +51,7 @@ int16_t drawMenu() {
             for(uint8_t i=0; i<last; i++) {
                 uint8_t idx = i+first;
                 if (idx >= cartCount) break;
-                _print(carts[idx].name, carts[idx].name_len, 10, 100+i*7, highlighted == idx ? 9 : 7);
+                _print(carts[idx]->name, carts[idx]->name_len, 10, 100+i*7, highlighted == idx ? 9 : 7);
             }
             changed = false;
         }
@@ -102,7 +102,7 @@ int pico8_main() {
     delay(10);
 
     bootup_time = now();
-	GameCart cart = carts[game];
+	GameCart cart = *carts[game];
     printf("Parsing cart %s\n", cart.name);
     cartParser(&cart);
 

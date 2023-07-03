@@ -7,6 +7,23 @@ TValue_t rnd(TValue_t v) {
 	return TNUM(fix32_from_bits(rand() % fix32_to_bits(v.num)));
 }
 
+TValue_t* all(TValue_t t) {
+	assert(t.tag == TAB);
+	Table_t* tab = GETTAB(t);
+	// this calloc sets tag = NUL
+	// +1 to ensure a T_NULL can always be a delimiter
+	TValue_t* ret = calloc(tab->count+1, sizeof(TValue_t));
+	uint16_t idx = 0;
+	for(uint16_t i=0; i<tab->len; i++) {
+		if(tab->kvs[i].value.tag != NUL) {
+			assert(idx<tab->count);
+			ret[idx] = tab->kvs[i].value;
+			idx++;
+		}
+	}
+	ret[idx] = T_NULL;
+	return ret;
+}
 TValue_t add(TValue_t tab, TValue_t v) {
 	// TODO: optional index field
 	assert(tab.tag == TAB);

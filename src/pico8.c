@@ -72,7 +72,7 @@ void foreach(TValue_t t, Func_t f) {
 	Table_t* tab = GETTAB(t);
 	for(uint16_t i=0; i<tab->len; i++) {
 		if(tab->kvs[i].key.tag != NUL) {
-			f(1, (TValue_t[1]){tab->kvs[i].value});
+			f((TVSlice_t){.elems=(TValue_t[1]){tab->kvs[i].value}, .num=1});
 		}
 	}
 }

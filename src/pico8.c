@@ -1,11 +1,6 @@
 #include "lua.h"
 #include "pico8.h"
 #include <stdlib.h> // rand()
-TValue_t rnd(TValue_t v) {
-	//_Static_assert(RAND_MAX >= UINT16_MAX, "Rand is not big enough to use trivially");
-	assert(v.tag == NUM); // TODO table
-	return TNUM(fix32_from_bits(rand() % fix32_to_bits(v.num)));
-}
 
 TValue_t* all(TValue_t t) {
 	assert(t.tag == TAB);

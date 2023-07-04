@@ -195,7 +195,7 @@ palidx_t get_pixel(uint8_t x, uint8_t y) {
 
 
 //uint8_t btn(lua_State* L, uint8_t* _buttons) {
-TValue_t btn(uint8_t argc, TValue_t* argv) {
+TValue_t btn(TVSlice_t args) {
 	/*
 	uint8_t argcount = lua_gettop(L);
 	if (argcount == 0) {
@@ -213,40 +213,40 @@ TValue_t btn(uint8_t argc, TValue_t* argv) {
 		return 0;
 	}
 	*/
-	assert(argc==1);
-	int16_t idx = __opt_int(argv, argc, 0, -1);
+	assert(args.num==1);
+	int16_t idx = __opt_int(args, 0, -1);
 	if(idx==-1) return TNUM(0);
 	return TBOOL(buttons[idx]);
 }
 
-TValue_t cls(uint8_t argc, TValue_t* argv) {
-	int16_t idx = __opt_int(argv, argc, 0, 0);
+TValue_t cls(TVSlice_t args) {
+	int16_t idx = __opt_int(args, 0, 0);
     gfx_cls(idx);
 	return T_NULL;
 }
 
-TValue_t spr(uint8_t argc, TValue_t* argv) {
-	uint16_t n = 	__get_int(argv, argc, 0);
-	fix32_t x = 	__get_num(argv, argc, 1);
-	fix32_t y = 	__get_num(argv, argc, 2);
-	fix32_t w = 	__opt_num(argv, argc, 3, fix32_from_int8(1));
-	fix32_t h = 	__opt_num(argv, argc, 4, fix32_from_int8(1));
-	bool flip_x = 	__opt_bool(argv, argc, 5, false);
-	bool flip_y = 	__opt_bool(argv, argc, 6, false);
+TValue_t spr(TVSlice_t args) {
+	uint16_t n = 	__get_int(args, 0);
+	fix32_t x = 	__get_num(args, 1);
+	fix32_t y = 	__get_num(args, 2);
+	fix32_t w = 	__opt_num(args, 3, fix32_from_int8(1));
+	fix32_t h = 	__opt_num(args, 4, fix32_from_int8(1));
+	bool flip_x = 	__opt_bool(args, 5, false);
+	bool flip_y = 	__opt_bool(args, 6, false);
 	//printf("sprite with spr=%d x=%d y=%d w=%d.%d h=%d.%d, flipx=%d, flipy=%d\n", n, x.i, y.i, w.i, w.f, h.i, h.f, flip_x, flip_y);
 	render_many(&spritesheet, n, x.i, y.i, -1, flip_x, flip_y, w, h);
 }
 
 //void map(int16_t mapX, int16_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
-TValue_t map(uint8_t argc, TValue_t* argv) {
+TValue_t map(TVSlice_t args) {
 
-	int16_t mapX 		= __get_int(argv, argc, 0);
-	int16_t mapY 		= __get_int(argv, argc, 1);
-	int16_t screenX 	= __get_int(argv, argc, 2);
-	int16_t screenY 	= __get_int(argv, argc, 3);
-	uint8_t cellW 		= __get_int(argv, argc, 4);
-	uint8_t cellH 		= __get_int(argv, argc, 5);
-	uint8_t layerFlags 	= __opt_int(argv, argc, 6, 0);
+	int16_t mapX 		= __get_int(args, 0);
+	int16_t mapY 		= __get_int(args, 1);
+	int16_t screenX 	= __get_int(args, 2);
+	int16_t screenY 	= __get_int(args, 3);
+	uint8_t cellW 		= __get_int(args, 4);
+	uint8_t cellH 		= __get_int(args, 5);
+	uint8_t layerFlags 	= __opt_int(args, 6, 0);
 
     //Map at 0 -16, S 0 0, C 16 16, F 4
     if(mapX<0) return T_NULL;
@@ -461,41 +461,41 @@ void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t col
         if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
     }
 }
-TValue_t print(uint8_t argc, TValue_t* argv) {
+TValue_t print(TVSlice_t args) {
 	Str_t* str;
-	assert(argc>0);
-	if (argv[0].tag == STR) {
-		str = __get_str(argv, argc, 0);
+	assert(args.num>0);
+	if (args.elems[0].tag == STR) {
+		str = __get_str(args, 0);
 	} else {
-		assert(argv[0].tag == NUM); // bool/etc implemented
+		assert(args.elems[0].tag == NUM); // bool/etc implemented
 		char buf[12] = {0};
-		print_fix32(argv[0].num, buf);
+		print_fix32(args.elems[0].num, buf);
 		str = GETSTRP(TSTR((buf)));
 	}
-	int16_t x 			= __get_int(argv, argc, 1);
-	int16_t y 			= __get_int(argv, argc, 2);
-    int16_t paletteIdx 	= __opt_int(argv, argc, 3, drawstate.pen_color);
+	int16_t x 			= __get_int(args, 1);
+	int16_t y 			= __get_int(args, 2);
+    int16_t paletteIdx 	= __opt_int(args, 3, drawstate.pen_color);
 
     _print(str->data, (uint8_t)str->len, x-drawstate.camera_x, y-drawstate.camera_y, paletteIdx);
 	return T_NULL;
 }
-TValue_t pal(uint8_t argc, TValue_t* argv) {
+TValue_t pal(TVSlice_t args) {
     // TODO: significant functionality missing
     // https://pico-8.fandom.com/wiki/Pal
-    if (argc == 0) {
+    if (args.num == 0) {
         memcpy(pal_map, orig_pal_map, sizeof(orig_pal_map));
         reset_transparency();
         return T_NULL;
     }
-    if(argv[0].tag == TAB) {
-        uint8_t palIdx = __opt_int(argv, argc, 1, 0);
+    if(args.elems[0].tag == TAB) {
+        uint8_t palIdx = __opt_int(args, 1, 0);
 		assert(false);
         //_replace_palette(palIdx);
         return T_NULL;
     }
 
-    const uint8_t origIdx = __get_int(argv, argc, 0);
-    const uint8_t newIdx = __get_int(argv, argc, 1);
+    const uint8_t origIdx = __get_int(args, 0);
+    const uint8_t newIdx = __get_int(args, 1);
     pal_map[origIdx] = newIdx;
     return T_NULL;
 }
@@ -606,13 +606,13 @@ int _lua_spr(lua_State* L) {
 }
 */
 
-TValue_t line(uint8_t argc, TValue_t* argv) {
+TValue_t line(TVSlice_t args) {
     //TODO: handle all cases https://pico-8.fandom.com/wiki/Line
-    int16_t x0 = __opt_int(argv, argc, 0, drawstate.line_x);
-    int16_t y0 = __opt_int(argv, argc, 1, drawstate.line_y);
-    int16_t x1 = __opt_int(argv, argc, 2, 0);
-    int16_t y1 = __opt_int(argv, argc, 3, 0);
-    int16_t col =__opt_int(argv, argc, 4, drawstate.pen_color);
+    int16_t x0 = __opt_int(args, 0, drawstate.line_x);
+    int16_t y0 = __opt_int(args, 1, drawstate.line_y);
+    int16_t x1 = __opt_int(args, 2, 0);
+    int16_t y1 = __opt_int(args, 3, 0);
+    int16_t col =__opt_int(args, 4, drawstate.pen_color);
     drawstate.pen_color = col;
     drawstate.line_x = x1;
     drawstate.line_y = y1;
@@ -620,69 +620,69 @@ TValue_t line(uint8_t argc, TValue_t* argv) {
     return T_NULL;
 }
 
-TValue_t rect(uint8_t argc, TValue_t* argv) {
-    int16_t x =  __get_int(argv, argc, 0);
-    int16_t y =  __get_int(argv, argc, 1);
-    int16_t x2 = __get_int(argv, argc, 2);
-    int16_t y2 = __get_int(argv, argc, 3);
-    int col = 	 __opt_int(argv, argc, 4, drawstate.pen_color);
+TValue_t rect(TVSlice_t args) {
+    int16_t x =  __get_int(args, 0);
+    int16_t y =  __get_int(args, 1);
+    int16_t x2 = __get_int(args, 2);
+    int16_t y2 = __get_int(args, 3);
+    int col = 	 __opt_int(args, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 	    
     gfx_rect(x-drawstate.camera_x, y-drawstate.camera_y, x2-drawstate.camera_x, y2-drawstate.camera_y, col);
     return T_NULL;
 }
 
-TValue_t rectfill(uint8_t argc, TValue_t* argv) {
-    int16_t x =  __get_int(argv, argc, 0);
-    int16_t y =  __get_int(argv, argc, 1);
-    int16_t x2 = __get_int(argv, argc, 2);
-    int16_t y2 = __get_int(argv, argc, 3);
-    int col = 	 __opt_int(argv, argc, 4, drawstate.pen_color);
+TValue_t rectfill(TVSlice_t args) {
+    int16_t x =  __get_int(args, 0);
+    int16_t y =  __get_int(args, 1);
+    int16_t x2 = __get_int(args, 2);
+    int16_t y2 = __get_int(args, 3);
+    int col = 	 __opt_int(args, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_rectfill(x-drawstate.camera_x, y-drawstate.camera_y, x2-drawstate.camera_x, y2-drawstate.camera_y, col);
     return T_NULL;
 }
 
-TValue_t circ(uint8_t argc, TValue_t* argv) {
-    int x =   __get_int(argv, argc, 0);
-    int y =   __get_int(argv, argc, 1);
-    int r =   __opt_int(argv, argc, 2, 4);
-    int col = __opt_int(argv, argc, 3, drawstate.pen_color);
+TValue_t circ(TVSlice_t args) {
+    int x =   __get_int(args, 0);
+    int y =   __get_int(args, 1);
+    int r =   __opt_int(args, 2, 4);
+    int col = __opt_int(args, 3, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_circle(x-drawstate.camera_x, y-drawstate.camera_y, r, col);
     return T_NULL;
 }
 
-TValue_t oval(uint8_t argc, TValue_t* argv) {
-    int x0 =  __get_int(argv, argc, 0);
-    int y0 =  __get_int(argv, argc, 1);
-    int x1 =  __get_int(argv, argc, 2);
-    int y1 =  __get_int(argv, argc, 3);
-    int col = __opt_int(argv, argc, 4, drawstate.pen_color);
+TValue_t oval(TVSlice_t args) {
+    int x0 =  __get_int(args, 0);
+    int y0 =  __get_int(args, 1);
+    int x1 =  __get_int(args, 2);
+    int y1 =  __get_int(args, 3);
+    int col = __opt_int(args, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_oval(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-drawstate.camera_x, y1-drawstate.camera_y, col);
     return T_NULL;
 }
-TValue_t ovalfill(uint8_t argc, TValue_t* argv) {
-    int x0 =  __get_int(argv, argc, 0);
-    int y0 =  __get_int(argv, argc, 1);
-    int x1 =  __get_int(argv, argc, 2);
-    int y1 =  __get_int(argv, argc, 3);
-    int col = __opt_int(argv, argc, 4, drawstate.pen_color);
+TValue_t ovalfill(TVSlice_t args) {
+    int x0 =  __get_int(args, 0);
+    int y0 =  __get_int(args, 1);
+    int x1 =  __get_int(args, 2);
+    int y1 =  __get_int(args, 3);
+    int col = __opt_int(args, 4, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_ovalfill(x0-drawstate.camera_x, y0-drawstate.camera_y, x1-drawstate.camera_x, y1-drawstate.camera_y, col);
     return T_NULL;
 }
 
-TValue_t circfill(uint8_t argc, TValue_t* argv) {
-    int x =   __get_int(argv, argc, 0);
-    int y =   __get_int(argv, argc, 1);
-    int r =   __opt_int(argv, argc, 2, 4);
-    int col = __opt_int(argv, argc, 3, drawstate.pen_color);
+TValue_t circfill(TVSlice_t args) {
+    int x =   __get_int(args, 0);
+    int y =   __get_int(args, 1);
+    int r =   __opt_int(args, 2, 4);
+    int col = __opt_int(args, 3, drawstate.pen_color);
     drawstate.pen_color = col;
 
     gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, col);
@@ -1228,6 +1228,19 @@ TValue_t _cos(TValue_t angle) {
 	return TNUM(fix32_cos(angle.num));
 }
 
+TValue_t count(TVSlice_t args) {
+	Table_t* tab = __get_tab(args, 0);
+	TValue_t val = __opt_value(args, 1, T_NULL);
+	if(val.tag == NUL) return TNUM(tab->count);
+	assert(false);
+}
+TValue_t rnd(TVSlice_t args) {
+	//_Static_assert(RAND_MAX >= UINT16_MAX, "Rand is not big enough to use trivially");
+	assert(args.num == 1);
+	//TODO .tag == NUM); // TODO table
+	return TNUM(fix32_from_bits(rand() % fix32_to_bits(args.elems[0].num)));
+}
+
 pico8_t pico8 = {
 	.cls=cls,
 	.btn=btn,
@@ -1243,4 +1256,6 @@ pico8_t pico8 = {
 	.oval=oval,
 	.ovalfill=ovalfill,
 	.line=line,
+	.count=count,
+	.rnd=rnd,
 };

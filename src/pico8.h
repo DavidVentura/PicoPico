@@ -28,6 +28,7 @@ typedef struct pico8_s {
 	Func_t sub;
 	Func_t pset;
 	Func_t poke;
+	Func_t count;
 	// anything with mandatory, fixed # of arguments
 	TValue_t (*time)();
 	TValue_t (*abs)(TValue_t);
@@ -48,7 +49,7 @@ TValue_t _printh(uint8_t argc, TValue_t* argv);
 TValue_t add(TValue_t tab, TValue_t v);
 TValue_t del(TValue_t tab, TValue_t v);
 TValue_t* all(TValue_t tab);
-void _foreach(TValue_t t, Func_t f);
+void foreach(TValue_t t, Func_t f);
 Func_t _foreach_tvalue(TValue_t f);
 
 #define printh print_tvalue

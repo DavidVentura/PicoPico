@@ -60,8 +60,8 @@ TValue_t _printh(uint8_t argc, TValue_t* argv);
 TValue_t add(TValue_t tab, TValue_t v);
 TValue_t del(TValue_t tab, TValue_t v);
 TValue_t* all(TValue_t tab);
-void foreach(TValue_t t, Func_t f);
-Func_t _foreach_tvalue(TValue_t f);
 
-#define printh print_tvalue
+#define foreach(x, y)  _Generic(y, TValue_t: _foreach_tvalue, Func_t: _foreach)(x, y)
+void _foreach(TValue_t t, Func_t f);
+void _foreach_tvalue(TValue_t t, TValue_t f);
 #endif

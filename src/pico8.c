@@ -62,7 +62,8 @@ TValue_t del(TValue_t tab, TValue_t v) {
 	return found_value;
 }
 
-void foreach(TValue_t t, Func_t f) {
+
+void _foreach(TValue_t t, Func_t f) {
 	assert(t.tag == TAB);
 	Table_t* tab = GETTAB(t);
 	for(uint16_t i=0; i<tab->len; i++) {
@@ -70,4 +71,10 @@ void foreach(TValue_t t, Func_t f) {
 			f((TVSlice_t){.elems=(TValue_t[1]){tab->kvs[i].value}, .num=1});
 		}
 	}
+}
+
+
+void _foreach_tvalue(TValue_t t, TValue_t f) {
+	assert(f.tag == FUN);
+	_foreach(t, f.fun);
 }

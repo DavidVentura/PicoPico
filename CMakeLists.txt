@@ -338,9 +338,10 @@ elseif(BACKEND STREQUAL "TEST")
 					   src/generated/static_game_data.h
 					   tests/test_static_game_data.h
 					   ${testfile}
-					   src/pico8.c
 					   ~/git/lua-but-worse/fix32.c
 					   ~/git/lua-but-worse/lua.c
+					   ~/git/lua-but-worse/lua_math.c
+					   ~/git/lua-but-worse/lua_table.c
 					   )
 		target_link_libraries(${EXECUTABLE_NAME} gcov)
 		add_test(NAME ${EXECUTABLE_NAME} COMMAND ${EXECUTABLE_NAME})
@@ -360,9 +361,10 @@ elseif(BACKEND STREQUAL "TEST")
 		src/generated/static_game_data.h
 		tests/regression_static_game_data.h
 		tests/test_lua_regression.c
-	    src/pico8.c
 	    ~/git/lua-but-worse/fix32.c
 		~/git/lua-but-worse/lua.c
+	    ~/git/lua-but-worse/lua_math.c
+	    ~/git/lua-but-worse/lua_table.c
 		)
 
 	target_link_libraries(test_regression gcov)

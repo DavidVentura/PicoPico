@@ -233,9 +233,10 @@ elseif(BACKEND STREQUAL "RAWDRAW")
 	add_executable(rawdraw_pico
 		src/generated/static_game_data.h
 		src/entrypoint.c
-		src/pico8.c
 		~/git/lua-but-worse/fix32.c
 		~/git/lua-but-worse/lua.c
+		~/git/lua-but-worse/lua_math.c
+		~/git/lua-but-worse/lua_table.c
 		)
 
 	target_link_libraries(rawdraw_pico

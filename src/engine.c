@@ -115,7 +115,11 @@ void load_game_code(GameCart* cart) {
 	printf("err %s\n", dlerror());
 	cart->_draw_fn = dlsym(libhandle, "_draw");
 	printf("err %s\n", dlerror());
+
+	pico8._update = cart->_update_fn;
+	pico8._draw = cart->_draw_fn;
 }
+
 void engine_init() {
     reset_transparency();
 
@@ -156,15 +160,15 @@ void cartParser(GameCart* parsingCart) {
 	assert(parsingCart->map_len <= sizeof(map_data));
 	memcpy(map_data, parsingCart->map, parsingCart->map_len);
 
-        if (parsingCart->gfx_len > (64*128)) { // 64 half-sized lines (128bytes) == 32 256 lines
-                                               // these are LSB and have to be flipped
-            for(uint16_t i=32; i<(parsingCart->gfx_len/256); i++) {
-                mapParser(parsingCart->gfx+(i*256), i, map_data);
-            }
-        }
-        for(uint8_t i=0; i<(parsingCart->sfx_len/168); i++) {
-                SFXParser(parsingCart->sfx+(i*168), i, sfx);
-        }
+	if (parsingCart->gfx_len > (64*128)) { // 64 half-sized lines (128bytes) == 32 256 lines
+										   // these are LSB and have to be flipped
+		for(uint16_t i=32; i<(parsingCart->gfx_len/256); i++) {
+			mapParser(parsingCart->gfx+(i*256), i, map_data);
+		}
+	}
+	for(uint8_t i=0; i<(parsingCart->sfx_len/168); i++) {
+		SFXParser(parsingCart->sfx+(i*168), i, sfx);
+	}
 	load_game_code(parsingCart);
 }
 /*

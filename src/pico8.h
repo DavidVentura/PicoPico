@@ -18,7 +18,7 @@ typedef struct pico8_s {
 	Func_t rect;
 	Func_t rectfill;
 	Func_t line;
-	Func_t sfx;
+	Func_t _sfx;
 	Func_t min;
 	Func_t max;
 	Func_t music;
@@ -36,8 +36,18 @@ typedef struct pico8_s {
 	Func_t peek2;
 	Func_t peek4;
 	Func_t color;
+	Func_t fillp;
+	Func_t sspr;
+	Func_t deli;
 	// anything with mandatory, fixed # of arguments
-	TValue_t (*time)();
+	// 0 arg
+	void (*_update)();
+	void (*_draw)();
+	void (*flip)();
+	TValue_t (*_time)();
+	TValue_t (*t)(); // an alias of time
+	 // 1 arg
+	TValue_t (*extcmd)(TValue_t);
 	TValue_t (*abs)(TValue_t);
 	TValue_t (*cos)(TValue_t);
 	TValue_t (*sin)(TValue_t);
@@ -45,7 +55,8 @@ typedef struct pico8_s {
 	TValue_t (*fast_peek2)(TValue_t);
 	TValue_t (*fast_peek4)(TValue_t);
 	TValue_t (*dget)(TValue_t);
-	TValue_t (*cartdata)(TValue_t);
+	TValue_t (*_cartdata)(TValue_t);
+	// 2 arg
 	TValue_t (*atan2)(TValue_t, TValue_t);
 	TValue_t (*shr)(TValue_t, TValue_t);
 	TValue_t (*shl)(TValue_t, TValue_t);
@@ -53,15 +64,24 @@ typedef struct pico8_s {
 	TValue_t (*sget)(TValue_t, TValue_t);
 	TValue_t (*mget)(TValue_t, TValue_t);
 	TValue_t (*dset)(TValue_t, TValue_t);
+	// 3 arg
+	TValue_t (*mset)(TValue_t, TValue_t, TValue_t);
 } pico8_t;
+
+#define PLACEHOLDER(name, ...)     TValue_t name(__VA_ARGS__) {\
+										printf("Called unimplemented " "\"" #name "\"" "\n");\
+										return T_NULL;\
+									}
+#define void_PLACEHOLDER(name, ...)     void name(__VA_ARGS__) {\
+											printf("Called unimplemented " "\"" #name "\"" "\n");\
+										}
+#define VAR_ARG_PLACEHOLDER(x) 		PLACEHOLDER(x, TVSlice_t a)
+#define NO_ARG_PLACEHOLDER(x) 		PLACEHOLDER(x, void)
+#define ONE_ARG_PLACEHOLDER(x) 		PLACEHOLDER(x, TValue_t a)
+#define TWO_ARG_PLACEHOLDER(x) 		PLACEHOLDER(x, TValue_t a, TValue_t b)
+#define THREE_ARG_PLACEHOLDER(x) 	PLACEHOLDER(x, TValue_t a, TValue_t b, TValue_t c)
 
 extern pico8_t pico8;
 TValue_t _printh(uint8_t argc, TValue_t* argv);
-TValue_t add(TValue_t tab, TValue_t v);
-TValue_t del(TValue_t tab, TValue_t v);
-TValue_t* all(TValue_t tab);
 
-#define foreach(x, y)  _Generic(y, TValue_t: _foreach_tvalue, Func_t: _foreach)(x, y)
-void _foreach(TValue_t t, Func_t f);
-void _foreach_tvalue(TValue_t t, TValue_t f);
 #endif

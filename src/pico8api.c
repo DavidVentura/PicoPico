@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "lua.h"
+#include "lua_math.h"
+#include "lua_table.h"
 
 void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t color);
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
@@ -1223,23 +1225,7 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
     }
 }
 
-TValue_t _cos(TValue_t angle) {
-	assert(angle.tag == NUM);
-	return TNUM(fix32_cos(angle.num));
-}
-
-TValue_t count(TVSlice_t args) {
-	Table_t* tab = __get_tab(args, 0);
-	TValue_t val = __opt_value(args, 1, T_NULL);
-	if(val.tag == NUL) return TNUM(tab->count);
-	assert(false);
-}
-TValue_t rnd(TVSlice_t args) {
-	//_Static_assert(RAND_MAX >= UINT16_MAX, "Rand is not big enough to use trivially");
-	assert(args.num == 1);
-	//TODO .tag == NUM); // TODO table
-	return TNUM(fix32_from_bits(rand() % fix32_to_bits(args.elems[0].num)));
-}
+#include "pico8_placeholders.c"
 
 pico8_t pico8 = {
 	.cls=cls,
@@ -1248,7 +1234,6 @@ pico8_t pico8 = {
 	.spr=spr,
 	.print=print,
 	.pal=pal,
-	.cos=_cos,
 	.rect=rect,
 	.rectfill=rectfill,
 	.circ=circ,
@@ -1256,6 +1241,54 @@ pico8_t pico8 = {
 	.oval=oval,
 	.ovalfill=ovalfill,
 	.line=line,
-	.count=count,
-	.rnd=rnd,
+	.btnp=btnp,
+	.btn=btn,
+	.cls=cls,
+	.map=map,
+	.pal=pal,
+	.palt=palt,
+	.print=print,
+	.spr=spr,
+	.sgn=sgn,
+	.oval=oval,
+	.ovalfill=ovalfill,
+	.circ=circ,
+	.circfill=circfill,
+	.rect=rect,
+	.rectfill=rectfill,
+	.line=line,
+	._sfx=_sfx,
+	.music=music,
+	.fget=fget,
+	.camera=camera,
+	.btnp=btnp,
+	.pset=pset,
+	.poke=poke,
+	.poke2=poke2,
+	.poke4=poke4,
+	.peek=peek,
+	.peek2=peek2,
+	.peek4=peek4,
+	.color=color,
+	.fillp=fillp,
+	.sspr=sspr,
+	._update=NULL, // these are set by `load_game_code`
+	._draw=NULL,
+	.flip=flip,
+	._time=_time,
+	.t=t, // an alias of time
+	 // 1 arg
+	.extcmd=extcmd,
+	.fast_peek=fast_peek,
+	.fast_peek2=fast_peek2,
+	.fast_peek4=fast_peek4,
+	.dget=dget,
+	._cartdata=_cartdata,
+	// 2 arg
+	.pget=pget,
+	.sget=sget,
+	.mget=mget,
+	.dset=dset,
+	// 3 arg
+	.mset=mset,
 };

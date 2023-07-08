@@ -18,7 +18,7 @@ typedef struct pico8_s {
 	Func_t rect;
 	Func_t rectfill;
 	Func_t line;
-	Func_t _sfx;
+	Func_t sfx;
 	Func_t min;
 	Func_t max;
 	Func_t music;
@@ -26,7 +26,6 @@ typedef struct pico8_s {
 	Func_t camera;
 	Func_t btnp;
 	Func_t rnd;
-	Func_t sub;
 	Func_t pset;
 	Func_t count;
 	Func_t poke;
@@ -39,6 +38,8 @@ typedef struct pico8_s {
 	Func_t fillp;
 	Func_t sspr;
 	Func_t deli;
+	Func_t menuitem;
+	Func_t reload;
 	// anything with mandatory, fixed # of arguments
 	// 0 arg
 	void (*_update)();
@@ -55,7 +56,7 @@ typedef struct pico8_s {
 	TValue_t (*fast_peek2)(TValue_t);
 	TValue_t (*fast_peek4)(TValue_t);
 	TValue_t (*dget)(TValue_t);
-	TValue_t (*_cartdata)(TValue_t);
+	TValue_t (*cartdata)(TValue_t);
 	// 2 arg
 	TValue_t (*atan2)(TValue_t, TValue_t);
 	TValue_t (*shr)(TValue_t, TValue_t);

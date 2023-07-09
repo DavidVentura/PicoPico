@@ -8,7 +8,7 @@ void draw_hud();
 void gfx_flip();
 void delay(uint16_t ms);
 bool handle_input();
-uint32_t now();
+uint32_t now(); // in millis
 bool init_audio();
 bool init_platform();
 

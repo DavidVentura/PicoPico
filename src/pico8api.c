@@ -196,31 +196,6 @@ palidx_t get_pixel(uint8_t x, uint8_t y) {
 }
 
 
-//uint8_t btn(lua_State* L, uint8_t* _buttons) {
-TValue_t btn(TVSlice_t args) {
-	/*
-	uint8_t argcount = lua_gettop(L);
-	if (argcount == 0) {
-		uint8_t bitfield = 0;
-		for(uint8_t i=0; i<6; i++) {
-			bitfield |= ((_buttons[i]) << i);
-		}
-		return bitfield;
-	} else if (argcount == 1) {
-		int idx = luaL_optinteger(L, 1, -1);
-		if(idx==-1) return 0;
-		return _buttons[idx];
-	} else {
-		printf("Unsupported btn/btnp with 2 args\n");
-		return 0;
-	}
-	*/
-	assert(args.num==1);
-	int16_t idx = __opt_int(args, 0, -1);
-	if(idx==-1) return TNUM(0);
-	return TBOOL(buttons[idx]);
-}
-
 TValue_t cls(TVSlice_t args) {
 	int16_t idx = __opt_int(args, 0, 0);
     gfx_cls(idx);
@@ -468,6 +443,11 @@ TValue_t print(TVSlice_t args) {
 	assert(args.num>0);
 	if (args.elems[0].tag == STR) {
 		str = __get_str(args, 0);
+	} else if (args.elems[0].tag == NUL){
+		//str = GETSTRP(TSTR("nilstr"));
+		//i think this shouldn't be happening ->
+		print_trace();
+		assert(false);
 	} else {
 		assert(args.elems[0].tag == NUM); // bool/etc implemented
 		char buf[12] = {0};
@@ -491,7 +471,7 @@ TValue_t pal(TVSlice_t args) {
     }
     if(args.elems[0].tag == TAB) {
         uint8_t palIdx = __opt_int(args, 1, 0);
-		assert(false);
+		assert(false); // TODO impl vvv
         //_replace_palette(palIdx);
         return T_NULL;
     }
@@ -502,30 +482,6 @@ TValue_t pal(TVSlice_t args) {
     return T_NULL;
 }
 /*
-
-int _lua_palt(lua_State* L) {
-    uint8_t argcount = lua_gettop(L);
-    if (argcount == 0) {
-        // reset for all colors
-        reset_transparency();
-        return 0;
-    }
-    if (argcount == 1) {
-        // TODO: should this use fix32?? not sure if rotr is what i want
-        uint16_t bitfield = luaL_checkinteger(L, 1);
-        for(uint8_t idx = 0; idx < 16; idx++) {
-            drawstate.transparent[idx] = (bitfield & 1);
-            bitfield >>= 1;
-        }
-        return 0;
-    }
-    uint8_t idx = luaL_checkinteger(L, 1);
-    bool transparent = lua_toboolean(L, 2);
-    drawstate.transparent[idx] = transparent;
-
-    return 0;
-}
-
 
 void _replace_palette(uint8_t palIdx, lua_State* L) {
     // Push another reference to the table on top of the stack (so we know
@@ -711,37 +667,6 @@ int _lua_map(lua_State* L) {
     return 0;
 }
 
-uint8_t btn(lua_State* L, uint8_t* _buttons) {
-    uint8_t argcount = lua_gettop(L);
-    if (argcount == 0) {
-	uint8_t bitfield = 0;
-	for(uint8_t i=0; i<6; i++) {
-	    bitfield |= ((_buttons[i]) << i);
-	}
-    	return bitfield;
-    } else if (argcount == 1) {
-    	int idx = luaL_optinteger(L, 1, -1);
-	if(idx==-1) return 0;
-    	return _buttons[idx];
-    } else {
-	printf("Unsupported btn/btnp with 2 args\n");
-    	return 0;
-    }
-}
-int _lua_btnp(lua_State* L) {
-    uint8_t argcount = lua_gettop(L);
-    if (argcount == 0) {
-        lua_pushinteger(L, btn(L, buttons_frame));
-        return 1;
-    }
-    lua_pushboolean(L, btn(L, buttons_frame));
-    return 1;
-}
-int _lua_btn(lua_State* L) {
-    lua_pushboolean(L, btn(L, buttons));
-    // printf("Button state for %d is %d\n", idx, buttons[idx]);
-    return 1;
-}
 
 int _lua_srand(lua_State* L) {
     int16_t x = luaL_checkinteger(L, 1);
@@ -763,11 +688,6 @@ int _lua_rnd(lua_State* L) {
     return 1;
 }
 
-inline uint8_t _sget(int16_t x, int16_t y) {
-    if (x < 0 || x > 127 || y < 0 || y > 127)
-        return 0;
-    return spritesheet.sprite_data[y*128+x];
-}
 int _lua_sset(lua_State* L) {
     int16_t x = luaL_checkinteger(L, 1);
     int16_t y = luaL_checkinteger(L, 2);
@@ -776,13 +696,6 @@ int _lua_sset(lua_State* L) {
 		spritesheet.sprite_data[y*128+x] = c;
 	}
     return 0;
-}
-int _lua_sget(lua_State* L) {
-    int16_t x = luaL_checkinteger(L, 1);
-    int16_t y = luaL_checkinteger(L, 2);
-
-    lua_pushinteger(L, _sget(x, y));
-    return 1;
 }
 
 int _lua_fget(lua_State* L) {
@@ -832,42 +745,8 @@ int _lua_pget(lua_State* L) {
     return 1;
 }
 
-inline void _pset(int16_t x, int16_t y, int16_t idx) {
-    drawstate.pen_color = idx;
-    if(drawstate.transparent[idx] == 1)
-        return;
-    int16_t tx = x-drawstate.camera_x;
-    int16_t ty = y-drawstate.camera_y;
-    if (tx < 0 || tx >= SCREEN_WIDTH || ty < 0 || ty  >= SCREEN_HEIGHT) return;
-    put_pixel(tx, ty, idx);
-}
 
-int _lua_pset(lua_State* L) {
-    int16_t x = luaL_checkinteger(L, 1);
-    int16_t y = luaL_checkinteger(L, 2);
-    uint8_t idx = luaL_optinteger(L, 3, drawstate.pen_color);
-    _pset(x, y, idx);
-    return 0;
-}
 
-int _lua_time(lua_State* L) {
-    float delta = (float)(now() - bootup_time)/1000.0f;
-    lua_pushnumber(L, delta);
-    return 1;
-}
-
-int _lua_dget(lua_State* L) {
-    const uint8_t idx = luaL_checkinteger(L, 1);
-    lua_pushinteger(L, cartdata[idx]);
-    return 1;
-}
-
-int _lua_dset(lua_State* L) {
-    const uint8_t idx = luaL_checkinteger(L, 1);
-    const uint32_t val = luaL_checkinteger(L, 2);
-    cartdata[idx] = val;
-    return 0;
-}
 
 
 int _lua_printh(lua_State* L) {
@@ -946,20 +825,6 @@ int _lua_sfx(lua_State* L) {
 int _lua_stub(lua_State* L) {
 	// TODO: implement
     return 0;
-}
-
-int _lua_camera(lua_State* L) {
-    int32_t x = luaL_optinteger(L, 1, 0);
-    int32_t y = luaL_optinteger(L, 2, 0);
-    int32_t old_x = drawstate.camera_x;
-    int32_t old_y = drawstate.camera_y;
-
-    drawstate.camera_x = x;
-    drawstate.camera_y = y;
-
-    lua_pushinteger(L, old_x);
-    lua_pushinteger(L, old_y);
-    return 2;
 }
 
 int _lua_clip(lua_State* L) {
@@ -1149,8 +1014,7 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
     ymin = MIN(ymin, ymax);
 
     if(xmin>=xmax) return;
-	assert(width.f==0); // change screen_x == ...*1 to *width
-	assert(width.i==1); // change screen_x == ...*1 to *width
+	assert(width.f==0); // change screen_x == ...*width.i to *width
 
 	for (int16_t y=ymin; y<ymax; y++) {
 		int16_t screen_y = y0+y-drawstate.camera_y;
@@ -1161,7 +1025,7 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
 		for (int16_t x=xmin; x<xmax; x++) {
 			int16_t screen_x;
 			if(flip_x) {
-				screen_x = x0-drawstate.camera_x-x+8*1; // width; // FIXME 1=width
+				screen_x = x0-drawstate.camera_x-x+8*width.i; // FIXME consider fractional multiple
 			} else {
 				screen_x = x0+x-drawstate.camera_x;
 			}
@@ -1225,6 +1089,136 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
     }
 }
 
+TValue_t dget(TValue_t idx) {
+	assert(idx.tag == NUM);
+	assert(idx.num.f == 0);
+    return TNUM(cartdata[idx.num.i]);
+}
+
+TValue_t dset(TValue_t idx, TValue_t value) {
+	assert(idx.tag == NUM);
+	assert(idx.num.f == 0);
+	assert(value.tag == NUM);
+	assert(value.num.f == 0);
+
+    cartdata[idx.num.i] = value.num.i;
+    return T_NULL;
+}
+
+void _pset(int16_t x, int16_t y, int16_t idx) {
+    drawstate.pen_color = idx;
+    if(drawstate.transparent[idx] == 1)
+        return;
+    int16_t tx = x-drawstate.camera_x;
+    int16_t ty = y-drawstate.camera_y;
+    if (tx < 0 || tx >= SCREEN_WIDTH || ty < 0 || ty  >= SCREEN_HEIGHT) return;
+    put_pixel(tx, ty, idx);
+}
+
+TValue_t pset(TVSlice_t args) {
+    int16_t x = __get_int(args, 0);
+    int16_t y = __get_int(args, 1);
+    int16_t idx = __opt_int(args, 2, drawstate.pen_color);
+    _pset(x, y, idx);
+    return T_NULL;
+}
+
+uint8_t _sget(int16_t x, int16_t y) {
+    if (x < 0 || x > 127 || y < 0 || y > 127)
+        return 0;
+    return spritesheet.sprite_data[y*128+x];
+}
+TValue_t sget(TValue_t x, TValue_t y) {
+	assert(x.tag == NUM);
+	assert(y.tag == NUM);
+
+    return TNUM(_sget(x.num.i, y.num.i));
+}
+TValue_t btn(TVSlice_t args) {
+	uint8_t argcount = args.num;
+	if (argcount == 0) {
+		uint8_t bitfield = 0;
+		for(uint8_t i=0; i<6; i++) {
+			bitfield |= ((buttons[i]) << i);
+		}
+		return TNUM(bitfield);
+	} else if (argcount == 1) {
+		int16_t idx = __opt_int(args, 0, -1);
+		if(idx==-1) return TBOOL(0);
+		return TBOOL(buttons[idx]);
+	} else {
+		printf("Unsupported btn/btnp with 2 args\n");
+		return TNUM(0);
+	}
+}
+
+TValue_t btnp(TVSlice_t args) {
+	// FIXME: merge with btn
+	uint8_t argcount = args.num;
+	if (argcount == 0) {
+		uint8_t bitfield = 0;
+		for(uint8_t i=0; i<6; i++) {
+			bitfield |= ((buttons_frame[i]) << i);
+		}
+		return TNUM(bitfield);
+	} else if (argcount == 1) {
+		int16_t idx = __opt_int(args, 0, -1);
+		if(idx==-1) return TBOOL(0);
+		return TBOOL(buttons_frame[idx]);
+	} else {
+		printf("Unsupported btn/btnp with 2 args\n");
+		return TNUM(0);
+	}
+}
+
+TValue_t _time() {
+	uint32_t _now_with_ms = now();
+	uint32_t _delta_sec = (_now_with_ms - bootup_time) / 1000;
+	uint32_t _delta_ms  = (_now_with_ms - bootup_time) % 1000;
+	// fix32 integer part is signed, we get to keep 15 bits, will wrap around at
+	// 9.1 hours
+	fix32_t _now = fix32_from_parts(_delta_sec & 0x8fff, (uint16_t)_delta_ms);
+    return TNUM(_now);
+}
+
+TValue_t camera(TVSlice_t args) {
+    int16_t x = __opt_int(args, 0, 0);
+    int16_t y = __opt_int(args, 1, 0);
+    //int16_t old_x = drawstate.camera_x;
+    //int16_t old_y = drawstate.camera_y;
+
+    drawstate.camera_x = x;
+    drawstate.camera_y = y;
+
+	// it's going to suck when i need to figure out how to implement tuples
+    return T_NULL;
+}
+
+TValue_t palt(TVSlice_t arg) {
+    uint8_t argcount = arg.num;
+    if (argcount == 0) {
+        // reset for all colors
+        reset_transparency();
+        return T_NULL;
+    }
+    if (argcount == 1) {
+        // TODO: should this use fix32?? not sure if rotr is what i want
+        uint16_t bitfield = __get_int(arg, 0);
+        for(uint8_t idx = 0; idx < 16; idx++) {
+            drawstate.transparent[idx] = (bitfield & 1);
+            bitfield >>= 1;
+        }
+        return T_NULL;
+    }
+    uint8_t idx = __get_int(arg, 0);
+    bool transparent = __get_bool(arg, 1);
+    drawstate.transparent[idx] = transparent;
+
+    return T_NULL;
+}
+
+
+
 #include "pico8_placeholders.c"
 
 pico8_t pico8 = {
@@ -1262,7 +1256,7 @@ pico8_t pico8 = {
 	._draw=NULL,
 	.flip=flip,
 	._time=_time,
-	.t=time_alias_t, // an alias of time
+	.t=_time, // an alias of time
 	.menuitem=menuitem,
 	.reload=reload,
 	 // 1 arg

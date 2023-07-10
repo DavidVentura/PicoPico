@@ -10,7 +10,6 @@ typedef struct pico8_s {
 	Func_t palt;
 	Func_t print;
 	Func_t spr;
-	Func_t sgn;
 	Func_t oval;
 	Func_t ovalfill;
 	Func_t circ;
@@ -19,15 +18,11 @@ typedef struct pico8_s {
 	Func_t rectfill;
 	Func_t line;
 	Func_t sfx;
-	Func_t min;
-	Func_t max;
 	Func_t music;
 	Func_t fget;
 	Func_t camera;
 	Func_t btnp;
-	Func_t rnd;
 	Func_t pset;
-	Func_t count;
 	Func_t poke;
 	Func_t poke2;
 	Func_t poke4;
@@ -37,7 +32,6 @@ typedef struct pico8_s {
 	Func_t color;
 	Func_t fillp;
 	Func_t sspr;
-	Func_t deli;
 	Func_t menuitem;
 	Func_t reload;
 	// anything with mandatory, fixed # of arguments
@@ -49,18 +43,12 @@ typedef struct pico8_s {
 	TValue_t (*t)(); // an alias of time
 	 // 1 arg
 	TValue_t (*extcmd)(TValue_t);
-	TValue_t (*abs)(TValue_t);
-	TValue_t (*cos)(TValue_t);
-	TValue_t (*sin)(TValue_t);
 	TValue_t (*fast_peek)(TValue_t);
 	TValue_t (*fast_peek2)(TValue_t);
 	TValue_t (*fast_peek4)(TValue_t);
 	TValue_t (*dget)(TValue_t);
 	TValue_t (*cartdata)(TValue_t);
 	// 2 arg
-	TValue_t (*atan2)(TValue_t, TValue_t);
-	TValue_t (*shr)(TValue_t, TValue_t);
-	TValue_t (*shl)(TValue_t, TValue_t);
 	TValue_t (*pget)(TValue_t, TValue_t);
 	TValue_t (*sget)(TValue_t, TValue_t);
 	TValue_t (*mget)(TValue_t, TValue_t);

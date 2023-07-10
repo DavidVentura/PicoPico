@@ -279,7 +279,7 @@ void render_text(Spritesheet* s, uint16_t sprite, uint8_t x0, uint8_t y0, uint8_
 
 }
 
-void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16_t paletteIdx) {
+uint16_t _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16_t paletteIdx) {
     // FIXME: this only works for ascii
     // FIXME: this should crop, and return the "cropped" number
     drawstate.pen_color = paletteIdx;
@@ -420,7 +420,7 @@ void _print(const char* text, const uint8_t textLen, int16_t x, int16_t y, int16
 			print_x_offset += (char_width * print_width_ratio);
 	}
 	drawstate.bg_color = 0;
-
+	return print_x_offset;
 }
 
 // Bresenham line algorithm
@@ -439,6 +439,7 @@ void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t col
     }
 }
 TValue_t print(TVSlice_t args) {
+	// returns the X coordinate of the next character to be printed
 	Str_t* str;
 	assert(args.num>0);
 	if (args.elems[0].tag == STR) {
@@ -458,9 +459,9 @@ TValue_t print(TVSlice_t args) {
 	int16_t y 			= __get_int(args, 2);
     int16_t paletteIdx 	= __opt_int(args, 3, drawstate.pen_color);
 
-    _print(str->data, (uint8_t)str->len, x-drawstate.camera_x, y-drawstate.camera_y, paletteIdx);
-	return T_NULL;
+    return TNUM(_print(str->data, (uint8_t)str->len, x-drawstate.camera_x, y-drawstate.camera_y, paletteIdx));
 }
+
 TValue_t pal(TVSlice_t args) {
     // TODO: significant functionality missing
     // https://pico-8.fandom.com/wiki/Pal
@@ -1237,7 +1238,6 @@ pico8_t pico8 = {
 	.line=line,
 	.btnp=btnp,
 	.palt=palt,
-	.sgn=sgn,
 	.sfx=_sfx,
 	.music=music,
 	.fget=fget,

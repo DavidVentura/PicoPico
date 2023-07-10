@@ -56,7 +56,7 @@ def compile_lua_to_shared_object(lua_code: bytes) -> bytes:
         if p.returncode != 0:
             raise ValueError("dead")
 
-        with tempfile.NamedTemporaryFile(suffix=".c") as c_output:
+        with tempfile.NamedTemporaryFile(suffix=".c", delete=False) as c_output:
             c_output.write(c_code)
             c_output.flush()
             c_output.seek(0)
@@ -67,14 +67,16 @@ def compile_lua_to_shared_object(lua_code: bytes) -> bytes:
                     f"-I{PICOPICO_DIR}",
                     "-fPIC",
                     "-shared",
-                    #"-g",
-                    "-O2",
+                    "-g",
+                    "-O0",
                     "-std=c11",
+                    "-Werror=builtin-declaration-mismatch",
                     "-o", named.name,
                     c_output.name,
-                    f"{PICOPICO_DIR}/pico8.c",
                     f"{LUA_DIR}/fix32.c",
                     f"{LUA_DIR}/lua.c",
+                    f"{LUA_DIR}/lua_math.c",
+                    f"{LUA_DIR}/lua_table.c",
                 ]
                 with subprocess.Popen(command, stdin=subprocess.PIPE) as p:
                     p.communicate(c_code)

@@ -210,8 +210,9 @@ TValue_t spr(TVSlice_t args) {
 	fix32_t h = 	__opt_num(args, 4, fix32_from_int8(1));
 	bool flip_x = 	__opt_bool(args, 5, false);
 	bool flip_y = 	__opt_bool(args, 6, false);
-	//printf("sprite with spr=%d x=%d y=%d w=%d.%d h=%d.%d, flipx=%d, flipy=%d\n", n, x.i, y.i, w.i, w.f, h.i, h.f, flip_x, flip_y);
-	render_many(&spritesheet, n, x.i, y.i, -1, flip_x, flip_y, w, h);
+	// printf("sprite with spr=%d x=%d y=%d w=%d.%d h=%d.%d, flipx=%d, flipy=%d\n", n, x, y, w.i, w.f, h.i, h.f, flip_x, flip_y);
+	render_many(&spritesheet, n, x, y, -1, flip_x, flip_y, w, h);
+	return T_NULL;
 }
 
 //void map(int16_t mapX, int16_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
@@ -965,7 +966,7 @@ int _lua_poke4(lua_State* L) {
     return 0;
 }
 */
-inline void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
+void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
     uint16_t val;
 
     int16_t ymin = MAX(0, -(y0-drawstate.camera_y));
@@ -1042,9 +1043,7 @@ void _render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0, i
 			} else {
 				p = val;
 			}
-
 			put_pixel(screen_x, screen_y, p);
-
 		}
 	}
 }
@@ -1053,14 +1052,22 @@ void render_many(Spritesheet* s, uint16_t n, int16_t x0, int16_t y0, int palette
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;
-    _render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y, width, height);
+	if(!flip_x && !flip_y && fix32_equals(width, __ONE) && fix32_equals(height, __ONE)) {
+		_fast_render(s, xIndex*8, yIndex*8, x0, y0);
+	} else {
+		_render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y, width, height);
+	}
 }
 
 inline void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y) {
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;
-    _render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y, fix32_from_int8(1), fix32_from_int8(1));
+	if(!flip_x && !flip_y) {
+		_fast_render(s, xIndex*8, yIndex*8, x0, y0);
+	} else {
+    	_render(s, xIndex*8, yIndex*8, x0, y0, paletteIdx, flip_x, flip_y, __ONE, __ONE);
+	}
 }
 
 void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uint16_t sh, uint16_t dx, uint16_t dy,

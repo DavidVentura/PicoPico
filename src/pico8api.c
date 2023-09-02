@@ -204,8 +204,8 @@ TValue_t cls(TVSlice_t args) {
 
 TValue_t spr(TVSlice_t args) {
 	uint16_t n = 	__get_int(args, 0);
-	fix32_t x = 	__get_num(args, 1);
-	fix32_t y = 	__get_num(args, 2);
+	int16_t x = 	__opt_int(args, 1, 0);
+	int16_t y = 	__opt_int(args, 2, 0);
 	fix32_t w = 	__opt_num(args, 3, fix32_from_int8(1));
 	fix32_t h = 	__opt_num(args, 4, fix32_from_int8(1));
 	bool flip_x = 	__opt_bool(args, 5, false);

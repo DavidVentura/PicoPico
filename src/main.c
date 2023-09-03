@@ -141,11 +141,19 @@ int pico8_main() {
         (void)update_end_time; // logging is conditional, this makes the unused warning go away
         //if (call_update) _to_lua_call("_update");
         //if (call_update60) _to_lua_call("_update60");
-		if (cart._update_fn) cart._update_fn();
+		if (cart._update_fn) {
+			DEBUG2_PRINT("Calling upd\n");
+			cart._update_fn();
+			DEBUG2_PRINT("/Calling upd\n");
+		}
         update_end_time = now();
 
         draw_start_time = now();
-		if(cart._draw_fn && !skip_next_render) cart._draw_fn();
+		if(cart._draw_fn && !skip_next_render) {
+			DEBUG2_PRINT("Calling draw\n");
+			cart._draw_fn();
+			DEBUG2_PRINT("/Calling draw\n");
+		}
         draw_end_time = now();
 
         if (draw_end_time - draw_start_time > ms_delay)

@@ -490,27 +490,6 @@ TValue_t print(TVSlice_t args) {
     return TNUM(_print(str->data, (uint8_t)str->len, x-drawstate.camera_x, y-drawstate.camera_y, paletteIdx));
 }
 
-TValue_t pal(TVSlice_t args) {
-    // TODO: significant functionality missing
-    // https://pico-8.fandom.com/wiki/Pal
-    if (args.num == 0) {
-        memcpy(pal_map, orig_pal_map, sizeof(orig_pal_map));
-        reset_transparency();
-        return T_NULL;
-    }
-    if(args.elems[0].tag == TAB) {
-        uint8_t palIdx = __opt_int(args, 1, 0);
-		assert(false); // TODO impl vvv
-        //_replace_palette(palIdx);
-        return T_NULL;
-    }
-
-    const uint8_t origIdx = __get_int(args, 0);
-    const uint8_t newIdx = __get_int(args, 1);
-    pal_map[origIdx] = newIdx;
-    return T_NULL;
-}
-
 TValue_t line(TVSlice_t args) {
     //TODO: handle all cases https://pico-8.fandom.com/wiki/Line
     int16_t x0 = __opt_int(args, 0, drawstate.line_x);
@@ -1102,49 +1081,54 @@ uint8_t _sget(int16_t x, int16_t y) {
         return 0;
     return spritesheet.sprite_data[y*128+x];
 }
+
+uint8_t _lua_btn(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+	if (argcount == 0) {
+		uint8_t bitfield = 0;
+		for(uint8_t i=0; i<6; i++) {
+			bitfield |= ((buttons[i]) << i);
+		}
+		lua_pushinteger(L, bitfield);
+		return 1;
+	} else if (argcount == 1) {
+		int16_t idx = luaL_optinteger(L, 1, -1);
+		if(idx==-1) return 0;
+		lua_pushboolean(L, buttons[idx]);
+		return 1;
+	} else {
+		printf("Unsupported btn/btnp with 2 args\n");
+		return 0;
+	}
+}
+
+uint8_t _lua_btnp(lua_State* L) {
+	// FIXME: merge with btn; buttons <> buttons_frame
+    uint8_t argcount = lua_gettop(L);
+	if (argcount == 0) {
+		uint8_t bitfield = 0;
+		for(uint8_t i=0; i<6; i++) {
+			bitfield |= ((buttons_frame[i]) << i);
+		}
+		lua_pushinteger(L, bitfield);
+		return 1;
+	} else if (argcount == 1) {
+		int16_t idx = luaL_optinteger(L, 1, -1);
+		if(idx==-1) return 0;
+		lua_pushboolean(L, buttons_frame[idx]);
+		return 1;
+	} else {
+		printf("Unsupported btn/btnp with 2 args\n");
+		return 0;
+	}
+}
+
 /*
 TValue_t sget(TValue_t x, TValue_t y) {
 	assert(x.tag == NUM);
 	assert(y.tag == NUM);
 
     return TNUM(_sget(x.num.i, y.num.i));
-}
-
-TValue_t btn(TVSlice_t args) {
-	uint8_t argcount = args.num;
-	if (argcount == 0) {
-		uint8_t bitfield = 0;
-		for(uint8_t i=0; i<6; i++) {
-			bitfield |= ((buttons[i]) << i);
-		}
-		return TNUM(bitfield);
-	} else if (argcount == 1) {
-		int16_t idx = __opt_int(args, 0, -1);
-		if(idx==-1) return TBOOL(0);
-		return TBOOL(buttons[idx]);
-	} else {
-		printf("Unsupported btn/btnp with 2 args\n");
-		return TNUM(0);
-	}
-}
-
-TValue_t btnp(TVSlice_t args) {
-	// FIXME: merge with btn
-	uint8_t argcount = args.num;
-	if (argcount == 0) {
-		uint8_t bitfield = 0;
-		for(uint8_t i=0; i<6; i++) {
-			bitfield |= ((buttons_frame[i]) << i);
-		}
-		return TNUM(bitfield);
-	} else if (argcount == 1) {
-		int16_t idx = __opt_int(args, 0, -1);
-		if(idx==-1) return TBOOL(0);
-		return TBOOL(buttons_frame[idx]);
-	} else {
-		printf("Unsupported btn/btnp with 2 args\n");
-		return TNUM(0);
-	}
 }
 
 TValue_t _time() {
@@ -1169,32 +1153,64 @@ TValue_t camera(TVSlice_t args) {
 	// it's going to suck when i need to figure out how to implement tuples
     return T_NULL;
 }
+*/
 
-TValue_t palt(TVSlice_t arg) {
-    uint8_t argcount = arg.num;
+uint8_t _lua_pal(lua_State* L) {
+    // TODO: significant functionality missing
+    // https://pico-8.fandom.com/wiki/Pal
+    uint8_t argcount = lua_gettop(L);
+    if (argcount == 0) {
+        memcpy(pal_map, orig_pal_map, sizeof(orig_pal_map));
+        reset_transparency();
+        return 0;
+    }
+	/*
+    if(args.elems[0].tag == TAB) {
+        //uint8_t palIdx = __opt_int(args, 1, 0);
+		assert(false); // TODO impl vvv
+        //_replace_palette(palIdx);
+        return 0;
+    }
+	*/
+
+    const uint8_t origIdx = luaL_checkinteger(L, 1);
+    const uint8_t newIdx = luaL_checkinteger(L, 2);
+    pal_map[origIdx] = newIdx;
+    return 0;
+}
+
+
+uint8_t _lua_palt(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
     if (argcount == 0) {
         // reset for all colors
         reset_transparency();
-        return T_NULL;
+        return 0;
     }
     if (argcount == 1) {
         // TODO: should this use fix32?? not sure if rotr is what i want
-        uint16_t bitfield = __get_int(arg, 0);
+        uint16_t bitfield = luaL_checkinteger(L, 1);
         for(uint8_t idx = 0; idx < 16; idx++) {
             drawstate.transparent[idx] = (bitfield & 1);
             bitfield >>= 1;
         }
-        return T_NULL;
+        return 0;
     }
-    uint8_t idx = __get_int(arg, 0);
-    bool transparent = __get_bool(arg, 1);
+    uint8_t idx = luaL_checkinteger(L, 1);
+    bool transparent = luaL_checkinteger(L, 2);
     drawstate.transparent[idx] = transparent;
 
-    return T_NULL;
+    return 0;
 }
-*/
+
+uint8_t _lua_cos(lua_State *l) {
+    lua_pushnumber(l, fix32_cos(lua_tonumber(l, 1)));
+    return 1;
+}
 
 void registerLuaFunctions(lua_State* L) {
+    lua_pushcfunction(L, _lua_cos);
+    lua_setglobal(L, "cos");
     lua_pushcfunction(L, _lua_spr);
     lua_setglobal(L, "spr");
     lua_pushcfunction(L, _lua_sspr);
@@ -1203,11 +1219,15 @@ void registerLuaFunctions(lua_State* L) {
     lua_setglobal(L, "cls");
     lua_pushcfunction(L, _lua_map);
     lua_setglobal(L, "map");
-	/*
+    lua_pushcfunction(L, _lua_btn);
+    lua_setglobal(L, "btn");
+    lua_pushcfunction(L, _lua_btnp);
+    lua_setglobal(L, "btnp");
     lua_pushcfunction(L, _lua_palt);
     lua_setglobal(L, "palt");
     lua_pushcfunction(L, _lua_pal);
     lua_setglobal(L, "pal");
+	/*
     lua_pushcfunction(L, _lua_print);
     lua_setglobal(L, "print");
     lua_pushcfunction(L, _lua_rectfill);
@@ -1224,36 +1244,14 @@ void registerLuaFunctions(lua_State* L) {
     lua_setglobal(L, "oval");
     lua_pushcfunction(L, _lua_ovalfill);
     lua_setglobal(L, "ovalfill");
-    lua_pushcfunction(L, _lua_btn);
-    lua_setglobal(L, "btn");
-    lua_pushcfunction(L, _lua_btnp);
-    lua_setglobal(L, "btnp");
-    lua_pushcfunction(L, _lua_srand);
-    lua_setglobal(L, "srand");
-    lua_pushcfunction(L, _lua_rnd);
-    lua_setglobal(L, "rnd");
     lua_pushcfunction(L, _lua_pset);
     lua_setglobal(L, "pset");
-    lua_pushcfunction(L, _lua_pget);
-    lua_setglobal(L, "pget");
-    lua_pushcfunction(L, _lua_fget);
-    lua_setglobal(L, "fget");
-    lua_pushcfunction(L, _lua_mset);
-    lua_setglobal(L, "mset");
-    lua_pushcfunction(L, _lua_mget);
-    lua_setglobal(L, "mget");
     lua_pushcfunction(L, _lua_sget);
     lua_setglobal(L, "sget");
-    lua_pushcfunction(L, _lua_sset);
-    lua_setglobal(L, "sset");
     lua_pushcfunction(L, _lua_time);
     lua_setglobal(L, "t");
     lua_pushcfunction(L, _lua_time);
     lua_setglobal(L, "time");
-    lua_pushcfunction(L, _lua_sfx);
-    lua_setglobal(L, "sfx");
-    lua_pushcfunction(L, _lua_printh);
-    lua_setglobal(L, "printh");
     lua_pushcfunction(L, _lua_stub);
     lua_setglobal(L, "cartdata");
     lua_pushcfunction(L, _lua_dget);
@@ -1266,6 +1264,25 @@ void registerLuaFunctions(lua_State* L) {
     lua_setglobal(L, "music");
     lua_pushcfunction(L, _lua_camera);
     lua_setglobal(L, "camera");
+	*/
+    lua_pushcfunction(L, _lua_srand);
+    lua_setglobal(L, "srand");
+    lua_pushcfunction(L, _lua_rnd);
+    lua_setglobal(L, "rnd");
+    lua_pushcfunction(L, _lua_pget);
+    lua_setglobal(L, "pget");
+    lua_pushcfunction(L, _lua_fget);
+    lua_setglobal(L, "fget");
+    lua_pushcfunction(L, _lua_mset);
+    lua_setglobal(L, "mset");
+    lua_pushcfunction(L, _lua_mget);
+    lua_setglobal(L, "mget");
+    lua_pushcfunction(L, _lua_sset);
+    lua_setglobal(L, "sset");
+    lua_pushcfunction(L, _lua_sfx);
+    lua_setglobal(L, "sfx");
+    lua_pushcfunction(L, _lua_printh);
+    lua_setglobal(L, "printh");
     lua_pushcfunction(L, _lua_stat);
     lua_setglobal(L, "stat");
     lua_pushcfunction(L, _lua_clip);
@@ -1286,6 +1303,5 @@ void registerLuaFunctions(lua_State* L) {
     lua_setglobal(L, "extcmd");
     lua_pushcfunction(L, _lua_cursor);
     lua_setglobal(L, "cursor");
-	*/
 }
 ;

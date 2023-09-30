@@ -1,7 +1,9 @@
 #ifndef PICO8_API_H
 #define PICO8_API_H
 #include "data.h"
-#include "pico8.h" // temporary split as data.h has a bunch of crap
+#if 0
+#include "pico8_compiled_api.h" // temporary split as data.h has a bunch of crap
+#endif
 uint32_t cartdata[64];
 Spritesheet spritesheet;
 Spritesheet fontsheet;

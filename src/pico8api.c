@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "lua.h"
-#include "lua_math.h"
-#include "lua_table.h"
+
+#include "../lua/lua.h"
+#include "../lua/lauxlib.h"
 
 void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t color);
 // callers have to ensure this is not called with x > SCREEN_WIDTH or y > SCREEN_HEIGHT
@@ -196,60 +196,6 @@ palidx_t get_pixel(uint8_t x, uint8_t y) {
 }
 
 
-TValue_t cls(TVSlice_t args) {
-	int16_t idx = __opt_int(args, 0, 0);
-    gfx_cls(idx);
-	return T_NULL;
-}
-
-TValue_t spr(TVSlice_t args) {
-	uint16_t n = 	__get_int(args, 0);
-	int16_t x = 	__opt_int(args, 1, 0);
-	int16_t y = 	__opt_int(args, 2, 0);
-	fix32_t w = 	__opt_num(args, 3, fix32_from_int8(1));
-	fix32_t h = 	__opt_num(args, 4, fix32_from_int8(1));
-	bool flip_x = 	__opt_bool(args, 5, false);
-	bool flip_y = 	__opt_bool(args, 6, false);
-	// printf("sprite with spr=%d x=%d y=%d w=%d.%d h=%d.%d, flipx=%d, flipy=%d\n", n, x, y, w.i, w.f, h.i, h.f, flip_x, flip_y);
-	render_many(&spritesheet, n, x, y, -1, flip_x, flip_y, w, h);
-	return T_NULL;
-}
-
-//void map(int16_t mapX, int16_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
-TValue_t map(TVSlice_t args) {
-
-	int16_t mapX 		= __get_int(args, 0);
-	int16_t mapY 		= __get_int(args, 1);
-	int16_t screenX 	= __get_int(args, 2);
-	int16_t screenY 	= __get_int(args, 3);
-	uint8_t cellW 		= __get_int(args, 4);
-	uint8_t cellH 		= __get_int(args, 5);
-	uint8_t layerFlags 	= __opt_int(args, 6, 0);
-
-    //Map at 0 -16, S 0 0, C 16 16, F 4
-    if(mapX<0) return T_NULL;
-    if(mapY<0) return T_NULL;
-    const uint8_t sprite_count = 16;
-
-    for(uint8_t y = mapY; y < mapY+cellH; y++) {
-        int16_t ty = screenY+(y-mapY)*8;
-
-        for(uint8_t x = mapX; x < mapX+cellW; x++) {
-            uint8_t sprite = map_data[x+y*128];
-            if(sprite==0) continue;
-
-            int16_t tx = screenX+(x-mapX)*8;
-            uint8_t flags = spritesheet.flags[sprite];
-            const uint8_t xIndex = sprite % sprite_count;
-            const uint8_t yIndex = sprite / sprite_count;
-
-            if ((flags & layerFlags) == layerFlags && sprite != 0) {
-                render(&spritesheet, sprite, tx, ty, -1, false, false);
-            }
-        }
-    }
-	return T_NULL;
-}
 
 void render_text(Spritesheet* s, uint16_t sprite, uint8_t x0, uint8_t y0, uint8_t width_ratio, uint8_t height_ratio) {
     const uint8_t sprite_count = 16;
@@ -439,6 +385,87 @@ void gfx_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const palidx_t col
         if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
     }
 }
+void _replace_palette(uint8_t palIdx, lua_State* L) {
+    // Push another reference to the table on top of the stack (so we know
+    // where it is, and this function can work for negative, positive and
+    // pseudo indices
+    lua_pushvalue(L, 1);
+    // stack now contains: -1 => table
+    lua_pushnil(L);
+    // stack now contains: -1 => nil; -2 => table
+    while (lua_next(L, -2))
+    {
+        // stack now contains: -1 => value; -2 => key; -3 => table
+        const uint8_t value = luaL_checkinteger(L, -1);
+        const uint8_t key = luaL_checkinteger(L, -2);
+        palette[key] = value; // replace color
+        // pop value, leaving original key
+        lua_pop(L, 1);
+        // stack now contains: -1 => key; -2 => table
+    }
+    // stack now contains: -1 => table (when lua_next returns 0 it pops the key
+    // but does not push anything.)
+    // Pop table
+    lua_pop(L, 1);
+    // Stack is now the same as it was on entry to this function
+}
+
+
+void cls(uint8_t palIdx) {
+    gfx_cls(palIdx);
+}
+int _lua_cls(lua_State* L) {
+    uint8_t palIdx = luaL_optinteger(L, 1, 0);
+    cls(palIdx);
+    return 0;
+}
+
+int _lua_sspr(lua_State* L) {
+    // TODO: optional w/h/flip_x/flip_y
+    // sspr( sx, sy, sw, sh, dx, dy, [dw,] [dh,] [flip_x,] [flip_y] )
+    int sx = luaL_optinteger(L, 1, 0);
+    int sy = luaL_checkinteger(L, 2);
+    int sw = luaL_checkinteger(L, 3);
+    int sh = luaL_checkinteger(L, 4);
+    int dx = luaL_checkinteger(L, 5);
+    int dy = luaL_checkinteger(L, 6);
+    int dw = luaL_optinteger(L, 7, sw);
+    int dh = luaL_optinteger(L, 8, sh);
+    render_stretched(&spritesheet, sx, sy, sw, sh, dx, dy, dw, dh);
+    return 0;
+}
+
+void spr(uint16_t n, int16_t x, int16_t y, fix32_t w, fix32_t h, bool flip_x, bool flip_y) {
+    render_many(&spritesheet, n, x, y, -1, flip_x, flip_y, w, h);
+}
+
+int _lua_spr(lua_State* L) {
+    uint8_t argcount = lua_gettop(L);
+    if (argcount < 3)
+        return 0;
+
+    int n = luaL_optinteger(L, 1, -1);
+    if (n==-1)
+        return 0;
+    int x = luaL_checkinteger(L, 2);
+    int y = luaL_checkinteger(L, 3);
+    fix32_t w = luaL_optnumber(L, 4, __ONE);
+    fix32_t h = luaL_optnumber(L, 5, __ONE);
+
+    bool flip_x = false;
+    bool flip_y = false;
+
+    if (argcount >= 6)
+        flip_x = lua_toboolean(L, 6);
+    if (argcount >= 7)
+        flip_y = lua_toboolean(L, 7);
+
+    spr(n, x, y, w, h, flip_x, flip_y);
+
+    return 0;
+}
+
+/*
 TValue_t print(TVSlice_t args) {
 	// returns the X coordinate of the next character to be printed
 	Str_t* str;
@@ -448,7 +475,7 @@ TValue_t print(TVSlice_t args) {
 	} else if (args.elems[0].tag == NUL){
 		//str = GETSTRP(TSTR("nilstr"));
 		//i think this shouldn't be happening ->
-		print_trace();
+		//print_trace();
 		assert(false);
 	} else {
 		assert(args.elems[0].tag == NUM); // bool/etc implemented
@@ -483,88 +510,6 @@ TValue_t pal(TVSlice_t args) {
     pal_map[origIdx] = newIdx;
     return T_NULL;
 }
-/*
-
-void _replace_palette(uint8_t palIdx, lua_State* L) {
-    // Push another reference to the table on top of the stack (so we know
-    // where it is, and this function can work for negative, positive and
-    // pseudo indices
-    lua_pushvalue(L, 1);
-    // stack now contains: -1 => table
-    lua_pushnil(L);
-    // stack now contains: -1 => nil; -2 => table
-    while (lua_next(L, -2))
-    {
-        // stack now contains: -1 => value; -2 => key; -3 => table
-        const uint8_t value = luaL_checkinteger(L, -1);
-        const uint8_t key = luaL_checkinteger(L, -2);
-        palette[key] = value; // replace color
-        // pop value, leaving original key
-        lua_pop(L, 1);
-        // stack now contains: -1 => key; -2 => table
-    }
-    // stack now contains: -1 => table (when lua_next returns 0 it pops the key
-    // but does not push anything.)
-    // Pop table
-    lua_pop(L, 1);
-    // Stack is now the same as it was on entry to this function
-}
-
-
-inline void cls(uint8_t palIdx = 0) {
-    gfx_cls(palIdx);
-}
-int _lua_cls(lua_State* L) {
-    uint8_t palIdx = luaL_optinteger(L, 1, 0);
-    cls(palIdx);
-    return 0;
-}
-
-int _lua_sspr(lua_State* L) {
-    // TODO: optional w/h/flip_x/flip_y
-    // sspr( sx, sy, sw, sh, dx, dy, [dw,] [dh,] [flip_x,] [flip_y] )
-    int sx = luaL_optinteger(L, 1, 0);
-    int sy = luaL_checkinteger(L, 2);
-    int sw = luaL_checkinteger(L, 3);
-    int sh = luaL_checkinteger(L, 4);
-    int dx = luaL_checkinteger(L, 5);
-    int dy = luaL_checkinteger(L, 6);
-    int dw = luaL_optinteger(L, 7, sw);
-    int dh = luaL_optinteger(L, 8, sh);
-    render_stretched(&spritesheet, sx, sy, sw, sh, dx, dy, dw, dh);
-    return 0;
-}
-
-inline void spr(uint16_t n, fix32_t x, fix32_t y, fix32_t w = fix32_t(1.0f), fix32_t h = fix32_t(1.0f), bool flip_x = false, bool flip_y = false) {
-    render_many(&spritesheet, n, (int16_t)x, (int16_t)y, -1, flip_x, flip_y, w, h);
-}
-
-int _lua_spr(lua_State* L) {
-    uint8_t argcount = lua_gettop(L);
-    if (argcount < 3)
-        return 0;
-
-    int n = luaL_optinteger(L, 1, -1);
-    if (n==-1)
-        return 0;
-    int x = luaL_checkinteger(L, 2);
-    int y = luaL_checkinteger(L, 3);
-    fix32_t w = luaL_optinteger(L, 4, 1.0);
-    fix32_t h = luaL_optinteger(L, 5, 1.0);
-
-    bool flip_x = false;
-    bool flip_y = false;
-
-    if (argcount >= 6)
-        flip_x = lua_toboolean(L, 6);
-    if (argcount >= 7)
-        flip_y = lua_toboolean(L, 7);
-
-    spr(n, x, y, w, h, flip_x, flip_y);
-
-    return 0;
-}
-*/
 
 TValue_t line(TVSlice_t args) {
     //TODO: handle all cases https://pico-8.fandom.com/wiki/Line
@@ -648,8 +593,31 @@ TValue_t circfill(TVSlice_t args) {
     gfx_circlefill(x-drawstate.camera_x, y-drawstate.camera_y, r, col);
     return T_NULL;
 }
+*/
 
-/*
+void map(int16_t mapX, int16_t mapY, int16_t screenX, int16_t screenY, uint8_t cellW, uint8_t cellH, uint8_t layerFlags) {
+    if(mapX<0) return;
+    if(mapY<0) return;
+    const uint8_t sprite_count = 16;
+
+    for(uint8_t y = mapY; y < mapY+cellH; y++) {
+        int16_t ty = screenY+(y-mapY)*8;
+
+        for(uint8_t x = mapX; x < mapX+cellW; x++) {
+            uint8_t sprite = map_data[x+y*128];
+            if(sprite==0) continue;
+
+            int16_t tx = screenX+(x-mapX)*8;
+            uint8_t flags = spritesheet.flags[sprite];
+            const uint8_t xIndex = sprite % sprite_count;
+            const uint8_t yIndex = sprite / sprite_count;
+
+            if ((flags & layerFlags) == layerFlags && sprite != 0) {
+                render(&spritesheet, sprite, tx, ty, -1, false, false);
+            }
+        }
+    }
+}
 int _lua_map(lua_State* L) {
     uint8_t argcount = lua_gettop(L);
     if (argcount == 0) {
@@ -661,7 +629,7 @@ int _lua_map(lua_State* L) {
     int screenY = luaL_checkinteger(L, 4);
     int cellW = luaL_checkinteger(L, 5);
     int cellH = luaL_checkinteger(L, 6);
-    uint32_t layerFlags = luaL_optinteger(L, 7, 0x0);
+    uint32_t layerFlags = luaL_optinteger(L, 7, 0);
 
     cellW = MIN(cellW, 63);
     cellH = MIN(cellH, 63);
@@ -684,9 +652,9 @@ int _lua_rnd(lua_State* L) {
         lua_gettable(L, 1);
 	    return 1;
     }
-    float limit = luaL_optnumber(L, 1, 1.0f);
-    float x = (float)rand()/(float)(RAND_MAX/limit);
-    lua_pushnumber(L, x);
+    fix32_t limit = luaL_optnumber(L, 1, __ONE);
+    float x = (float)rand()/(float)((float)RAND_MAX/fix32_to_float(limit));
+    lua_pushnumber(L, fix32_from_float(x));
     return 1;
 }
 
@@ -746,9 +714,6 @@ int _lua_pget(lua_State* L) {
     lua_pushinteger(L, p);
     return 1;
 }
-
-
-
 
 
 int _lua_printh(lua_State* L) {
@@ -812,7 +777,7 @@ int _lua_sfx(lua_State* L) {
         channels[channel].sfx      = NULL;
         channels[channel].sfx_id   = 0;
         channels[channel].offset   = 0;
-        channels[channel].phi      = 0;
+        channels[channel].phi      = __ZERO;
         return 0;
     }
 
@@ -820,7 +785,7 @@ int _lua_sfx(lua_State* L) {
     channels[channel].offset    = 0; // TODO
     channels[channel].sfx       = &sfx[n];
     channels[channel].sfx_id    = n;
-    channels[channel].phi       = 0;
+    channels[channel].phi       = __ZERO;
 
     return 0;
 }
@@ -913,9 +878,9 @@ int _lua_cursor(lua_State* L) {
 	drawstate.cursor_y = y;
 	drawstate.pen_color = paletteIdx;
 
-    lua_pushnumber(L, old_cursor_x);
-    lua_pushnumber(L, old_cursor_y);
-    lua_pushnumber(L, old_cursor_c);
+    lua_pushinteger(L, old_cursor_x);
+    lua_pushinteger(L, old_cursor_y);
+    lua_pushinteger(L, old_cursor_c);
 
     return 3;
 }
@@ -965,7 +930,6 @@ int _lua_poke4(lua_State* L) {
     }
     return 0;
 }
-*/
 void _fast_render(Spritesheet* s, uint16_t sx, uint16_t sy, int16_t x0, int16_t y0) {
     uint16_t val;
 
@@ -1059,7 +1023,7 @@ void render_many(Spritesheet* s, uint16_t n, int16_t x0, int16_t y0, int palette
 	}
 }
 
-inline void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y) {
+void render(Spritesheet* s, uint16_t n, uint16_t x0, uint16_t y0, int paletteIdx, bool flip_x, bool flip_y) {
     const uint8_t sprite_count = 16;
     const uint8_t xIndex = n % sprite_count;
     const uint8_t yIndex = n / sprite_count;
@@ -1097,6 +1061,7 @@ void render_stretched(Spritesheet* s, uint16_t sx, uint16_t sy, uint16_t sw, uin
     }
 }
 
+/*
 TValue_t dget(TValue_t idx) {
 	assert(idx.tag == NUM);
 	assert(idx.num.f == 0);
@@ -1113,6 +1078,15 @@ TValue_t dset(TValue_t idx, TValue_t value) {
     return T_NULL;
 }
 
+TValue_t pset(TVSlice_t args) {
+    int16_t x = __get_int(args, 0);
+    int16_t y = __get_int(args, 1);
+    int16_t idx = __opt_int(args, 2, drawstate.pen_color);
+    _pset(x, y, idx);
+    return T_NULL;
+}
+*/
+
 void _pset(int16_t x, int16_t y, int16_t idx) {
     drawstate.pen_color = idx;
     if(drawstate.transparent[idx] == 1)
@@ -1123,25 +1097,19 @@ void _pset(int16_t x, int16_t y, int16_t idx) {
     put_pixel(tx, ty, idx);
 }
 
-TValue_t pset(TVSlice_t args) {
-    int16_t x = __get_int(args, 0);
-    int16_t y = __get_int(args, 1);
-    int16_t idx = __opt_int(args, 2, drawstate.pen_color);
-    _pset(x, y, idx);
-    return T_NULL;
-}
-
 uint8_t _sget(int16_t x, int16_t y) {
     if (x < 0 || x > 127 || y < 0 || y > 127)
         return 0;
     return spritesheet.sprite_data[y*128+x];
 }
+/*
 TValue_t sget(TValue_t x, TValue_t y) {
 	assert(x.tag == NUM);
 	assert(y.tag == NUM);
 
     return TNUM(_sget(x.num.i, y.num.i));
 }
+
 TValue_t btn(TVSlice_t args) {
 	uint8_t argcount = args.num;
 	if (argcount == 0) {
@@ -1224,60 +1192,100 @@ TValue_t palt(TVSlice_t arg) {
 
     return T_NULL;
 }
+*/
 
-
-
-#include "pico8_placeholders.c"
-
-pico8_t pico8 = {
-	.cls=cls,
-	.btn=btn,
-	.map=map,
-	.spr=spr,
-	.print=print,
-	.pal=pal,
-	.rect=rect,
-	.rectfill=rectfill,
-	.circ=circ,
-	.circfill=circfill,
-	.oval=oval,
-	.ovalfill=ovalfill,
-	.line=line,
-	.btnp=btnp,
-	.palt=palt,
-	.sfx=_sfx,
-	.music=music,
-	.fget=fget,
-	.camera=camera,
-	.pset=pset,
-	.poke=poke,
-	.poke2=poke2,
-	.poke4=poke4,
-	.peek=peek,
-	.peek2=peek2,
-	.peek4=peek4,
-	.color=color,
-	.fillp=fillp,
-	.sspr=sspr,
-	._update=NULL, // these are set by `load_game_code`
-	._draw=NULL,
-	.flip=flip,
-	._time=_time,
-	.t=_time, // an alias of time
-	.menuitem=menuitem,
-	.reload=reload,
-	 // 1 arg
-	.extcmd=extcmd,
-	.fast_peek=fast_peek,
-	.fast_peek2=fast_peek2,
-	.fast_peek4=fast_peek4,
-	.dget=dget,
-	.cartdata=_cartdata,
-	// 2 arg
-	.pget=pget,
-	.sget=sget,
-	.mget=mget,
-	.dset=dset,
-	// 3 arg
-	.mset=mset,
-};
+void registerLuaFunctions(lua_State* L) {
+    lua_pushcfunction(L, _lua_spr);
+    lua_setglobal(L, "spr");
+    lua_pushcfunction(L, _lua_sspr);
+    lua_setglobal(L, "sspr");
+    lua_pushcfunction(L, _lua_cls);
+    lua_setglobal(L, "cls");
+    lua_pushcfunction(L, _lua_map);
+    lua_setglobal(L, "map");
+	/*
+    lua_pushcfunction(L, _lua_palt);
+    lua_setglobal(L, "palt");
+    lua_pushcfunction(L, _lua_pal);
+    lua_setglobal(L, "pal");
+    lua_pushcfunction(L, _lua_print);
+    lua_setglobal(L, "print");
+    lua_pushcfunction(L, _lua_rectfill);
+    lua_setglobal(L, "rectfill");
+    lua_pushcfunction(L, _lua_rect);
+    lua_setglobal(L, "rect");
+    lua_pushcfunction(L, _lua_line);
+    lua_setglobal(L, "line");
+    lua_pushcfunction(L, _lua_circ);
+    lua_setglobal(L, "circ");
+    lua_pushcfunction(L, _lua_circfill);
+    lua_setglobal(L, "circfill");
+    lua_pushcfunction(L, _lua_oval);
+    lua_setglobal(L, "oval");
+    lua_pushcfunction(L, _lua_ovalfill);
+    lua_setglobal(L, "ovalfill");
+    lua_pushcfunction(L, _lua_btn);
+    lua_setglobal(L, "btn");
+    lua_pushcfunction(L, _lua_btnp);
+    lua_setglobal(L, "btnp");
+    lua_pushcfunction(L, _lua_srand);
+    lua_setglobal(L, "srand");
+    lua_pushcfunction(L, _lua_rnd);
+    lua_setglobal(L, "rnd");
+    lua_pushcfunction(L, _lua_pset);
+    lua_setglobal(L, "pset");
+    lua_pushcfunction(L, _lua_pget);
+    lua_setglobal(L, "pget");
+    lua_pushcfunction(L, _lua_fget);
+    lua_setglobal(L, "fget");
+    lua_pushcfunction(L, _lua_mset);
+    lua_setglobal(L, "mset");
+    lua_pushcfunction(L, _lua_mget);
+    lua_setglobal(L, "mget");
+    lua_pushcfunction(L, _lua_sget);
+    lua_setglobal(L, "sget");
+    lua_pushcfunction(L, _lua_sset);
+    lua_setglobal(L, "sset");
+    lua_pushcfunction(L, _lua_time);
+    lua_setglobal(L, "t");
+    lua_pushcfunction(L, _lua_time);
+    lua_setglobal(L, "time");
+    lua_pushcfunction(L, _lua_sfx);
+    lua_setglobal(L, "sfx");
+    lua_pushcfunction(L, _lua_printh);
+    lua_setglobal(L, "printh");
+    lua_pushcfunction(L, _lua_stub);
+    lua_setglobal(L, "cartdata");
+    lua_pushcfunction(L, _lua_dget);
+    lua_setglobal(L, "dget");
+    lua_pushcfunction(L, _lua_dset);
+    lua_setglobal(L, "dset");
+    lua_pushcfunction(L, _lua_stub);
+    lua_setglobal(L, "menuitem");
+    lua_pushcfunction(L, _lua_stub);
+    lua_setglobal(L, "music");
+    lua_pushcfunction(L, _lua_camera);
+    lua_setglobal(L, "camera");
+    lua_pushcfunction(L, _lua_stat);
+    lua_setglobal(L, "stat");
+    lua_pushcfunction(L, _lua_clip);
+    lua_setglobal(L, "clip");
+    lua_pushcfunction(L, _lua_color);
+    lua_setglobal(L, "color");
+    lua_pushcfunction(L, _lua_poke);
+    lua_setglobal(L, "poke");
+    lua_pushcfunction(L, _lua_poke4);
+    lua_setglobal(L, "poke4");
+    lua_pushcfunction(L, _lua_flip);
+    lua_setglobal(L, "flip");
+    lua_pushcfunction(L, _lua_fillp);
+    lua_setglobal(L, "fillp");
+    lua_pushcfunction(L, _lua_reload);
+    lua_setglobal(L, "reload");
+    lua_pushcfunction(L, _extcmd);
+    lua_setglobal(L, "extcmd");
+    lua_pushcfunction(L, _lua_cursor);
+    lua_setglobal(L, "cursor");
+	*/
+}
+;

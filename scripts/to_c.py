@@ -43,6 +43,14 @@ def chunked(lst, chunk_size: int):
     return [lst[i : i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
+def compile_lua_to_bytecode(lua_code: bytes) -> bytes:
+    command = ['/home/david/git/PicoPico/lua/luac', '-o', '-', '-s', '-']
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    bytecode, _ = p.communicate(lua_code)
+    if p.returncode != 0:
+        raise ValueError("dead")
+    return bytecode
+
 def compile_lua_to_shared_object(lua_code: bytes) -> bytes:
     LUA_DIR = "/home/david/git/lua-but-worse"
     PICOPICO_DIR = "/home/david/git/PicoPico/src"
@@ -105,7 +113,9 @@ def process_cart(name: str, data: bytes) -> GameCart:
             continue
         sections[section].append(bytes(line))
 
-    sections[LUA_HEADER] = compile_lua_to_shared_object(b"\n".join(sections.get(LUA_HEADER, b"")))
+    _compile = compile_lua_to_shared_object
+    _compile = compile_lua_to_bytecode
+    sections[LUA_HEADER] = _compile(b"\n".join(sections.get(LUA_HEADER, b"")))
 
     gc = GameCart(
         name=name,
@@ -225,7 +235,9 @@ def parse(fname: Path, process_as: ProcessType, debug: bool = False):
         data = to_char_value(b"".join(data.splitlines()))
         output.append(f"const uint16_t {bname}_len = {len(data)};")
     else:
-        data = compile_lua_to_shared_object(data)
+        _compile = compile_lua_to_shared_object
+        _compile = compile_lua_to_bytecode
+        data = _compile(data)
 
     initial_len = len(data)
     processed_data = data
@@ -254,19 +266,20 @@ def main():
     args = parse_args()
     debug = True
     if args.emit_stdlib:
+        print(parse(Path("artifacts/stdlib.lua"), ProcessType.COMPILE, debug))
         print(parse(Path("artifacts/font.lua"), ProcessType.RAW, debug))
         print(parse(Path("artifacts/hud.p8"), ProcessType.RAW, debug))
 
     games = []
     for f in Path(args.directory).glob("*.p8"):
-        if f.stem in ['celeste', 'aalpaca', '']:
-            continue
+        #if f.stem not in ['rockets', 'tennis']:
+        #    continue
         print(f"Parsing {f}", file=sys.stderr)
         try:
             print(parse_cart(f, debug))
         except ValueError:
             print('  failed', file=sys.stderr)
-            continue
+            return
         games.append(path_to_identifier(f))
 
     print(f"GameCart* {args.cart_prefix}carts[] = {{")

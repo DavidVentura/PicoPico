@@ -7,8 +7,9 @@
 #include "hud.c"
 #include "sfx.c"
 #include "pico8api.c"
-//#include "lua/lauxlib.h"
-//#include "lua/lualib.h"
+#include "lua/lauxlib.h"
+#include "lua/lualib.h"
+#include "lua/lua.h"
 #include <string.h>
 #include <stdbool.h>
 
@@ -24,14 +25,13 @@ static uint8_t  ms_delay = 33;
 static uint32_t frame_start_time;
 static uint32_t frame_end_time;
 
-//static lua_State *L = NULL;
-//void registerLuaFunctions();
+static lua_State *L = NULL;
+void registerLuaFunctions();
 
-/*
 static int p_init_lua(lua_State* _L) {
     luaL_checkversion(_L);
-    lua_gc(_L, LUA_GCSTOP, 0);  / * stop collector during initialization * /
-    luaL_openlibs(_L);  / * open libraries * /
+    lua_gc(_L, LUA_GCSTOP, 0);  /* stop collector during initialization */
+    luaL_openlibs(_L);  /* open libraries */
     lua_gc(_L, LUA_GCRESTART, 0);
     return 1;
 }
@@ -52,10 +52,10 @@ bool init_lua(const uint8_t* bytecode, uint16_t code_len) {
         return false;
     }
 
-    registerLuaFunctions();
+    registerLuaFunctions(L);
     uint32_t start_time = now();
     uint32_t end_time;
-    int error = luaL_loadbuffer(L, (const char*)stdlib_stdlib_lua, stdlib_stdlib_lua_len, "stdlib") || lua_pcall(L, 0, 0, 0);
+    int error = luaL_loadbuffer(L, (const char*)artifacts_stdlib_lua, artifacts_stdlib_lua_len, "stdlib") || lua_pcall(L, 0, 0, 0);
     if (error) {
         goto handle_error;
     }
@@ -77,7 +77,6 @@ handle_error:
     lua_close(L);
     return false;
 }
-*/
 
 void reset_transparency() {
     memset(drawstate.transparent, 0, sizeof(drawstate.transparent));
@@ -116,8 +115,10 @@ void load_game_code(GameCart* cart) {
 	cart->_draw_fn = dlsym(libhandle, "_draw");
 	printf("err %s\n", dlerror());
 
+#if 0
 	pico8._update = cart->_update_fn;
 	pico8._draw = cart->_draw_fn;
+#endif
 }
 
 void engine_init() {
@@ -169,102 +170,11 @@ void cartParser(GameCart* parsingCart) {
 	for(uint8_t i=0; i<(parsingCart->sfx_len/168); i++) {
 		SFXParser(parsingCart->sfx+(i*168), i, sfx);
 	}
+#if 0
 	load_game_code(parsingCart);
+#endif
+	init_lua(parsingCart->code, parsingCart->code_len);
 }
-/*
-void registerLuaFunctions() {
-    lua_pushcfunction(L, _lua_spr);
-    lua_setglobal(L, "spr");
-    lua_pushcfunction(L, _lua_sspr);
-    lua_setglobal(L, "sspr");
-    lua_pushcfunction(L, _lua_cls);
-    lua_setglobal(L, "cls");
-    lua_pushcfunction(L, _lua_palt);
-    lua_setglobal(L, "palt");
-    lua_pushcfunction(L, _lua_pal);
-    lua_setglobal(L, "pal");
-    lua_pushcfunction(L, _lua_print);
-    lua_setglobal(L, "print");
-    lua_pushcfunction(L, _lua_rectfill);
-    lua_setglobal(L, "rectfill");
-    lua_pushcfunction(L, _lua_rect);
-    lua_setglobal(L, "rect");
-    lua_pushcfunction(L, _lua_line);
-    lua_setglobal(L, "line");
-    lua_pushcfunction(L, _lua_circ);
-    lua_setglobal(L, "circ");
-    lua_pushcfunction(L, _lua_circfill);
-    lua_setglobal(L, "circfill");
-    lua_pushcfunction(L, _lua_oval);
-    lua_setglobal(L, "oval");
-    lua_pushcfunction(L, _lua_ovalfill);
-    lua_setglobal(L, "ovalfill");
-    lua_pushcfunction(L, _lua_btn);
-    lua_setglobal(L, "btn");
-    lua_pushcfunction(L, _lua_btnp);
-    lua_setglobal(L, "btnp");
-    lua_pushcfunction(L, _lua_map);
-    lua_setglobal(L, "map");
-    lua_pushcfunction(L, _lua_srand);
-    lua_setglobal(L, "srand");
-    lua_pushcfunction(L, _lua_rnd);
-    lua_setglobal(L, "rnd");
-    lua_pushcfunction(L, _lua_pset);
-    lua_setglobal(L, "pset");
-    lua_pushcfunction(L, _lua_pget);
-    lua_setglobal(L, "pget");
-    lua_pushcfunction(L, _lua_fget);
-    lua_setglobal(L, "fget");
-    lua_pushcfunction(L, _lua_mset);
-    lua_setglobal(L, "mset");
-    lua_pushcfunction(L, _lua_mget);
-    lua_setglobal(L, "mget");
-    lua_pushcfunction(L, _lua_sget);
-    lua_setglobal(L, "sget");
-    lua_pushcfunction(L, _lua_sset);
-    lua_setglobal(L, "sset");
-    lua_pushcfunction(L, _lua_time);
-    lua_setglobal(L, "t");
-    lua_pushcfunction(L, _lua_time);
-    lua_setglobal(L, "time");
-    lua_pushcfunction(L, _lua_sfx);
-    lua_setglobal(L, "sfx");
-    lua_pushcfunction(L, _lua_printh);
-    lua_setglobal(L, "printh");
-    lua_pushcfunction(L, _lua_stub);
-    lua_setglobal(L, "cartdata");
-    lua_pushcfunction(L, _lua_dget);
-    lua_setglobal(L, "dget");
-    lua_pushcfunction(L, _lua_dset);
-    lua_setglobal(L, "dset");
-    lua_pushcfunction(L, _lua_stub);
-    lua_setglobal(L, "menuitem");
-    lua_pushcfunction(L, _lua_stub);
-    lua_setglobal(L, "music");
-    lua_pushcfunction(L, _lua_camera);
-    lua_setglobal(L, "camera");
-    lua_pushcfunction(L, _lua_stat);
-    lua_setglobal(L, "stat");
-    lua_pushcfunction(L, _lua_clip);
-    lua_setglobal(L, "clip");
-    lua_pushcfunction(L, _lua_color);
-    lua_setglobal(L, "color");
-    lua_pushcfunction(L, _lua_poke);
-    lua_setglobal(L, "poke");
-    lua_pushcfunction(L, _lua_poke4);
-    lua_setglobal(L, "poke4");
-    lua_pushcfunction(L, _lua_flip);
-    lua_setglobal(L, "flip");
-    lua_pushcfunction(L, _lua_fillp);
-    lua_setglobal(L, "fillp");
-    lua_pushcfunction(L, _lua_reload);
-    lua_setglobal(L, "reload");
-    lua_pushcfunction(L, _extcmd);
-    lua_setglobal(L, "extcmd");
-    lua_pushcfunction(L, _lua_cursor);
-    lua_setglobal(L, "cursor");
-}
-
 bool _lua_fn_exists(const char* fn) {
     lua_getglobal(L, fn);
     if (lua_isfunction(L, -1)) {
@@ -285,7 +195,6 @@ uint8_t _to_lua_call(const char* fn) {
 		return 1;
 	}
 }
-*/
 
 void flip() {
     gfx_flip();

@@ -1,6 +1,7 @@
 [submodule "lua"]
 	path = lua
 	url = git@github.com:DavidVentura/z8lua.git
+	branch = fix32
 [submodule "SDL"]
 	path = SDL
 	url = git@github.com:libsdl-org/SDL.git

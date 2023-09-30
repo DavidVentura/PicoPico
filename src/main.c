@@ -1,5 +1,6 @@
 //#include "lua/lua.h"
 #include "fix32.h"
+#include "lua.h"
 #include <stdbool.h>
 #include "engine.c"
 #if defined(SDL_BACKEND)
@@ -106,8 +107,10 @@ int pico8_main() {
     printf("Parsing cart %s\n", cart.name);
     cartParser(&cart);
 
-	cart._preinit_fn();
-	if(cart._init_fn) cart._init_fn();
+	//cart._preinit_fn();
+	//if(cart._init_fn) cart._init_fn();
+	_to_lua_call("_init");
+	bool call_draw = true;
 	bool call_update = true;
 	bool call_update60 = false;
 
@@ -139,21 +142,26 @@ int pico8_main() {
         update_start_time = now();
         (void)update_start_time;
         (void)update_end_time; // logging is conditional, this makes the unused warning go away
-        //if (call_update) _to_lua_call("_update");
-        //if (call_update60) _to_lua_call("_update60");
+        if (call_update) _to_lua_call("_update");
+        if (call_update60) _to_lua_call("_update60");
+		/*
 		if (cart._update_fn) {
 			DEBUG2_PRINT("Calling upd\n");
 			cart._update_fn();
 			DEBUG2_PRINT("/Calling upd\n");
 		}
+		*/
         update_end_time = now();
 
         draw_start_time = now();
+		/*
 		if(cart._draw_fn && !skip_next_render) {
 			DEBUG2_PRINT("Calling draw\n");
 			cart._draw_fn();
 			DEBUG2_PRINT("/Calling draw\n");
 		}
+		*/
+        if (call_draw) _to_lua_call("_draw");
         draw_end_time = now();
 
         if (draw_end_time - draw_start_time > ms_delay)
@@ -161,7 +169,7 @@ int pico8_main() {
         else
             skip_next_render = false;
 
-        //lua_gc(L, LUA_GCSTEP, 0);
+        lua_gc(L, LUA_GCSTEP, 0);
 
         // printf("FE %d, FS %d, UE %d, US %d, DE %d, DS %d\n",frame_end_time, frame_start_time, update_end_time, update_start_time, draw_end_time, draw_start_time);
         // printf("Frame: %03d [U: %d, D: %03d], Remaining: %d\n", frame_end_time - frame_start_time, update_end_time - update_start_time, draw_end_time - draw_start_time, delta);
@@ -170,10 +178,11 @@ int pico8_main() {
             drawHud();
             draw_hud();
         }
+		//run_gc();
 		flip();
     }
 
-    //lua_close(L);
+    lua_close(L);
     video_close();
     return 0;
 }

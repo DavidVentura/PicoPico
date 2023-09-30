@@ -234,11 +234,12 @@ elseif(BACKEND STREQUAL "RAWDRAW")
 		src/generated/static_game_data.h
 		src/entrypoint.c
 		~/git/lua-but-worse/fix32.c
-		~/git/lua-but-worse/lua.c
-		~/git/lua-but-worse/lua_math.c
-		~/git/lua-but-worse/lua_table.c
+		#~/git/lua-but-worse/lua.c
+		#~/git/lua-but-worse/lua_math.c
+		#~/git/lua-but-worse/lua_table.c
 		)
 
+	add_subdirectory(lua)
 	target_link_libraries(rawdraw_pico
 		asound
 		m
@@ -247,15 +248,17 @@ elseif(BACKEND STREQUAL "RAWDRAW")
 		dl
 		X11
 		Xinerama
+		my_lua_lib
 		)
 
 	target_include_directories(rawdraw_pico PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}
 		rawdraw
-		/home/david/git/lua-but-worse/
+		#/home/david/git/lua-but-worse/
+		/home/david/git/PicoPico/lua/
 		)
 
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address -g")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -fsingle-precision-constant -Wall -Wno-unused-parameter -Wshadow -Wundef -fsanitize=address -Wmissing-field-initializers -g")
 	#SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg -lX11 -lpthread -lXinerama -lXext -lGL -g -lm -ldl")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
@@ -314,7 +317,7 @@ elseif(BACKEND STREQUAL "TEST")
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		DEPENDS ${ALL_REGRESSION_FILES}
 	)
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address -Wmissing-field-initializers")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -fsingle-precision-constant -Wall -Wshadow -Wundef -fsanitize=address -Wmissing-field-initializers -Werror=missing-field-initializers")
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 	SET(test_compile_options -g -DTEST_BACKEND=1 -DLUA_USE_LINUX=1 -DSCREEN_WIDTH=128 -DSCREEN_HEIGHT=128 -DHUD_HEIGHT=12 -fprofile-arcs -ftest-coverage)
